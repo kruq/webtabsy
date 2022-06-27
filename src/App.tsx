@@ -7,7 +7,8 @@ function App() {
 
   let d;  
   fetch('https://webtabsyapi.execa.pl/medicine', {mode:'cors'})
-                .then(res => d = res.json());
+                .then(res => d = JSON.stringify(res.json())); 
+
 /*
   async function getData() {
     try {
