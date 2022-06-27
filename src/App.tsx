@@ -1,35 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
 // import axios from 'axios';
 
 function App() {
 
-  let d;  
-  fetch('https://webtabsyapi.execa.pl/medicine', {mode:'cors'})
-    .then(res => {
-          d = res;
-          console.log(d);
-          console.log(d.body);
-          d = d.body;
-      });
+  let [medicines, setMedicines] = useState('');
 
-/*
-  async function getData() {
-    try {
-      const response = await axios.get('https://webtabsyapi.execa.pl/medicine');
-      return response.json()
-    } catch (error) {
-      console.log(error);  
-    }
-  }
-
-  const Data = ({data: []}) : Component => (
-    <p>
-        {data.map((x: string,i: number) => (<p key={i}>{x}</p>))}
-    </p>
-  );
-*/
+  useEffect(() => {
+    fetch('https://webtabsyapi.execa.pl/medicine', {mode:'cors'})
+    .then(res => res.text())
+    .then(text => { setMedicines(text); });
+  }, []);
 
   return (
     <div className="App">
@@ -38,7 +20,7 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
-        <p>{ d }</p>
+        <p>{ medicines }</p>
         <a
           className="App-link"
           href="https://reactjs.org"
