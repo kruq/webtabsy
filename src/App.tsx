@@ -10,9 +10,8 @@ function App() {
     .then(res => {
           d = res;
           console.log(d);
-          console.log(d.json());
-          console.log(JSON.stringify(d.json()))
-          d = JSON.stringify(d.json());
+          console.log(d.body);
+          d = d.body;
       });
 
 /*
