@@ -6,7 +6,7 @@ import './App.css';
 function App() {
 
   let d;  
-  fetch('http://webtabsyapi.execa.pl/medicine', {mode:'cors'})
+  fetch('https://webtabsyapi.execa.pl/medicine', {mode:'cors'})
                 .then(res => d = res.json());
 /*
   async function getData() {
