@@ -11,7 +11,7 @@ function App() {
 /*
   async function getData() {
     try {
-      const response = await axios.get('http://webtabsyapi.execa.pl/medicine');
+      const response = await axios.get('https://webtabsyapi.execa.pl/medicine');
       return response.json()
     } catch (error) {
       console.log(error);  
