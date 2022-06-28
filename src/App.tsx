@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
-// import axios from 'axios';
 
 function App() {
 
-  let [medicines, setMedicines] = useState('');
+  let [medicines, setMedicines] = useState('Ładuję...');
 
   useEffect(() => {
-    fetch('https://webtabsyapi.execa.pl/medicine', {mode:'cors'})
+    fetch('https://webtabsyapi.execa.pl/medicine', { mode:'cors' })
     .then(res => res.text())
     .then(text => { setMedicines(text); });
   }, []);
