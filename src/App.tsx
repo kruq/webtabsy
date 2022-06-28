@@ -1,33 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
 import './App.css';
+
+type Medicine = { name: string }
 
 function App() {
 
-  let [medicines, setMedicines] = useState('Ładuję...');
+//  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
+  const apiUrl = 'https://localhost:7078/medicine'
+
+  let [medicines, setMedicines] = useState([]);
 
   useEffect(() => {
-    fetch('https://webtabsyapi.execa.pl/medicine', { mode:'cors' })
-    .then(res => res.text())
+    fetch(apiUrl, { mode:'cors' })
+    .then(res => res.json())
     .then(text => { setMedicines(text); });
   }, []);
+
+  const addMedicine = () => {
+    fetch(apiUrl, { 
+        method: "POST", 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: "aaa", name: "Nowy lek" }) 
+    });
+  }
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+            Webtabsy
         </p>
-        <p>{ medicines }</p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Webtabsy are going
-        </a>
+        <div>
+            <label>Nazwa leku:</label>
+            <input type="text" />
+            <button type="button" onClick={addMedicine}>Dodaj</button>
+        </div>
+        <div>{ medicines.map((x: {id: string, name: string},i) => <p key={i}>{x.id}: {x.name}</p>) }</div>
       </header>
     </div>
   );
