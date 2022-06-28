@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-type Medicine = { name: string }
+// type Medicine = { name: string }
 
 function App() {
 
-//  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
-  const apiUrl = 'https://localhost:7078/medicine'
+  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
+//  const apiUrl = 'https://localhost:7078/medicine'
 
   let [medicines, setMedicines] = useState([]);
 
