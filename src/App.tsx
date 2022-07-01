@@ -5,11 +5,11 @@ import './App.css';
 
 function App() {
 
-  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
-//  const apiUrl = 'https://localhost:7078/medicine'
+//  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
+  const apiUrl = 'https://localhost:7078/medicine'
 
   const [medicines, setMedicines] = useState([]);
-  const [newMedicineName, setNewMedicineName] = useState('Nazwa leku');
+  const [newMedicineName, setNewMedicineName] = useState('');
 
 
   const fetchMedicines = () => {
@@ -25,7 +25,15 @@ function App() {
         body: JSON.stringify({ name: newMedicineName }) 
     })
     .then(_ => fetchMedicines());
-    
+  }
+
+  const deleteMedicine = (medicine: { id: string, name: string }) => {
+    fetch(apiUrl, {
+      method: "DELETE",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(medicine)
+    })
+    .then(_ => fetchMedicines());
   }
 
   useEffect(() => {
@@ -52,7 +60,12 @@ function App() {
               <button type="button" onClick={addMedicine}>Dodaj</button>
             </p>
         </div>
-        <div>{ medicines.map((x:{ name: string },i) => <p key={i}>{i}: {x.name}</p>) }</div>
+        <div>{ medicines.map((x:{ id: string, name: string },i) => 
+                <div key={i}>
+                  <button onClick={() => deleteMedicine(x)}>Usuń</button> {x.name}
+                </div>) 
+             }
+        </div>
       </section>
     </div>
   );
