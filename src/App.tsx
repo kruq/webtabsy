@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// type Medicine = { name: string }
+
+interface IMedicine { 
+  id: string; 
+  name: string;
+  count: number; 
+}
 
 function App() {
 
   const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
 //  const apiUrl = 'https://localhost:7078/medicine'
 
-  const [medicines, setMedicines] = useState([]);
+  const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
 
 
@@ -27,7 +32,16 @@ function App() {
     .then(_ => fetchMedicines());
   }
 
-  const deleteMedicine = (medicine: { id: string, name: string }) => {
+  const updateMedicine = (medicine: IMedicine) => {
+    fetch(apiUrl, {
+      method: "PUT",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(medicine)
+    })
+    .then(_ => fetchMedicines());
+  }
+
+  const deleteMedicine = (medicine: IMedicine) => {
     fetch(apiUrl, {
       method: "DELETE",
       headers: { 'Content-Type': 'application/json' },
@@ -42,6 +56,13 @@ function App() {
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
+  }
+
+  const handleMedicineCountChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const m: IMedicine[] = [...medicines];
+    m[index].count = parseFloat(event.target.value);
+    setMedicines(m);
+    updateMedicine(m[index]);
   }
 
   return (
@@ -60,9 +81,10 @@ function App() {
               <button type="button" onClick={addMedicine}>Dodaj</button>
             </p>
         </div>
-        <div>{ medicines.map((x:{ id: string, name: string },i) => 
+        <div>{ medicines.map((x: IMedicine, i:number) => 
                 <div key={i}>
-                  <button onClick={() => deleteMedicine(x)}>Usuń</button> {x.name}
+                  <h2><button onClick={() => deleteMedicine(x)}>Usuń</button> {x.name}: {x.count} tab.</h2>
+                  Ustaw ilość: <input type="number" value={x.count} onChange={(e) => handleMedicineCountChange(e, i)} />
                 </div>) 
              }
         </div>

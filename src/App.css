@@ -8,6 +8,17 @@
   pointer-events: none;
 }
 
+input {
+  padding: 5px;
+  margin: 0px 2px;
+}
+
+button {
+  padding: 5px 15px;
+  margin: 0px 2px;
+  background: #acf;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
