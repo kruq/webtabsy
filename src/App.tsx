@@ -5,16 +5,19 @@ import './App.css';
 interface IMedicine { 
   id: string; 
   name: string;
-  count: number; 
+  count: number;
+  dose: number;
+  lastDateTaken: Date;  
 }
 
 function App() {
 
-  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
-//  const apiUrl = 'https://localhost:7078/medicine'
+//  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
+  const apiUrl = 'https://localhost:7078/medicine'
 
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
+  const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
 
 
   const fetchMedicines = () => {
@@ -50,6 +53,17 @@ function App() {
     .then(_ => fetchMedicines());
   }
 
+  const toogleDetailsVisibility = (medicine: IMedicine) => {
+    const current = medicines.find(x => x.id === medicine.id);
+    if (current) {
+      if (idOfMedicineDetails === current.id) {
+        setIdOfMedicineDetails('');
+      } else {
+        setIdOfMedicineDetails(medicine.id);
+      }
+    }
+  }
+
   useEffect(() => {
     fetchMedicines();
   }, []);
@@ -65,6 +79,30 @@ function App() {
     updateMedicine(m[index]);
   }
 
+  const handleMedicineDoseChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const m: IMedicine[] = [...medicines];
+    m[index].dose = parseFloat(event.target.value);
+    setMedicines(m);
+    updateMedicine(m[index]);
+  }
+
+  const handleTakeMedicines = () => {
+//  m.forEach(x => { x.lastDateTaken = new Date(2022,6,1); updateMedicine(x);});
+
+    const countDays = (date1: Date, date2: Date) => {
+      const diff = date1.getTime() - date2.getTime();
+      return Math.floor(diff / (1000 * 3600 * 24));
+    }
+
+    const today = new Date();
+    const m: IMedicine[] = [...medicines];
+    m.forEach(x =>  {
+      x.count = x.count - (countDays(today, new Date(x.lastDateTaken)) * x.dose);
+      x.lastDateTaken = today;
+      updateMedicine(x);
+    });
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -74,19 +112,30 @@ function App() {
       </header>
       <section>
         <div>
+          <p><button onClick={handleTakeMedicines}>Weź leki</button></p>
+        </div>
+        <hr />
+        <div>{ medicines.map((x: IMedicine, i:number) => 
+                <div key={i}>
+                  <h2 className="Medicine-title" onClick={() => toogleDetailsVisibility(x)}>{x.name}: {x.count} tab.
+                  <small> {(new Date(x.lastDateTaken.toString())).toLocaleDateString()}</small></h2>
+                  <div hidden={x.id !== idOfMedicineDetails}>
+                    <p><button onClick={() => deleteMedicine(x)}>Usuń</button></p>
+                    <p>Ilość tabletek: <input type="number" value={x.count} onChange={(e) => handleMedicineCountChange(e, i)} /></p>
+                    <p>Dzienna dawka : <input type="number" value={x.dose} onChange={(e) => handleMedicineDoseChange(e, i)} /></p>
+                  </div>
+                </div>) 
+             }
+        </div>
+        <hr />
+        <div>
+            <h3>Nowy lek</h3>
             <p><label>Nazwa leku: </label>
               <input  type="text" 
                       value={newMedicineName} 
                       onChange={handleNewMedicineNameChange} />
               <button type="button" onClick={addMedicine}>Dodaj</button>
             </p>
-        </div>
-        <div>{ medicines.map((x: IMedicine, i:number) => 
-                <div key={i}>
-                  <h2><button onClick={() => deleteMedicine(x)}>Usuń</button> {x.name}: {x.count} tab.</h2>
-                  Ustaw ilość: <input type="number" value={x.count} onChange={(e) => handleMedicineCountChange(e, i)} />
-                </div>) 
-             }
         </div>
       </section>
     </div>

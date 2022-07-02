@@ -39,6 +39,10 @@ button {
   color: #61dafb;
 }
 
+.Medicine-title {
+  cursor: pointer;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
