@@ -23,7 +23,8 @@ function App() {
   const fetchMedicines = () => {
     fetch(apiUrl, { mode:'cors' })
     .then(res => res.json())
-    .then(text => { setMedicines(text); });
+    .then(text => { setMedicines(text); })
+    .catch(e => console.log(e));
   }
 
   const addMedicine = () => {
@@ -32,7 +33,8 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newMedicineName }) 
     })
-    .then(_ => fetchMedicines());
+    .then(_ => fetchMedicines())
+    .catch(e => console.log(e));
   }
 
   const updateMedicine = (medicine: IMedicine) => {
@@ -41,7 +43,8 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(medicine)
     })
-    .then(_ => fetchMedicines());
+    .then(_ => fetchMedicines())
+    .catch(e => console.log(e));
   }
 
   const deleteMedicine = (medicine: IMedicine) => {
@@ -50,7 +53,8 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(medicine)
     })
-    .then(_ => fetchMedicines());
+    .then(_ => fetchMedicines())
+    .catch(e => console.log(e));
   }
 
   const toogleDetailsVisibility = (medicine: IMedicine) => {
