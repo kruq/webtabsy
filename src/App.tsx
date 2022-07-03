@@ -24,7 +24,7 @@ function App() {
     fetch(apiUrl, { mode:'cors' })
     .then(res => res.json())
     .then(text => { setMedicines(text); })
-    .catch(e => console.log(e));
+    .catch(e => alert(e));
   }
 
   const addMedicine = () => {
@@ -34,7 +34,7 @@ function App() {
         body: JSON.stringify({ name: newMedicineName }) 
     })
     .then(_ => fetchMedicines())
-    .catch(e => console.log(e));
+    .catch(e => alert(e));
   }
 
   const updateMedicine = (medicine: IMedicine) => {
@@ -44,7 +44,7 @@ function App() {
       body: JSON.stringify(medicine)
     })
     .then(_ => fetchMedicines())
-    .catch(e => console.log(e));
+    .catch(e => alert(e));
   }
 
   const deleteMedicine = (medicine: IMedicine) => {
@@ -54,7 +54,7 @@ function App() {
       body: JSON.stringify(medicine)
     })
     .then(_ => fetchMedicines())
-    .catch(e => console.log(e));
+    .catch(e => alert(e));
   }
 
   const toogleDetailsVisibility = (medicine: IMedicine) => {
