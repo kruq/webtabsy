@@ -121,8 +121,10 @@ function App() {
         <hr />
         <div>{ medicines.map((x: IMedicine, i:number) => 
                 <div key={i}>
-                  <h2 className="Medicine-title" onClick={() => toogleDetailsVisibility(x)}>{x.name}: {x.count} tab.
-                  <small> {(new Date(x.lastDateTaken.toString())).toLocaleDateString()}</small></h2>
+                  <h2 className="Medicine-title" onClick={() => toogleDetailsVisibility(x)}>
+                    <h4>{(new Date(x.lastDateTaken.toString())).toLocaleDateString()} </h4>
+                    {x.name}: {x.count} tab.
+                  </h2>
                   <div hidden={x.id !== idOfMedicineDetails}>
                     <p><button onClick={() => deleteMedicine(x)}>Usuń</button></p>
                     <p>Ilość tabletek: <input type="number" value={x.count} onChange={(e) => handleMedicineCountChange(e, i)} /></p>
