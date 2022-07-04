@@ -12,7 +12,7 @@ interface IMedicine {
 
 function App() {
 
-  const apiUrl = 'http://webtabsyapi.execa.pl/medicine'
+  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
 //  const apiUrl = 'https://localhost:7078/medicine'
 
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
