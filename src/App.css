@@ -39,8 +39,12 @@ button {
   color: #61dafb;
 }
 
-.Medicine-title {
+.medicine-title {
   cursor: pointer;
+}
+
+.medicine-title-date {
+    text-size: 1rem;
 }
 
 @keyframes App-logo-spin {
