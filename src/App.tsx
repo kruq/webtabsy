@@ -119,7 +119,9 @@ function App() {
           <p><button onClick={handleTakeMedicines}>Weź leki</button></p>
         </div>
         <hr />
-        <div>{ medicines.map((x: IMedicine, i:number) => 
+        <div>
+          { medicine && <span>Loading...</span> }
+          { medicines.map((x: IMedicine, i:number) => 
                 <div key={i}>
                   <h3 className="medicine-title" onClick={() => toogleDetailsVisibility(x)}>
                     <span className="medicine-title-date">
