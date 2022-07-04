@@ -120,14 +120,13 @@ function App() {
         </div>
         <hr />
         <div>
-          { medicine && <span>Loading...</span> }
-          { medicines.map((x: IMedicine, i:number) => 
+          <div>{ medicines.length > 0 || (<span>Loading...</span>) }</div>
+          <div>{ medicines.map((x: IMedicine, i:number) => 
                 <div key={i}>
                   <h3 className="medicine-title" onClick={() => toogleDetailsVisibility(x)}>
                     <span className="medicine-title-date">
                       {(new Date(x.lastDateTaken.toString())).toLocaleDateString()} 
-                    </span>
-                    <span>
+                    </span> <span>
                       {x.name}: {x.count} tab.
                     </span>
                   </h3>
@@ -137,7 +136,7 @@ function App() {
                     <p>Dzienna dawka : <input type="number" value={x.dose} onChange={(e) => handleMedicineDoseChange(e, i)} /></p>
                   </div>
                 </div>) 
-             }
+             }</div>
         </div>
         <hr />
         <div>
