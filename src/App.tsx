@@ -117,7 +117,7 @@ function App() {
       </header>
       <section>
         <div>
-          <p><button onClick={handleTakeMedicines}>Weź leki</button> Ostatnio oznaczone jako wzięte <strong>{ new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString() }</strong></p>
+          <p><button onClick={handleTakeMedicines}>Weź leki</button> Ostatnio oznaczone jako wzięte <strong>{ medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString() }</strong></p>
         </div>
         <hr />
         <div>
