@@ -117,7 +117,7 @@ function App() {
       </header>
       <section>
         <div>
-          <p><button onClick={handleTakeMedicines}>Weź leki</button></p>
+          <p><button onClick={handleTakeMedicines}>Weź leki</button> Ostatnio oznaczone jako wzięte <strong>{ medicines[0].lastDateTaken.toString() }</strong></p>
         </div>
         <hr />
         <div>
@@ -125,11 +125,7 @@ function App() {
           <div>{ medicines.map((x: IMedicine, i:number) => 
                 <div key={i}>
                   <h3 className="medicine-title" onClick={() => toogleDetailsVisibility(x)}>
-                    <span className="medicine-title-date">
-                      {(new Date(x.lastDateTaken.toString())).toLocaleDateString()} 
-                    </span> <span>
-                      {x.name}: {x.count} tab.
-                    </span>
+                      {x.name}: <small>{x.count} tab.</small>
                   </h3>
                   <div hidden={x.id !== idOfMedicineDetails}>
                     <p><button onClick={() => deleteMedicine(x)}>Usuń</button></p>
