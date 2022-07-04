@@ -122,8 +122,12 @@ function App() {
         <div>{ medicines.map((x: IMedicine, i:number) => 
                 <div key={i}>
                   <h2 className="Medicine-title" onClick={() => toogleDetailsVisibility(x)}>
-                    <h4>{(new Date(x.lastDateTaken.toString())).toLocaleDateString()} </h4>
-                    {x.name}: {x.count} tab.
+                    <span style="font-size: 1rem">
+                      {(new Date(x.lastDateTaken.toString())).toLocaleDateString()} 
+                    </span>
+                    <span>
+                      {x.name}: {x.count} tab.
+                    <span>
                   </h2>
                   <div hidden={x.id !== idOfMedicineDetails}>
                     <p><button onClick={() => deleteMedicine(x)}>Usuń</button></p>
