@@ -96,7 +96,9 @@ function App() {
 
     const countDays = (date1: Date, date2: Date) => {
       const diff = date1.getTime() - date2.getTime();
-      return Math.floor(diff / (1000 * 3600 * 24));
+      const noOfDays = Math.floor(diff / (1000 * 3600 * 24));
+      alert(noOfDays + ' dni różnicy');
+      return noOfDays;
     }
 
     const today = new Date();
