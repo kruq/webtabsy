@@ -107,6 +107,7 @@ function App() {
     m.forEach(x =>  {
       x.count = x.count - (countDays(today, new Date(x.lastDateTaken)) * x.dose);
       x.lastDateTaken = today;
+      alert('Today:' + today.toLocaleString());
       updateMedicine(x);
     });
   }
@@ -120,7 +121,7 @@ function App() {
       </header>
       <section>
         <div>
-          <p>Ostatnio oznaczone jako wzięte <strong>{ medicines?.length > 0 && medicines[0]?.lastDateTaken?.toString() }</strong></p>
+          <p>Ostatnio oznaczone jako wzięte <strong>{ medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleString() }</strong></p>
           <p><button onClick={handleTakeMedicines}>Weź leki</button></p>
         </div>
         <hr />
