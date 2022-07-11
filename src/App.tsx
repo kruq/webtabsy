@@ -120,7 +120,7 @@ function App() {
       </header>
       <section>
         <div>
-          <p>Ostatnio oznaczone jako wzięte <strong>{ medicines?.length > 0 && medicines[0]?.lastDateTaken?.toString() }</strong></p>
+          <p>Ostatnio oznaczone jako wzięte <strong>{ medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocalDateString() }</strong></p>
           <p><button onClick={handleTakeMedicines}>Weź leki</button></p>
         </div>
         <hr />
