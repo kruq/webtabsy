@@ -111,7 +111,7 @@ function App() {
     });
   }
 
-  const handleMedicinseSave = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {     
+  const handleMedicineSave = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {     
     updateMedicine(medicines[index]);
   }
 
