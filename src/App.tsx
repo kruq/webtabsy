@@ -111,7 +111,7 @@ function App() {
     });
   }
 
-  const handleMedicineSave = (event: React.MouseEvent<HTMLInputElement>, index: number) => {     
+  const handleMedicineSave = (index: number) => {     
     updateMedicine(medicines[index]);
   }
 
@@ -139,7 +139,7 @@ function App() {
                     <p><button onClick={() => deleteMedicine(x)}>Usuń</button></p>
                     <p>Ilość tabletek: <input type="number" value={x.count} onChange={(e) => handleMedicineCountChange(e, i)} /></p>
                     <p>Dzienna dawka : <input type="number" value={x.dose} onChange={(e) => handleMedicineDoseChange(e, i)} /></p>
-                    <p><button onClick={(e) => handleMedicineSave(e, i)}>Zapisz</button></p>
+                    <p><button onClick={(e) => handleMedicineSave(i)}>Zapisz</button></p>
                   </div>
                 </div>) 
              }</div>
