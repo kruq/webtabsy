@@ -81,14 +81,14 @@ function App() {
     const m: IMedicine[] = [...medicines];
     m[index].count = parseFloat(event.target.value);
     setMedicines(m);
-    updateMedicine(m[index]);
+//    updateMedicine(m[index]);
   }
 
   const handleMedicineDoseChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const m: IMedicine[] = [...medicines];
     m[index].dose = parseFloat(event.target.value);
     setMedicines(m);
-    updateMedicine(m[index]);
+//    updateMedicine(m[index]);
   }
 
   const handleTakeMedicines = () => {
@@ -106,6 +106,10 @@ function App() {
       x.lastDateTaken = today;
       updateMedicine(x);
     });
+  }
+
+  const handleMedicinseSave = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {     
+    updateMedicine(m[index]);
   }
 
   return (
@@ -131,6 +135,7 @@ function App() {
                     <p><button onClick={() => deleteMedicine(x)}>Usuń</button></p>
                     <p>Ilość tabletek: <input type="number" value={x.count} onChange={(e) => handleMedicineCountChange(e, i)} /></p>
                     <p>Dzienna dawka : <input type="number" value={x.dose} onChange={(e) => handleMedicineDoseChange(e, i)} /></p>
+                    <p><button onClick={(e) => handleMedicineSave(e, i)}>Zapisz</button></p>
                   </div>
                 </div>) 
              }</div>
