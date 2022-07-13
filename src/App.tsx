@@ -112,7 +112,7 @@ function App() {
   }
 
   const handleMedicinseSave = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {     
-    updateMedicine(m[index]);
+    updateMedicine(medicines[index]);
   }
 
   return (
