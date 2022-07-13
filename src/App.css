@@ -16,7 +16,10 @@ input {
 button {
   padding: 5px 15px;
   margin: 0px 2px;
-  background: #acf;
+  background: #f00;
+  border: 0px;
+  color: white;
+  border-radius: 3px;
 }
 
 @media (prefers-reduced-motion: no-preference) {

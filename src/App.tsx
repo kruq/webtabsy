@@ -22,6 +22,7 @@ function App() {
 
 
   const fetchMedicines = () => {
+    setMedicines([]);
     fetch(apiUrl, { mode:'cors' })
     .then(res => res.json())
     .then(text => { setMedicines(text); })
@@ -96,10 +97,12 @@ function App() {
 
     const countDays = (date1: Date, date2: Date) => {
       const diff = date1.getTime() - date2.getTime();
-      return Math.floor(diff / (1000 * 3600 * 24));
+      const noOfDays = Math.floor(diff / (1000 * 3600 * 24));
+      return noOfDays;
     }
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const m: IMedicine[] = [...medicines];
     m.forEach(x =>  {
       x.count = x.count - (countDays(today, new Date(x.lastDateTaken)) * x.dose);
@@ -121,7 +124,8 @@ function App() {
       </header>
       <section>
         <div>
-          <p><button onClick={handleTakeMedicines}>Weź leki</button> Ostatnio oznaczone jako wzięte <strong>{ medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString() }</strong></p>
+          <p>Ostatnio oznaczone jako wzięte <strong>{ medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString() }</strong></p>
+          <p><button onClick={handleTakeMedicines}>Weź leki</button></p>
         </div>
         <hr />
         <div>
