@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Medicine from './Medicine';
 import IMedicine from './models/IMedicine';
@@ -16,7 +16,7 @@ function App() {
     setNewMedicineName(event.target.value);
   }
 
-  const handleTakeMedicines = () => {
+  const handleTakeMedicines = useCallback(() => {
 
     const countDays = (date1: Date, date2: Date) => {
       const diff = date1.getTime() - date2.getTime();
@@ -35,7 +35,7 @@ function App() {
       console.log(x.lastDateTaken);
       updateMedicine(x);
     });
-  }
+  }, [medicines]);
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
