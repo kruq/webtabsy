@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Medicine from './Medicine';
 import IMedicine from './models/IMedicine';
@@ -16,7 +16,7 @@ function App() {
     setNewMedicineName(event.target.value);
   }
 
-  const handleTakeMedicines = useCallback(() => {
+  const handleTakeMedicines = async () => {
 
     const countDays = (date1: Date, date2: Date) => {
       const diff = date1.getTime() - date2.getTime();
@@ -35,7 +35,8 @@ function App() {
       console.log(x.lastDateTaken);
       updateMedicine(x);
     });
-  }, [medicines]);
+    setMedicines(await fetchMedicines());
+  };
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
@@ -46,15 +47,17 @@ function App() {
   }
 
   useEffect(() => {
-    setMedicines([]);
+    // setMedicines([]);
     const getMedicines = async () => {
       const medicines = await fetchMedicines();
       setMedicines(medicines);
     };
 
     getMedicines();
-    handleTakeMedicines();
-  }, [handleTakeMedicines]);
+    // handleTakeMedicines();
+  }
+    //, [handleTakeMedicines]
+  );
 
   const handleAddMedicineClick = () => {
     addMedicine(newMedicineName);
@@ -71,7 +74,7 @@ function App() {
       <section>
         <div>
           <p>Ostatnio oznaczone jako wzięte <strong>{medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString()}</strong></p>
-          {/* <p><button onClick={handleTakeMedicines}>Weź leki</button></p> */}
+          <p><button onClick={handleTakeMedicines}>Weź leki</button></p>
         </div>
         <hr />
         <div>

@@ -1,11 +1,10 @@
 import IMedicine from "../models/IMedicine";
 
-//  const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
-//  const apiUrl = 'https://localhost:7078/medicine'
+// const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
+// const apiUrl = 'https://localhost:7078/medicine'
 const apiUrl = 'https://webtabsyapi.azurewebsites.net/medicine';
 
 export const fetchMedicines = async (): Promise<IMedicine[]> => {
-
     var res = await fetch(apiUrl, { mode: 'cors' });
     var text = res.json();
     return text;
