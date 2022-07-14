@@ -11,16 +11,6 @@ function App() {
   const [newMedicineName, setNewMedicineName] = useState('');
   const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
 
-  useEffect(() => {
-    setMedicines([]);
-    const getMedicines = async () => {
-      const medicines = await fetchMedicines();
-      setMedicines(medicines);
-    };
-
-    getMedicines();
-    handleTakeMedicines();
-  }, []);
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
@@ -47,17 +37,28 @@ function App() {
     });
   }
 
-  const handleAddMedicineClick = () => {
-    addMedicine(newMedicineName);
-    fetchMedicines();
-  }
-
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
       setIdOfMedicineDetails('');
     } else {
       setIdOfMedicineDetails(medicineId);
     }
+  }
+
+  useEffect(() => {
+    setMedicines([]);
+    const getMedicines = async () => {
+      const medicines = await fetchMedicines();
+      setMedicines(medicines);
+    };
+
+    getMedicines();
+    handleTakeMedicines();
+  }, [handleTakeMedicines]);
+
+  const handleAddMedicineClick = () => {
+    addMedicine(newMedicineName);
+    fetchMedicines();
   }
 
   return (
