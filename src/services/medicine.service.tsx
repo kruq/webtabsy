@@ -19,8 +19,8 @@ export const addMedicine = async (newMedicineName: string) => {
     })
 }
 
-export const updateMedicine = (medicine: IMedicine) => {
-    fetch(apiUrl, {
+export const updateMedicine = async (medicine: IMedicine) => {
+    await fetch(apiUrl, {
         method: "PUT",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(medicine)

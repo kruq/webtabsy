@@ -3,6 +3,11 @@ import './App.css';
 import Medicine from './Medicine';
 import IMedicine from './models/IMedicine';
 import { addMedicine, fetchMedicines, updateMedicine } from './services/medicine.service';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 
 
 function App() {
@@ -28,12 +33,12 @@ function App() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const m: IMedicine[] = [...medicines];
-    m.forEach(x => {
+    m.forEach(async x => {
       x.count = x.count - (countDays(today, new Date(x.lastDateTaken)) * x.dose);
       console.log(x.name, x.count);
       x.lastDateTaken = today;
       console.log(x.lastDateTaken);
-      updateMedicine(x);
+      await updateMedicine(x);
     });
     setMedicines(await fetchMedicines());
   };
@@ -65,17 +70,20 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Webtabsy
-        </p>
+    <Container className="my-2">
+      <header>
+        <Row>
+          <Col className="display-6">Webtabsy</Col>
+          <Col xs="auto">
+            {new Date().toLocaleDateString('pl-PL')}
+          </Col>
+        </Row>
       </header>
       <section>
-        <div>
-          <p>Ostatnio oznaczone jako wzięte <strong>{medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString()}</strong></p>
-          <p><button onClick={handleTakeMedicines}>Weź leki</button></p>
-        </div>
+        <Row>
+          <p>Oznaczone jako wzięte <strong>{medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')}</strong></p>
+          <Col xs="auto"><Button onClick={handleTakeMedicines}>Weź leki</Button></Col>
+        </Row>
         <hr />
         <div>
           <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
@@ -84,15 +92,19 @@ function App() {
         <hr />
         <div>
           <h3>Nowy lek</h3>
-          <p><label>Nazwa leku: </label>
-            <input type="text"
-              value={newMedicineName}
-              onChange={handleNewMedicineNameChange} />
-            <button type="button" onClick={handleAddMedicineClick}>Dodaj</button>
-          </p>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Nazwa leku</Form.Label>
+              <Form.Control type="text"
+                value={newMedicineName}
+                onChange={handleNewMedicineNameChange}>
+              </Form.Control>
+            </Form.Group>
+            <Button type="button" onClick={handleAddMedicineClick} variant="primary">Dodaj</Button>
+          </Form>
         </div>
       </section>
-    </div>
+    </Container >
   );
 }
 
