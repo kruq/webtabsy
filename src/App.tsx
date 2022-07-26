@@ -51,22 +51,42 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    // setMedicines([]);
-    const getMedicines = async () => {
-      const medicines = await fetchMedicines();
-      setMedicines(medicines);
-    };
+  // useEffect(() => {
+  //   // setMedicines([]);
+  //   const getMedicines = async () => {
+  //     const medicines = await fetchMedicines();
+  //     setMedicines(medicines);
+  //   };
 
-    getMedicines();
-    // handleTakeMedicines();
-  }
-    //, [handleTakeMedicines]
-  );
+  //   getMedicines();
+  //   // handleTakeMedicines();
+  // }
+  //   //, [handleTakeMedicines]
+  //   , [medicines]
+  // );
+
+  useEffect(() => {
+    fetchMedicines().then(x => setMedicines(x));
+  }, []);
 
   const handleAddMedicineClick = () => {
     addMedicine(newMedicineName);
     fetchMedicines();
+  }
+
+  const getDateWhenMedicinesTaken = () => {
+    // return medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = today.getDate() - new Date(medicines[0]?.lastDateTaken?.toString()).getDate();
+    if (diff === NaN) {
+      return "-";
+    }
+    switch (diff) {
+      case 0: return "dzisiaj"
+      case 1: return "wczoraj"
+      default: return diff + " dni temu";
+    }
   }
 
   return (
@@ -81,7 +101,7 @@ function App() {
       </header>
       <section>
         <Row>
-          <p>Oznaczone jako wzięte <strong>{medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')}</strong></p>
+          <p>Oznaczone jako wzięte <strong>{getDateWhenMedicinesTaken()}</strong></p>
           <Col xs="auto"><Button onClick={handleTakeMedicines}>Weź leki</Button></Col>
         </Row>
         <hr />
