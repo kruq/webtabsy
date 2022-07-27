@@ -79,7 +79,7 @@ function App() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diff = today.getDate() - new Date(medicines[0]?.lastDateTaken?.toString()).getDate();
-    if (diff === NaN) {
+    if (isNaN(diff)) {
       return "-";
     }
     switch (diff) {
