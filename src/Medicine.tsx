@@ -104,14 +104,14 @@ export default function Medicine(props: IMedicineProps) {
                     <Col xs="auto"><Button onClick={handleMissedDose} variant="warning" size="sm">Pominięto</Button></Col>
                 </Row>
             </Card.Header>
-            <Card.Body>
+            <Card.Body hidden={medicine.id !== props.idOfMedicineDetails}>
                 <Card.Title>
                 </Card.Title>
-                <Form hidden={medicine.id !== props.idOfMedicineDetails}>
+                <Form>
                     <Row>
                         <Col xs="auto">
                             <Form.Group>
-                                <Form.Label>Aktualna ilość tabletek</Form.Label>
+                                <Form.Label>Aktualna ilość tabletek:</Form.Label>
                                 <Form.Control type="number" value={medicine.count} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
                             </Form.Group>
                         </Col>
@@ -122,7 +122,7 @@ export default function Medicine(props: IMedicineProps) {
                             </Form.Group>
                         </Col> */}
                     </Row>
-                    <Row>
+                    <Row className="mt-3">
                         <Col><strong>Dawkowanie</strong></Col>
                     </Row>
                     <Row>
@@ -133,22 +133,22 @@ export default function Medicine(props: IMedicineProps) {
                             <strong>Nowa dawka</strong>
                         </Col>
                     </Row>
-                    <Row>
-                        <Col>
+                    <Row className="mt-2">
+                        <Col xs="auto">
 
                             <Form.Label>Godzina:</Form.Label>
                         </Col>
-                        <Col>
+                        <Col xs="auto">
                             <Form.Control type="text" value={newDose?.time} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseTimeChange(e)}></Form.Control>
                         </Col>
-                        <Col>
+                        <Col xs="auto">
                             <Form.Label>Ilość tabletek:</Form.Label>
                         </Col>
-                        <Col>
+                        <Col xs="auto">
                             <Form.Control type="number" value={newDose?.amount} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseAmountChange(e)}></Form.Control>
                         </Col>
-                        <Col>
-                            <Button onClick={handleAddDose} variant="primary" className="my-2">Dodaj dawkę</Button>
+                        <Col xs="auto">
+                            <Button onClick={handleAddDose} variant="primary">Dodaj dawkę</Button>
 
                         </Col>
                     </Row>
