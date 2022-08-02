@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Medicine from './Medicine';
 import IMedicine from './models/IMedicine';
@@ -8,6 +8,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Spinner from 'react-bootstrap/Spinner';
 
 
 function App() {
@@ -15,7 +16,7 @@ function App() {
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
   const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
-
+  const [showSpinner, setShowSpinner] = useState(false);
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
@@ -28,6 +29,7 @@ function App() {
   }
 
   const handleTakeMedicines = async () => {
+    setShowSpinner(true);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
     m.forEach(async x => {
@@ -55,13 +57,15 @@ function App() {
       x.count -= sum;
       const newDateTaken = today;
       // newDateTaken.setDate(today.getDate() - 2)
+      // newDateTaken.setHours(10,0,0,0);
       x.lastDateTaken = new Date(newDateTaken);
       await updateMedicine(x);
     });
     setMedicines(await fetchMedicines());
+    setShowSpinner(false);
   }
 
-  const getNotTakenDoses = () => {
+  const getNotTakenDoses = useCallback(() => {
     const today = new Date();
     const m: IMedicine[] = [...medicines];
     const elements = m.reduce((collection: string[], x) => {
@@ -83,7 +87,7 @@ function App() {
     }, []);
     console.log(elements);
     return elements.map(x => <p>{x}</p>);
-  }
+  }, [medicines]);
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
@@ -109,14 +113,14 @@ function App() {
 
   useEffect(() => {
     fetchMedicines().then(x => setMedicines(x));
-  }, []);
+  }, [medicines]);
 
   const handleAddMedicineClick = () => {
     addMedicine(newMedicineName);
     fetchMedicines();
   }
 
-  const getDateWhenMedicinesTaken = () => {
+  const getDateWhenMedicinesTaken = useCallback(() => {
     // return medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -125,21 +129,26 @@ function App() {
     if (isNaN(diff)) {
       return "-";
     }
-    const h = date.getHours();
-    const m = date.getMinutes();
+    const h = date.getHours().toString();
+    let m = date.getMinutes().toString();
+    if (m.length === 1) {
+      m = "0" + m;
+    }
     switch (diff) {
       case -1:
       case 0: return `dzisiaj o ${h}:${m}`
       case 1: return `wczoraj o ${h}:${m}`
       default: return diff + ` dni temu - ${date.toLocaleDateString('pl-PL')} o ${h}:${m}`;
     }
-  }
+  }, [medicines]);
 
   return (
     <Container className="my-2">
       <header>
         <Row>
-          <Col className="display-6">Webtabsy</Col>
+          <Col className="display-6">Webtabsy
+            <Spinner animation="border" variant="primary" hidden={!showSpinner} />
+          </Col>
           <Col xs="auto" className="text-end">
             <p>Dzisiaj jest <strong>{new Date().toLocaleDateString('pl-PL')}</strong></p>
             <p>Oznaczone jako wzięte <strong>{getDateWhenMedicinesTaken()}</strong></p>
