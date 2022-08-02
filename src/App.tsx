@@ -21,27 +21,69 @@ function App() {
     setNewMedicineName(event.target.value);
   }
 
+  const countDays = (date1: Date, date2: Date) => {
+    const diff = date1.getTime() - date2.getTime();
+    const noOfDays = Math.floor(diff / (1000 * 3600 * 24));
+    return noOfDays;
+  }
+
   const handleTakeMedicines = async () => {
-
-    const countDays = (date1: Date, date2: Date) => {
-      const diff = date1.getTime() - date2.getTime();
-      const noOfDays = Math.floor(diff / (1000 * 3600 * 24));
-      console.log(noOfDays);
-      return noOfDays;
-    }
-
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const m: IMedicine[] = [...medicines];
     m.forEach(async x => {
-      x.count = x.count - (countDays(today, new Date(x.lastDateTaken)) * x.dose);
-      console.log(x.name, x.count);
-      x.lastDateTaken = today;
-      console.log(x.lastDateTaken);
+      console.log(`${x.name.toUpperCase()}`);
+      let noOfDays = countDays(today, new Date(x.lastDateTaken));
+      let sum = 0;
+      for (let i = noOfDays; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        sum += x.doses.reduce((prevValue, dose) => {
+          const hourAndMinute = dose.time.split(":");
+          date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
+          // console.log(new Date(x.lastDateTaken.toString()), date, today);
+          if (date > new Date(x.lastDateTaken.toString()) && date < today) {
+            const totalDose = dose.amount ?? 0;
+            // const text = `${x.name}: ${date.toLocaleString("pl-PL")}`;
+            // console.log(`${text} - ${dose.amount ?? 0} tab., razem ${prevValue + totalDose} `);
+            return prevValue + totalDose;
+          }
+          return prevValue;
+        }, 0);
+      }
+      // x.count = x.count - (countDays(today, new Date(x.lastDateTaken)) * x.dose);
+      console.log(x.name, sum, x.count);
+      x.count -= sum;
+      const newDateTaken = today;
+      // newDateTaken.setDate(today.getDate() - 2)
+      x.lastDateTaken = new Date(newDateTaken);
       await updateMedicine(x);
     });
     setMedicines(await fetchMedicines());
-  };
+  }
+
+  const getNotTakenDoses = () => {
+    const today = new Date();
+    const m: IMedicine[] = [...medicines];
+    const elements = m.reduce((collection: string[], x) => {
+      console.log(`${x.name.toUpperCase()}`);
+      let noOfDays = countDays(today, new Date(x.lastDateTaken));
+      let items: string[] = [];
+      for (let i = noOfDays; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const newArray = x.doses.filter(dose => {
+          const hourAndMinute = dose.time.split(":");
+          date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
+          const result = ((date > new Date(x.lastDateTaken.toString())) && (date < today))
+          return result;
+        }).map(dose => `${date.toLocaleDateString('pl-PL')} ${dose.time}: ${dose.amount} tab.`);
+        items = items.concat(newArray);
+      }
+      return collection.concat(items.map(y => `${x.name} - ${y}`));
+    }, []);
+    console.log(elements);
+    return elements.map(x => <p>{x}</p>);
+  }
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
@@ -78,14 +120,18 @@ function App() {
     // return medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const diff = today.getDate() - new Date(medicines[0]?.lastDateTaken?.toString()).getDate();
+    const date = new Date(medicines[0]?.lastDateTaken?.toString());
+    const diff = countDays(today, date);
     if (isNaN(diff)) {
       return "-";
     }
+    const h = date.getHours();
+    const m = date.getMinutes();
     switch (diff) {
-      case 0: return "dzisiaj"
-      case 1: return "wczoraj"
-      default: return diff + " dni temu";
+      case -1:
+      case 0: return `dzisiaj o ${h}:${m}`
+      case 1: return `wczoraj o ${h}:${m}`
+      default: return diff + ` dni temu - ${date.toLocaleDateString('pl-PL')} o ${h}:${m}`;
     }
   }
 
@@ -94,14 +140,17 @@ function App() {
       <header>
         <Row>
           <Col className="display-6">Webtabsy</Col>
-          <Col xs="auto">
-            {new Date().toLocaleDateString('pl-PL')}
+          <Col xs="auto" className="text-end">
+            <p>Dzisiaj jest <strong>{new Date().toLocaleDateString('pl-PL')}</strong></p>
+            <p>Oznaczone jako wzięte <strong>{getDateWhenMedicinesTaken()}</strong></p>
           </Col>
         </Row>
       </header>
       <section>
+        {getNotTakenDoses()}
+      </section>
+      <section>
         <Row>
-          <p>Oznaczone jako wzięte <strong>{getDateWhenMedicinesTaken()}</strong></p>
           <Col xs="auto"><Button onClick={handleTakeMedicines}>Weź leki</Button></Col>
         </Row>
         <hr />

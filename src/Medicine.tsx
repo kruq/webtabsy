@@ -109,6 +109,11 @@ export default function Medicine(props: IMedicineProps) {
                 </Card.Title>
                 <Form>
                     <Row>
+                        <Col>
+                            Wzięte: {new Date(medicine.lastDateTaken.toString()).toLocaleDateString('pl-PL')}
+                        </Col>
+                    </Row>
+                    <Row>
                         <Col xs="auto">
                             <Form.Group>
                                 <Form.Label>Aktualna ilość tabletek:</Form.Label>
