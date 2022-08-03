@@ -28,7 +28,7 @@ function App() {
     return noOfDays;
   }
 
-  const handleTakeMedicines = async () => {
+  const handleTakeMedicines = useCallback(async () => {
     setShowSpinner(true);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
@@ -63,7 +63,7 @@ function App() {
     });
     setMedicines(await fetchMedicines());
     setShowSpinner(false);
-  }
+  }, [medicines]);
 
   const getNotTakenDoses = useCallback(() => {
     const today = new Date();
@@ -150,8 +150,8 @@ function App() {
             <Spinner animation="border" variant="primary" hidden={!showSpinner} />
           </Col>
           <Col xs="auto" className="text-end">
-            <p>Dzisiaj jest <strong>{new Date().toLocaleDateString('pl-PL')}</strong></p>
-            <p>Oznaczone jako wzięte <strong>{getDateWhenMedicinesTaken()}</strong></p>
+            <small>Dzisiaj: <strong>{new Date().toLocaleDateString('pl-PL')}</strong></small><br />
+            <small>Oznaczone: <strong>{getDateWhenMedicinesTaken()}</strong></small>
           </Col>
         </Row>
       </header>
