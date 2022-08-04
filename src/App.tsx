@@ -69,6 +69,23 @@ function App() {
   };
 
   const getNotTakenDoses = useCallback(() => {
+  
+    const weekDays = [
+      'Pn',
+      'Wt',
+      'Śr',
+      'Czw',
+      'Pt',
+      'Sb',
+      'Nd'
+    ]
+
+    const formatDate = (date: Date) => {
+      const d = weekDays[date.getDay()];
+      return `${d}. ${date.getDate()}`;
+  
+    }
+    
     const today = new Date();
     const m: IMedicine[] = [...medicines];
     const elements = m.reduce((collection: string[], x) => {
@@ -98,21 +115,6 @@ function App() {
     } else {
       setIdOfMedicineDetails(medicineId);
     }
-  }
-
-  const weekDays = [
-    'Pn',
-    'Wt',
-    'Śr',
-    'Czw',
-    'Pt',
-    'Sb',
-    'Nd'
-  ]
-  const formatDate = (date: Date) => {
-    const d = weekDays[date.getDay()];
-    return `${d}. ${date.getDate()}`;
-
   }
 
   // useEffect(() => {
