@@ -9,6 +9,9 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
+import Card from 'react-bootstrap/Card';
+import ListGroup from 'react-bootstrap/ListGroup';
+import ListGroupItem from 'react-bootstrap/ListGroupItem';
 
 
 function App() {
@@ -28,7 +31,7 @@ function App() {
     return noOfDays;
   }
 
-  const handleTakeMedicines = useCallback(async () => {
+  const handleTakeMedicines = async () => {
     setShowSpinner(true);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
@@ -63,7 +66,7 @@ function App() {
     });
     setMedicines(await fetchMedicines());
     setShowSpinner(false);
-  }, [medicines]);
+  };
 
   const getNotTakenDoses = useCallback(() => {
     const today = new Date();
@@ -80,13 +83,13 @@ function App() {
           date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
           const result = ((date > new Date(x.lastDateTaken.toString())) && (date < today))
           return result;
-        }).map(dose => `${date.toLocaleDateString('pl-PL')} ${dose.time}: ${dose.amount} tab.`);
+        }).map(dose => `${dose.amount} tab. [${formatDate(date)}, godz ${dose.time}]`);
         items = items.concat(newArray);
       }
-      return collection.concat(items.map(y => `${x.name} - ${y}`));
+      return collection.concat(items.map(y => `${x.name} ${y}`));
     }, []);
     console.log(elements);
-    return elements.map(x => <p>{x}</p>);
+    return elements.map(x => <ListGroupItem>{x}</ListGroupItem>);
   }, [medicines]);
 
   const handleMedicineClick = (medicineId: string) => {
@@ -95,6 +98,21 @@ function App() {
     } else {
       setIdOfMedicineDetails(medicineId);
     }
+  }
+
+  const weekDays = [
+    'Pn',
+    'Wt',
+    'Śr',
+    'Czw',
+    'Pt',
+    'Sb',
+    'Nd'
+  ]
+  const formatDate = (date: Date) => {
+    const d = weekDays[date.getDay()];
+    return `${d}. ${date.getDate()}`;
+
   }
 
   // useEffect(() => {
@@ -113,7 +131,7 @@ function App() {
 
   useEffect(() => {
     fetchMedicines().then(x => setMedicines(x));
-  }, [medicines]);
+  }, []);
 
   const handleAddMedicineClick = () => {
     addMedicine(newMedicineName);
@@ -144,7 +162,7 @@ function App() {
 
   return (
     <Container className="my-2">
-      <header>
+      <header className='mb-2'>
         <Row>
           <Col className="display-6">Webtabsy
             <Spinner animation="border" variant="primary" hidden={!showSpinner} />
@@ -155,8 +173,13 @@ function App() {
           </Col>
         </Row>
       </header>
-      <section>
-        {getNotTakenDoses()}
+      <section className='mb-2'>
+        <Card>
+          <Card.Header>Pominięte dawki</Card.Header>
+          <ListGroup>
+            {getNotTakenDoses()}
+          </ListGroup>
+        </Card>
       </section>
       <section>
         <Row>
