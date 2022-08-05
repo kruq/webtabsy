@@ -70,7 +70,7 @@ function App() {
   type DoseDetails = { medicineName: string, dose: string, time: string }
 
   const getNotTakenDoses = useCallback(() => {
-  
+
     const weekDays = [
       'Pn',
       'Wt',
@@ -84,13 +84,12 @@ function App() {
     const formatDate = (date: Date) => {
       const d = weekDays[date.getDay() - 1];
       return `${d}. ${date.getDate()}`;
-  
+
     }
-    
+
     const today = new Date();
     const m: IMedicine[] = [...medicines];
     const elements = m.reduce((collection: DoseDetails[], x) => {
-      console.log(`${x.name.toUpperCase()}`);
       let noOfDays = countDays(today, new Date(x.lastDateTaken));
       let items: DoseDetails[] = [];
       for (let i = noOfDays; i >= 0; i--) {
@@ -101,14 +100,16 @@ function App() {
           date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
           const result = ((date > new Date(x.lastDateTaken.toString())) && (date < today))
           return result;
-        // }).map(dose => `${dose.amount} tab. [${formatDate(date)}, godz ${dose.time}]`);
-      }).map(dose => { return { medicineName: '', dose: `${dose.amount} tab. `, time: `${formatDate(date)}, godz ${dose.time}`}});
+          // }).map(dose => `${dose.amount} tab. [${formatDate(date)}, godz ${dose.time}]`);
+        }).map(dose => { return { medicineName: '', dose: `${dose.amount} tab. `, time: `${formatDate(date)}, godz ${dose.time}` } });
         items = items.concat(newArray);
       }
       return collection.concat(items.map(y => { y.medicineName = x.name; return y }));
     }, []);
     console.log(elements);
-    return elements.map(x => <ListGroup.Item><Row><Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col><Col>{x.medicineName} </Col><Col xs="auto"><small>{x.time}</small></Col></Row></ListGroup.Item>);
+    return elements
+      .sort((a, b) => { return a.time > b.time ? 1 : -1 })
+      .map(x => <ListGroup.Item key={x.medicineName + x.time}><Row><Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col><Col>{x.medicineName} </Col><Col xs="auto"><small>{x.time}</small></Col></Row></ListGroup.Item>);
   }, [medicines]);
 
   const handleMedicineClick = (medicineId: string) => {
