@@ -108,7 +108,7 @@ function App() {
       return collection.concat(items.map(y => { y.medicineName = x.name; return y }));
     }, []);
     console.log(elements);
-    return elements.map(x => <ListGroup.Item><Row><Col xs="1" className="text-end">{x.dose}</Col><Col>{x.medicineName} </Col><Col xs="auto"><small>{x.time}</small></Col></Row></ListGroup.Item>);
+    return elements.map(x => <ListGroup.Item><Row><Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col><Col>{x.medicineName} </Col><Col xs="auto"><small>{x.time}</small></Col></Row></ListGroup.Item>);
   }, [medicines]);
 
   const handleMedicineClick = (medicineId: string) => {
