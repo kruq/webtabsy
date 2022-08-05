@@ -11,7 +11,6 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
-import ListGroupItem from 'react-bootstrap/ListGroupItem';
 
 
 function App() {
@@ -81,7 +80,7 @@ function App() {
     ]
 
     const formatDate = (date: Date) => {
-      const d = weekDays[date.getDay()];
+      const d = weekDays[date.getDay() - 1];
       return `${d}. ${date.getDate()}`;
   
     }
@@ -106,7 +105,7 @@ function App() {
       return collection.concat(items.map(y => `${x.name} ${y}`));
     }, []);
     console.log(elements);
-    return elements.map(x => <ListGroupItem>{x}</ListGroupItem>);
+    return elements.map(x => <ListGroup.Item>{x}</ListGroup.Item>);
   }, [medicines]);
 
   const handleMedicineClick = (medicineId: string) => {
