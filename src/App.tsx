@@ -67,6 +67,8 @@ function App() {
     setShowSpinner(false);
   };
 
+  type DoseDetails = { medicineName: string, dose: string, time: string }
+
   const getNotTakenDoses = useCallback(() => {
   
     const weekDays = [
@@ -87,10 +89,10 @@ function App() {
     
     const today = new Date();
     const m: IMedicine[] = [...medicines];
-    const elements = m.reduce((collection: string[], x) => {
+    const elements = m.reduce((collection: DoseDetails[], x) => {
       console.log(`${x.name.toUpperCase()}`);
       let noOfDays = countDays(today, new Date(x.lastDateTaken));
-      let items: string[] = [];
+      let items: DoseDetails[] = [];
       for (let i = noOfDays; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(date.getDate() - i);
@@ -99,13 +101,14 @@ function App() {
           date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
           const result = ((date > new Date(x.lastDateTaken.toString())) && (date < today))
           return result;
-        }).map(dose => `${dose.amount} tab. [${formatDate(date)}, godz ${dose.time}]`);
+        // }).map(dose => `${dose.amount} tab. [${formatDate(date)}, godz ${dose.time}]`);
+      }).map(dose => { return { medicineName: '', dose: `${dose.amount} tab. `, time: `${formatDate(date)}, godz ${dose.time}`}});
         items = items.concat(newArray);
       }
-      return collection.concat(items.map(y => `${x.name} ${y}`));
+      return collection.concat(items.map(y => { y.medicineName = x.name; return y }));
     }, []);
     console.log(elements);
-    return elements.map(x => <ListGroup.Item>{x}</ListGroup.Item>);
+    return elements.map(x => <ListGroup.Item><Row><Col xs="1" className="text-end">{x.dose}</Col><Col>{x.medicineName} </Col><Col xs="auto"><small>{x.time}</small></Col></Row></ListGroup.Item>);
   }, [medicines]);
 
   const handleMedicineClick = (medicineId: string) => {
@@ -177,7 +180,7 @@ function App() {
       <section className='mb-2'>
         <Card>
           <Card.Header>Pominięte dawki</Card.Header>
-          <ListGroup>
+          <ListGroup variant="flush">
             {getNotTakenDoses()}
           </ListGroup>
         </Card>
