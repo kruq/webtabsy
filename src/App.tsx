@@ -144,14 +144,15 @@ function App() {
   //   , [medicines]
   // );
 
-  const handleRefresh = () => {
+
+  const handleRefresh = useCallback(() => {
     console.log('checking time');
     const elements = getNotTakenDoses();
     console.log(`${elements.length} found`);
     if (elements.length > 0) {
       new Notification('Webtabsy', { body: "Czas wziąć leki" });
     }
-  }
+  }, [getNotTakenDoses]);
 
   useEffect(() => {
     let timer: NodeJS.Timer;
@@ -162,7 +163,7 @@ function App() {
     });
 
     return () => clearInterval(timer);
-  }, []);
+  }, [handleRefresh]);
 
   const handleAddMedicineClick = () => {
     addMedicine(newMedicineName);
