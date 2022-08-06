@@ -25,8 +25,13 @@ function App() {
   }
 
   const countDays = (date1: Date, date2: Date) => {
-    const diff = date1.getTime() - date2.getTime();
+    const date11 = new Date(date1);
+    const date22 = new Date(date2);
+    date11.setHours(0, 0, 0, 0);
+    date22.setHours(0, 0, 0, 0);
+    const diff = date11.getTime() - date22.getTime();
     const noOfDays = Math.floor(diff / (1000 * 3600 * 24));
+    //console.log(date1.toISOString(), date2, date11, date22, noOfDays);
     return noOfDays;
   }
 
@@ -82,15 +87,20 @@ function App() {
     ]
 
     const formatDate = (date: Date) => {
-      const d = weekDays[date.getDay() - 1];
-      return `${d}. ${date.getDate()}`;
-
+      let d = weekDays[date.getDay() - 1];
+      d = `${d}. ${date.getDate()}`;
+      if (date.getDate() === (new Date()).getDate()) {
+        d = "dziś";
+      }
+      return d;
     }
 
+    console.log('getNotTakenDoses');
     const today = new Date();
-    const m: IMedicine[] = [...medicines];
-    const elements = m.reduce((collection: DoseDetails[], x) => {
+    console.log("medicines: " + medicines.length)
+    const elements = medicines.reduce((collection: DoseDetails[], x) => {
       let noOfDays = countDays(today, new Date(x.lastDateTaken));
+      console.log(`noOfDays = ${noOfDays}`)
       let items: DoseDetails[] = [];
       for (let i = noOfDays; i >= 0; i--) {
         const date = new Date(today);
@@ -134,8 +144,24 @@ function App() {
   //   , [medicines]
   // );
 
+  const handleRefresh = () => {
+    console.log('checking time');
+    const elements = getNotTakenDoses();
+    console.log(`${elements.length} found`);
+    if (elements.length > 0) {
+      new Notification('Webtabsy', { body: "Czas wziąć leki" });
+    }
+  }
+
   useEffect(() => {
-    fetchMedicines().then(x => setMedicines(x));
+    let timer: NodeJS.Timer;
+    Notification.requestPermission().then((result) => console.log(result));
+    fetchMedicines().then(x => {
+      setMedicines(x);
+      timer = setInterval(() => handleRefresh(), 10 * 1000);
+    });
+
+    return () => clearInterval(timer);
   }, []);
 
   const handleAddMedicineClick = () => {
@@ -158,7 +184,7 @@ function App() {
       m = "0" + m;
     }
     switch (diff) {
-      case -1:
+      case -1: return `jutro ????`
       case 0: return `dzisiaj o ${h}:${m}`
       case 1: return `wczoraj o ${h}:${m}`
       default: return diff + ` dni temu - ${date.toLocaleDateString('pl-PL')} o ${h}:${m}`;
