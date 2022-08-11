@@ -68,7 +68,10 @@ function App() {
       x.lastDateTaken = new Date(newDateTaken);
       await updateMedicine(x);
     });
-    setMedicines(await fetchMedicines());
+    const newMeds = await fetchMedicines();
+    alert(newMeds.length);
+    alert(newMeds[0].count);
+    setMedicines(newMeds);
     setShowSpinner(false);
   };
 
