@@ -71,6 +71,9 @@ function App() {
       await updateMedicine(x);
  //   });
     } 
+    setMedicines(m);
+    setShowSpinner(false);
+/*
     fetchMedicines().then((newMeds) => {
       //alert(newMeds.length);
       alert(newMeds[0].count);
@@ -78,6 +81,7 @@ function App() {
       //alert(medicines[0].count);
       setShowSpinner(false);
     });
+*/
   };
 
   type DoseDetails = { medicineName: string, dose: string, time: string }
