@@ -39,6 +39,7 @@ function App() {
     setShowSpinner(true);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
+    const newm: IMedicine[] = [] ;
  //   m.forEach(async x => {
     for (let j = 0; j < m.length; j++) {
       const x = m[j];
@@ -68,10 +69,11 @@ function App() {
       // newDateTaken.setDate(today.getDate() - 2)
       // newDateTaken.setHours(10,0,0,0);
       x.lastDateTaken = new Date(newDateTaken);
+newm.push(x);
       await updateMedicine(x);
  //   });
     } 
-    setMedicines(m);
+    setMedicines(newm);
     setShowSpinner(false);
 /*
     fetchMedicines().then((newMeds) => {
