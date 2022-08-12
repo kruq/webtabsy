@@ -69,8 +69,8 @@ function App() {
       await updateMedicine(x);
     });
     const newMeds = await fetchMedicines();
-    alert(newMeds.length);
-    alert(newMeds[0].count);
+    //alert(newMeds.length);
+    //alert(newMeds[0].count);
     setMedicines(newMeds);
     setShowSpinner(false);
   };
@@ -218,7 +218,7 @@ function App() {
       </section>
       <section>
         <Row>
-          <Col xs="auto"><Button onClick={handleTakeMedicines}>Weź leki</Button></Col>
+          <Col xs="auto"><Button onClick={async () => {await handleTakeMedicines()}} >Weź leki</Button></Col>
         </Row>
         <hr />
         <div>
