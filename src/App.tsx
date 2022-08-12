@@ -75,6 +75,7 @@ function App() {
       //alert(newMeds.length);
       alert(newMeds[0].count);
       setMedicines(newMeds);
+      alert(medicines[0].count);
       setShowSpinner(false);
     });
   };
