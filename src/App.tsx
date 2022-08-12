@@ -39,7 +39,9 @@ function App() {
     setShowSpinner(true);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
-    m.forEach(async x => {
+ //   m.forEach(async x => {
+    for (let j = 0; j < m.length; j++) {
+      const x = m[j];
       console.log(`${x.name.toUpperCase()}`);
       let noOfDays = countDays(today, new Date(x.lastDateTaken));
       let sum = 0;
@@ -67,12 +69,13 @@ function App() {
       // newDateTaken.setHours(10,0,0,0);
       x.lastDateTaken = new Date(newDateTaken);
       await updateMedicine(x);
-    });
+ //   });
+    } 
     fetchMedicines().then((newMeds) => {
-    //alert(newMeds.length);
-    alert(newMeds[0].count);
-    setMedicines(newMeds);
-    setShowSpinner(false);
+      //alert(newMeds.length);
+      alert(newMeds[0].count);
+      setMedicines(newMeds);
+      setShowSpinner(false);
     });
   };
 
