@@ -68,11 +68,12 @@ function App() {
       x.lastDateTaken = new Date(newDateTaken);
       await updateMedicine(x);
     });
-    const newMeds = await fetchMedicines();
+    fetchMedicines().then((newMeds) => {
     //alert(newMeds.length);
-    //alert(newMeds[0].count);
+    alert(newMeds[0].count);
     setMedicines(newMeds);
     setShowSpinner(false);
+    });
   };
 
   type DoseDetails = { medicineName: string, dose: string, time: string }
