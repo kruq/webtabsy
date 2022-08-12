@@ -165,13 +165,12 @@ function App() {
   useEffect(() => {
     let timer: NodeJS.Timer;
     Notification.requestPermission().then((result) => console.log(result));
- /*   fetchMedicines().then(x => {
+    fetchMedicines().then(x => {
       setMedicines(x);
       timer = setInterval(() => handleRefresh(), 10 * 1000);
     });
-*/
     return () => clearInterval(timer);
-  }, [handleRefresh, medicines]);
+  }, [handleRefresh] );
 
   const handleAddMedicineClick = () => {
     addMedicine(newMedicineName);
