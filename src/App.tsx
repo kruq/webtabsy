@@ -70,8 +70,8 @@ function App() {
       // newDateTaken.setDate(today.getDate() - 2)
       // newDateTaken.setHours(10,0,0,0);
       x.lastDateTaken = new Date(newDateTaken);
-newm.push(x);
-      await updateMedicine(x);
+      newm.push(x);
+      // await updateMedicine(x);
  //   });
     } 
     setMedicines(newm);
