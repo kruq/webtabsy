@@ -37,7 +37,6 @@ function App() {
 
   const handleTakeMedicines = async () => {
     setShowSpinner(true);
-    setMedicines([]);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
     const newm: IMedicine[] = [] ;
