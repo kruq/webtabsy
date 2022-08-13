@@ -35,7 +35,7 @@ function App() {
     return noOfDays;
   }
 
-  const handleTakeMedicines = async () => {
+  const handleTakeMedicines = () => {
     setShowSpinner(true);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
@@ -74,7 +74,7 @@ function App() {
  //   });
     } 
     
-    newm.forEach(async x => await updateMedicine(x)) ;
+    newm.forEach(x => updateMedicine(x)) ;
     setMedicines(newm);
     setShowSpinner(false);
 /*
@@ -230,7 +230,7 @@ function App() {
       </section>
       <section>
         <Row>
-          <Col xs="auto"><Button onClick={async () => {await handleTakeMedicines()}} >Weź leki</Button></Col>
+          <Col xs="auto"><Button onClick={handleTakeMedicines} >Weź leki</Button></Col>
         </Row>
         <hr />
         <div>
