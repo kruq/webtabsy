@@ -74,8 +74,9 @@ function App() {
       // await updateMedicine(x);
  //   });
     } 
-    setMedicines(newm);
+    
     newm.forEach(async x => await updateMedicine(x)) ;
+    setMedicines(newm);
     setShowSpinner(false);
 /*
     fetchMedicines().then((newMeds) => {
