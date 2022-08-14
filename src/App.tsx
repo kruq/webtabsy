@@ -93,17 +93,17 @@ function App() {
   const getNotTakenDoses = useCallback(() => {
 
     const weekDays = [
+      'Nd', 
       'Pn',
       'Wt',
       'Śr',
       'Czw',
       'Pt',
-      'Sb',
-      'Nd'
+      'Sb'
     ]
 
     const formatDate = (date: Date) => {
-      let d = weekDays[date.getDay() - 1];
+      let d = weekDays[date.getDay()];
       d = `${d}. ${date.getDate()}`;
       if (date.getDate() === (new Date()).getDate()) {
         d = "dziś";
