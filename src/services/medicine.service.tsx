@@ -11,11 +11,11 @@ export const fetchMedicines = async (): Promise<IMedicine[]> => {
 }
 
 
-export const addMedicine = async (newMedicineName: string) => {
+export const addMedicine = async (medicine: IMedicine) => {
     await fetch(apiUrl, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newMedicineName })
+        body: JSON.stringify(medicine)
     })
 }
 

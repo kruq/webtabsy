@@ -15,6 +15,7 @@ import ListGroup from 'react-bootstrap/ListGroup';
 
 function App() {
 
+  const [notTakenDoses, setNotTakenDoses] = useState<JSX.Element[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
   const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
@@ -90,7 +91,7 @@ function App() {
 
   type DoseDetails = { medicineName: string, dose: string, time: string }
 
-  const getNotTakenDoses = useCallback(() => {
+  const getNotTakenDoses = (meds: IMedicine[]) => {
 
     const weekDays = [
       'Nd', 
@@ -113,8 +114,8 @@ function App() {
 
     console.log('getNotTakenDoses');
     const today = new Date();
-    console.log("medicines: " + medicines.length)
-    const elements = medicines.reduce((collection: DoseDetails[], x) => {
+    console.log("medicines: " + meds.length)
+    const elements = meds.reduce((collection: DoseDetails[], x) => {
       let noOfDays = countDays(today, new Date(x.lastDateTaken));
       console.log(`noOfDays = ${noOfDays}`)
       if (noOfDays > 100) {
@@ -139,7 +140,7 @@ function App() {
     return elements
       .sort((a, b) => { return a.time > b.time ? 1 : -1 })
       .map(x => <ListGroup.Item key={x.medicineName + x.time}><Row><Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col><Col>{x.medicineName} </Col><Col xs="auto"><small>{x.time}</small></Col></Row></ListGroup.Item>);
-  }, [medicines]);
+  }
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
@@ -164,27 +165,38 @@ function App() {
   // );
 
 
-  const handleRefresh = useCallback(() => {
-    console.log('checking time');
-    const elements = getNotTakenDoses();
-    console.log(`${elements.length} found`);
-    if (elements.length > 0) {
-      new Notification('Webtabsy', { body: "Czas wziąć leki" });
-    }
-  }, [getNotTakenDoses]);
+  // const handleRefresh = useCallback(() => {
+  //   console.log('checking time');
+  //   const elements = getNotTakenDoses();
+  //   console.log(`${elements.length} found`);
+  //   if (elements.length > 0) {
+  //     new Notification('Webtabsy', { body: "Czas wziąć leki" });
+  //   }
+  // }, [getNotTakenDoses]);
 
   useEffect(() => {
-    let timer: NodeJS.Timer;
-    Notification.requestPermission().then((result) => console.log(result));
     fetchMedicines().then(x => {
       setMedicines(x);
-      timer = setInterval(() => handleRefresh(), 10 * 1000);
+      const elements = getNotTakenDoses([...x]);
+      setNotTakenDoses(elements);
     });
+    /*
+    timer = setInterval(() => handleRefresh(), 100 * 1000);
+    let timer: NodeJS.Timer;
+    Notification.requestPermission().then((result) => console.log(result));
     return () => clearInterval(timer);
-  }, [handleRefresh] );
+    */
+  }, [medicines] );
 
   const handleAddMedicineClick = () => {
-    addMedicine(newMedicineName);
+    const newMedicine: IMedicine = { 
+      id: '',
+      name: newMedicineName,
+      count: 0,
+      lastDateTaken: new Date(),
+      doses: [],
+    };
+    addMedicine(newMedicine);
     fetchMedicines();
   }
 
@@ -227,7 +239,7 @@ function App() {
         <Card>
           <Card.Header>Pominięte dawki</Card.Header>
           <ListGroup variant="flush">
-            {getNotTakenDoses()}
+            {notTakenDoses}
           </ListGroup>
         </Card>
       </section>
