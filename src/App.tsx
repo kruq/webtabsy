@@ -40,8 +40,8 @@ function App() {
     setShowSpinner(true);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
-    const newm: IMedicine[] = [] ;
- //   m.forEach(async x => {
+    const newm: IMedicine[] = [];
+    //   m.forEach(async x => {
     for (let j = 0; j < m.length; j++) {
       const x = m[j];
       console.log(`${x.name.toUpperCase()}`);
@@ -72,29 +72,29 @@ function App() {
       x.lastDateTaken = new Date(newDateTaken);
       newm.push(x);
       // await updateMedicine(x);
- //   });
-    } 
-    
-    newm.forEach(x => updateMedicine(x)) ;
+      //   });
+    }
+
+    newm.forEach(x => updateMedicine(x));
     setMedicines(newm);
     setShowSpinner(false);
-/*
-    fetchMedicines().then((newMeds) => {
-      //alert(newMeds.length);
-      alert(newMeds[0].count);
-      setMedicines([...newMeds]);
-      //alert(medicines[0].count);
-      setShowSpinner(false);
-    });
-*/
+    /*
+        fetchMedicines().then((newMeds) => {
+          //alert(newMeds.length);
+          alert(newMeds[0].count);
+          setMedicines([...newMeds]);
+          //alert(medicines[0].count);
+          setShowSpinner(false);
+        });
+    */
   };
 
   type DoseDetails = { medicineName: string, dose: string, time: string }
 
-  const getNotTakenDoses = (meds: IMedicine[]) => {
+  const getNotTakenDoses = useCallback((meds: IMedicine[]) => {
 
     const weekDays = [
-      'Nd', 
+      'Nd',
       'Pn',
       'Wt',
       'Śr',
@@ -140,7 +140,7 @@ function App() {
     return elements
       .sort((a, b) => { return a.time > b.time ? 1 : -1 })
       .map(x => <ListGroup.Item key={x.medicineName + x.time}><Row><Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col><Col>{x.medicineName} </Col><Col xs="auto"><small>{x.time}</small></Col></Row></ListGroup.Item>);
-  }
+  }, []);
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
@@ -186,10 +186,10 @@ function App() {
     Notification.requestPermission().then((result) => console.log(result));
     return () => clearInterval(timer);
     */
-  }, [medicines] );
+  }, [medicines, getNotTakenDoses]);
 
   const handleAddMedicineClick = () => {
-    const newMedicine: IMedicine = { 
+    const newMedicine: IMedicine = {
       id: '',
       name: newMedicineName,
       count: 0,
