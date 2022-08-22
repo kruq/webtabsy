@@ -101,6 +101,9 @@ function App() {
     const elements = medicines.reduce((collection: DoseDetails[], x) => {
       let noOfDays = countDays(today, new Date(x.lastDateTaken));
       console.log(`noOfDays = ${noOfDays}`)
+      if (noOfDays > 100) {
+        noOfDays = 0;
+      }
       let items: DoseDetails[] = [];
       for (let i = noOfDays; i >= 0; i--) {
         const date = new Date(today);
