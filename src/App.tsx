@@ -35,11 +35,14 @@ function App() {
     return noOfDays;
   }
 
-  const handleTakeMedicines = async () => {
+  const handleTakeMedicines = () => {
     setShowSpinner(true);
     const today = new Date();
     const m: IMedicine[] = [...medicines];
-    m.forEach(async x => {
+    const newm: IMedicine[] = [] ;
+ //   m.forEach(async x => {
+    for (let j = 0; j < m.length; j++) {
+      const x = m[j];
       console.log(`${x.name.toUpperCase()}`);
       let noOfDays = countDays(today, new Date(x.lastDateTaken));
       let sum = 0;
@@ -66,10 +69,23 @@ function App() {
       // newDateTaken.setDate(today.getDate() - 2)
       // newDateTaken.setHours(10,0,0,0);
       x.lastDateTaken = new Date(newDateTaken);
-      await updateMedicine(x);
-    });
-    setMedicines(await fetchMedicines());
+      newm.push(x);
+      // await updateMedicine(x);
+ //   });
+    } 
+    
+    newm.forEach(x => updateMedicine(x)) ;
+    setMedicines(newm);
     setShowSpinner(false);
+/*
+    fetchMedicines().then((newMeds) => {
+      //alert(newMeds.length);
+      alert(newMeds[0].count);
+      setMedicines([...newMeds]);
+      //alert(medicines[0].count);
+      setShowSpinner(false);
+    });
+*/
   };
 
   type DoseDetails = { medicineName: string, dose: string, time: string }
@@ -77,17 +93,17 @@ function App() {
   const getNotTakenDoses = useCallback(() => {
 
     const weekDays = [
+      'Nd', 
       'Pn',
       'Wt',
       'Śr',
       'Czw',
       'Pt',
-      'Sb',
-      'Nd'
+      'Sb'
     ]
 
     const formatDate = (date: Date) => {
-      let d = weekDays[date.getDay() - 1];
+      let d = weekDays[date.getDay()];
       d = `${d}. ${date.getDate()}`;
       if (date.getDate() === (new Date()).getDate()) {
         d = "dziś";
@@ -164,9 +180,8 @@ function App() {
       setMedicines(x);
       timer = setInterval(() => handleRefresh(), 10 * 1000);
     });
-
     return () => clearInterval(timer);
-  }, [handleRefresh]);
+  }, [handleRefresh] );
 
   const handleAddMedicineClick = () => {
     addMedicine(newMedicineName);
@@ -218,7 +233,7 @@ function App() {
       </section>
       <section>
         <Row>
-          <Col xs="auto"><Button onClick={handleTakeMedicines}>Weź leki</Button></Col>
+          <Col xs="auto"><Button onClick={handleTakeMedicines} >Weź leki</Button></Col>
         </Row>
         <hr />
         <div>
