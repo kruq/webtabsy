@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, MouseEvent } from 'react';
 import './Medicine.css';
 import IMedicine from './models/IMedicine';
 import IDose from './models/IDose';
-import { deleteMedicine, updateMedicine } from './services/medicine.service';
 import Button from 'react-bootstrap/Button';
 import Badge from 'react-bootstrap/Badge';
 import Form from 'react-bootstrap/Form';
@@ -11,27 +10,26 @@ import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 
 
-interface IMedicineProps {
-    medicine: IMedicine,
+interface IMedicineProps extends IMedicine {
     idOfMedicineDetails: string;
-    medicineClick: (medicineId: string) => void
+    medicineClick: (medicineId: string) => void,
+    updateMedicine: (id: string, params: any) => Promise<void>,
+    deleteMedicine: (id: string) => Promise<void>,
 }
 
 export default function Medicine(props: IMedicineProps) {
     const defaultDose: IDose = { time: "00:00", amount: 0 }
 
-    const [medicine, setMedicine] = useState(props.medicine);
+    const [count, setCount] = useState(props.count);
     const [newDose, setNewDose] = useState<IDose>(defaultDose);
 
 
     const handleMedicineTitleClick = () => {
-        props.medicineClick(medicine.id);
+        props.medicineClick(props.id);
     }
 
     const handleMedicineCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const m: IMedicine = { ...medicine };
-        m.count = parseFloat(event.target.value);
-        setMedicine(m);
+        setCount(parseFloat(event.target.value));
     }
 
     // const handleMedicineDoseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,44 +39,41 @@ export default function Medicine(props: IMedicineProps) {
     // }
 
     const handleMedicineDeleteClick = () => {
-        deleteMedicine(medicine);
+        props.deleteMedicine(props.id);
     }
 
-    const handleMedicineSave = () => {
-        updateMedicine(medicine);
+    const handleMedicineSave = async () => {
+        await props.updateMedicine(props.id, { count });
     }
 
-    const handleMissedDose = () => {
-        const m: IMedicine = { ...medicine };
-        m.count++;
-        setMedicine(m);
-        updateMedicine(m);
+    const handleMissedDose = async () => {
+        setCount(count + 1);
+        await props.updateMedicine(props.id, { count });
     }
 
-    const handleAddDose = async () => {
-        const m = { ...medicine };
-        if (!m.doses) {
-            m.doses = [];
+    const handleAddDose = async (e: MouseEvent) => {
+        e.preventDefault();
+        let { doses } = { ...props };
+        if (!doses) {
+            doses = [];
         }
         if (!newDose.amount) {
             alert("Nie można dodać dawki z pustą wartością ilości");
             return;
         }
-        m.doses.push(newDose);
-        await updateMedicine(m);
-        setMedicine(m);
+        doses.push(newDose);
+        await props.updateMedicine(props.id, { doses });
+        // setCount(m);
         setNewDose(defaultDose);
     }
 
     const handleRemoveDose = async (dose: IDose) => {
-        const m = { ...medicine };
-        const index = m.doses.indexOf(dose);
+        const index = props.doses.indexOf(dose);
         if (index === -1) {
             return;
         }
-        m.doses.splice(index, 1);
-        await updateMedicine(m);
-        setMedicine(m);
+        const doses = props.doses.filter(d => d !== dose);
+        await props.updateMedicine(props.id, { doses });
     }
 
     const handleDoseTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,28 +91,34 @@ export default function Medicine(props: IMedicineProps) {
         setNewDose(dose);
     }
 
+    useEffect(() => {
+        // console.log("Render Medicine " + props.count);
+        setCount(props.count);
+    },[props.count]);
+
     return (
         <Card className="my-2">
             <Card.Header>
                 <Row>
-                    <Col onClick={() => handleMedicineTitleClick()} className="medicine-title"><span>{medicine.name}</span> <Badge bg="primary">{medicine.count} tab.</Badge></Col>
+                    <Col onClick={() => handleMedicineTitleClick()} className="medicine-title"><span>{props.name}</span> <Badge bg="primary">{props.count} tab.</Badge></Col>
                     <Col xs="auto"><Button onClick={handleMissedDose} variant="warning" size="sm">Pominięto</Button></Col>
                 </Row>
             </Card.Header>
-            <Card.Body hidden={medicine.id !== props.idOfMedicineDetails}>
+            <Card.Body hidden={props.id !== props.idOfMedicineDetails}>
                 <Card.Title>
                 </Card.Title>
                 <Form>
                     <Row>
                         <Col>
-                            Wzięte: {new Date(medicine.lastDateTaken.toString()).toLocaleDateString('pl-PL')}
+                            Wzięte: {new Date(props.lastDateTaken.toString()).toLocaleDateString('pl-PL')} {new Date(props.lastDateTaken.toString()).toLocaleTimeString('pl-PL')}
                         </Col>
                     </Row>
                     <Row>
                         <Col xs="auto">
                             <Form.Group>
                                 <Form.Label>Aktualna ilość tabletek:</Form.Label>
-                                <Form.Control type="number" value={medicine.count} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
+                                <Form.Control type="number" value={count.toString()} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
+                                <Button onClick={handleMedicineSave} variant="primary" className="my-2">Zapisz</Button>
                             </Form.Group>
                         </Col>
                         {/* <Col xs="auto">
@@ -133,7 +134,7 @@ export default function Medicine(props: IMedicineProps) {
                     <Row>
                         <Col xs="auto">
                             <ul>
-                                {medicine.doses?.map(x => <li key={x.time}><strong>{x.time}</strong>: {x.amount} tab. <Button onClick={() => handleRemoveDose(x)} size="sm" variant="outline-danger" className="mt-1">Usuń</Button></li>)}
+                                {props.doses?.map(x => <li key={x.time}><strong>{x.time}</strong>: {x.amount} tab. <Button onClick={() => handleRemoveDose(x)} size="sm" variant="outline-danger" className="mt-1">Usuń</Button></li>)}
                             </ul>
                             <strong>Nowa dawka</strong>
                         </Col>
@@ -153,20 +154,13 @@ export default function Medicine(props: IMedicineProps) {
                             <Form.Control type="number" value={newDose?.amount} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseAmountChange(e)}></Form.Control>
                         </Col>
                         <Col xs="auto">
-                            <Button onClick={handleAddDose} variant="primary">Dodaj dawkę</Button>
-
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col></Col>
-                        <Col xs="auto">
-                            <Button onClick={handleMedicineSave} variant="primary" className="my-2">Zapisz</Button>
+                            <Button onClick={handleAddDose} variant="primary" type="submit">Dodaj dawkę</Button>
                         </Col>
                     </Row>
                 </Form>
 
             </Card.Body>
-            <Card.Footer hidden={medicine.id !== props.idOfMedicineDetails}>
+            <Card.Footer hidden={props.id !== props.idOfMedicineDetails}>
                 <Row>
                     <Col></Col>
                     <Col xs="auto"><Button onClick={handleMedicineDeleteClick} variant="outline-danger" size="sm">Usuń lek</Button></Col>
