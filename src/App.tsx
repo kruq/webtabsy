@@ -123,7 +123,7 @@ function App() {
     return elements
       .sort((a, b) => { return a.time > b.time ? 1 : -1 });
 
-  });
+  }, []);
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
