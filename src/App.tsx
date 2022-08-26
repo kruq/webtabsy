@@ -74,7 +74,7 @@ function App() {
 
   type DoseDetails = { medicineName: string, dose: string, time: string }
 
-  const refreshNotTakenDoses = (meds: IMedicine[]) => {
+  const refreshNotTakenDoses = useCallback((meds: IMedicine[]) => {
 
     const weekDays = [
       'Nd',
@@ -123,7 +123,7 @@ function App() {
     return elements
       .sort((a, b) => { return a.time > b.time ? 1 : -1 });
 
-  };
+  });
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
