@@ -151,7 +151,7 @@ function App() {
     Notification.requestPermission().then((result) => console.log(result));
     return () => clearInterval(timer);
     */
-  }, []);
+  }, [refreshNotTakenDoses]);
 
   const handleAddMedicineClick = async () => {
     setShowSpinner(true);
