@@ -19,7 +19,7 @@ function App() {
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
   const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
-  const [showSpinner, setShowSpinner] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(true);
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
@@ -74,7 +74,7 @@ function App() {
 
   type DoseDetails = { medicineName: string, dose: string, time: string }
 
-  const refreshNotTakenDoses = (meds: IMedicine[]) => {
+  const refreshNotTakenDoses = useCallback((meds: IMedicine[]) => {
 
     const weekDays = [
       'Nd',
@@ -123,7 +123,7 @@ function App() {
     return elements
       .sort((a, b) => { return a.time > b.time ? 1 : -1 });
 
-  };
+  },[]);
 
   const handleMedicineClick = (medicineId: string) => {
     if (idOfMedicineDetails === medicineId) {
@@ -138,11 +138,7 @@ function App() {
     fetchMedicines().then(x => {
       console.log('set medicines in use effect ', x)
       setMedicines(x);
-      // const elements = getNotTakenDoses();
-      // setNotTakenDoses(elements);
-      const m = refreshNotTakenDoses(x);
-      setNotTakenDoses(m);
-      // console.log("use effect", m);
+      setNotTakenDoses(refreshNotTakenDoses(x));
       setShowSpinner(false);
     });
     /*
@@ -151,7 +147,7 @@ function App() {
     Notification.requestPermission().then((result) => console.log(result));
     return () => clearInterval(timer);
     */
-  }, []);
+  }, [refreshNotTakenDoses]);
 
   const handleAddMedicineClick = async () => {
     setShowSpinner(true);
@@ -223,14 +219,14 @@ function App() {
 
   return (
     <>
-      <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', fontSize: '10rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }} hidden={!showSpinner}  >
-        <Spinner animation="border" variant='primary' />
+      <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
+        <h3><Spinner animation="border" variant='primary'/> Ładowanie...</h3>
       </div>
       <Container className="my-2">
         <header className='mb-2'>
           <Row>
             <Col className="display-6">
-              Webtabsy
+              Webtabsy <Button onClick={async () => await fetchMedicines()}>Fetch</Button>
             </Col>
             <Col xs="auto" className="text-end">
               <small>Dzisiaj: <strong>{new Date().toLocaleDateString('pl-PL')}</strong></small><br />

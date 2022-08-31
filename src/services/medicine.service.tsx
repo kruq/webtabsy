@@ -1,13 +1,17 @@
 import IMedicine from "../models/IMedicine";
+import axios from "axios";
 
-// const apiUrl = 'https://webtabsyapi.execa.pl/medicine'
-// const apiUrl = 'https://localhost:7078/medicine'
 const apiUrl = 'https://webtabsyapi.azurewebsites.net/medicine';
 
-export const fetchMedicines = async (): Promise<IMedicine[]> => {
-    var res = await fetch(apiUrl, { mode: 'cors' });
-    var text = res.json();
-    return text;
+export const fetchMedicines = async () => {
+    try {
+        var res = await axios.get(apiUrl);
+        // var res = await fetch(apiUrl, { mode: 'cors' });
+        console.log(res);
+        return res.data;
+    } catch (error) {
+        alert(error);
+    }
 }
 
 

@@ -91,16 +91,23 @@ export default function Medicine(props: IMedicineProps) {
         setNewDose(dose);
     }
 
+    const countNumberOfDays = () => {
+        const { doses } = { ...props };
+        const sumDaily = doses.reduce((prev, current) => prev += current?.amount ?? 0, 0);
+        if (!sumDaily) { return 0; }
+        return Math.floor(count / sumDaily);
+    }
+
     useEffect(() => {
         // console.log("Render Medicine " + props.count);
         setCount(props.count);
-    },[props.count]);
+    }, [props.count]);
 
     return (
         <Card className="my-2">
             <Card.Header>
                 <Row>
-                    <Col onClick={() => handleMedicineTitleClick()} className="medicine-title"><span>{props.name}</span> <Badge bg="primary">{props.count} tab.</Badge></Col>
+                    <Col onClick={() => handleMedicineTitleClick()} className="medicine-title"><span>{props.name}</span> <Badge bg="secondary">{props.count} tab.</Badge> <Badge bg="primary"> {countNumberOfDays()} dni</Badge></Col>
                     <Col xs="auto"><Button onClick={handleMissedDose} variant="warning" size="sm">Pominięto</Button></Col>
                 </Row>
             </Card.Header>
