@@ -3,14 +3,15 @@ import axios from "axios";
 
 const apiUrl = 'https://webtabsyapi.azurewebsites.net/medicine';
 
-export const fetchMedicines = async () => {
+export const fetchMedicines = async (): Promise<IMedicine[]> => {
     try {
         var res = await axios.get(apiUrl);
         // var res = await fetch(apiUrl, { mode: 'cors' });
         console.log(res);
         return res.data;
     } catch (error) {
-        alert(error);
+        console.log(error);
+        return [];
     }
 }
 

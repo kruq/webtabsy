@@ -22,6 +22,7 @@ export default function Medicine(props: IMedicineProps) {
 
     const [count, setCount] = useState(props.count);
     const [newDose, setNewDose] = useState<IDose>(defaultDose);
+    const [fnDebounce, setFnDebounce] = useState<NodeJS.Timer>();
 
 
     const handleMedicineTitleClick = () => {
@@ -29,26 +30,27 @@ export default function Medicine(props: IMedicineProps) {
     }
 
     const handleMedicineCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setCount(parseFloat(event.target.value));
+        const newValue = parseFloat(event.target.value);
+        clearTimeout(fnDebounce);
+        setFnDebounce(setTimeout(() => props.updateMedicine(props.id, { count: newValue }), 1000));
+        setCount(newValue);
     }
-
-    // const handleMedicineDoseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const m: IMedicine = { ...medicine };
-    //     m.dose = parseFloat(event.target.value);
-    //     setMedicine(m);
-    // }
 
     const handleMedicineDeleteClick = () => {
         props.deleteMedicine(props.id);
     }
-
-    const handleMedicineSave = async () => {
-        await props.updateMedicine(props.id, { count });
-    }
-
+    
     const handleMissedDose = async () => {
-        setCount(count + 1);
-        await props.updateMedicine(props.id, { count });
+        console.log(count);
+
+        const newCount = count + 1;
+        console.log(newCount);
+
+        setCount(newCount);
+        console.log(count);
+        await props.updateMedicine(props.id, { count: newCount });
+        console.log(count);
+
     }
 
     const handleAddDose = async (e: MouseEvent) => {
@@ -95,7 +97,7 @@ export default function Medicine(props: IMedicineProps) {
         const { doses } = { ...props };
         const sumDaily = doses.reduce((prev, current) => prev += current?.amount ?? 0, 0);
         if (!sumDaily) { return 0; }
-        return Math.floor(count / sumDaily);
+        return Math.floor(props.count / sumDaily);
     }
 
     useEffect(() => {
@@ -125,15 +127,8 @@ export default function Medicine(props: IMedicineProps) {
                             <Form.Group>
                                 <Form.Label>Aktualna ilość tabletek:</Form.Label>
                                 <Form.Control type="number" value={count.toString()} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
-                                <Button onClick={handleMedicineSave} variant="primary" className="my-2">Zapisz</Button>
                             </Form.Group>
                         </Col>
-                        {/* <Col xs="auto">
-                            <Form.Group>
-                                <Form.Label>Dzienna dawka</Form.Label>
-                                <Form.Control type="number" value={medicine.dose} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDoseChange(e)} ></Form.Control>
-                            </Form.Group>
-                        </Col> */}
                     </Row>
                     <Row className="mt-3">
                         <Col><strong>Dawkowanie</strong></Col>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, MouseEvent } from 'react';
 import './App.css';
 import Medicine from './Medicine';
 import IMedicine from './models/IMedicine';
@@ -65,7 +65,7 @@ function App() {
       newm.push(x);
     }
 
-    newm.forEach(x => updateMedicine(x));
+    newm.forEach(async (x) => await updateMedicine(x));
     console.log("set medicines when take medicines", newm);
     setMedicines([...newm]);
     setNotTakenDoses([]);
@@ -135,10 +135,9 @@ function App() {
 
   useEffect(() => {
     setShowSpinner(true);
-    fetchMedicines().then(x => {
-      console.log('set medicines in use effect ', x)
-      setMedicines(x);
-      setNotTakenDoses(refreshNotTakenDoses(x));
+    fetchMedicines().then(meds => {
+      setMedicines(meds);
+      setNotTakenDoses(refreshNotTakenDoses(meds));
       setShowSpinner(false);
     });
     /*
@@ -149,8 +148,9 @@ function App() {
     */
   }, [refreshNotTakenDoses]);
 
-  const handleAddMedicineClick = async () => {
+  const handleAddMedicineClick = async (e: MouseEvent) => {
     setShowSpinner(true);
+    e.preventDefault();
     const newMedicine: IMedicine = {
       id: '',
       name: newMedicineName,
@@ -160,6 +160,7 @@ function App() {
     };
     await addMedicine(newMedicine);
     setMedicines(await fetchMedicines());
+    setNewMedicineName('');
     setShowSpinner(false);
   }
 
@@ -177,22 +178,22 @@ function App() {
   }
 
   const handleUpdateMedicine = async (id: string, params: any) => {
-    setShowSpinner(true);
+    // setShowSpinner(true);
+    let newMedicine = null;
     const meds = medicines.map(m => {
       if (m.id === id) {
-        return { ...m, ...params };
+        newMedicine = { ...m, ...params };
+        return newMedicine
       }
       return m;
     });
     setMedicines(meds);
-    const medicine = medicines.find(m => m.id === id);
-    if (!medicine) { return }
-    console.log('Update new medicine', medicine, params);
-    await updateMedicine(medicine);
+    if (!newMedicine) { return }
+    console.log('Update new medicine', newMedicine, params);
+    await updateMedicine(newMedicine);
     const m = refreshNotTakenDoses(meds);
-    console.log("updeate medicine", m);
     setNotTakenDoses(m);
-    setShowSpinner(false);
+    // setShowSpinner(false);
   }
 
   const getDateWhenMedicinesTaken = useCallback(() => {
@@ -278,7 +279,7 @@ function App() {
                   onChange={handleNewMedicineNameChange}>
                 </Form.Control>
               </Form.Group>
-              <Button type="button" onClick={handleAddMedicineClick} variant="primary">Dodaj</Button>
+              <Button type="submit" onClick={handleAddMedicineClick} variant="primary">Dodaj</Button>
             </Form>
           </div>
         </section>
