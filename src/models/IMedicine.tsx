@@ -5,5 +5,4 @@ export default interface IMedicine {
     name: string;
     count: number;
     doses: IDose[];
-    lastDateTaken: Date;  
   }

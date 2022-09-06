@@ -11,6 +11,7 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
+import IDose from './models/IDose';
 
 
 function App() {
@@ -38,31 +39,31 @@ function App() {
   const handleTakeMedicines = () => {
     setShowSpinner(true);
     const today = new Date();
-    const m: IMedicine[] = [...medicines];
+    const meds: IMedicine[] = [...medicines];
     const newm: IMedicine[] = [];
-    for (let j = 0; j < m.length; j++) {
-      const x = m[j];
+    for (let medIndex = 0; medIndex < meds.length; medIndex++) {
+      const med = meds[medIndex];
       // console.log(`${x.name.toUpperCase()}`);
-      let noOfDays = countDays(today, new Date(x.lastDateTaken));
       let sum = 0;
-      for (let i = noOfDays; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        sum += x.doses.reduce((prevValue, dose) => {
+      sum += med.doses.reduce((prevValue, dose) => {
+        let noOfDays = countDays(today, new Date(dose.takingDate));
+        for (let i = noOfDays; i >= 0; i--) {
+          const date = new Date(today);
+          date.setDate(date.getDate() - i);
           const hourAndMinute = dose.time.split(":");
           date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-          if (date > new Date(x.lastDateTaken.toString()) && date < today) {
+          if (date > new Date(dose.takingDate.toString()) && date < today) {
             const totalDose = dose.amount ?? 0;
             return prevValue + totalDose;
           }
-          return prevValue;
-        }, 0);
-      }
-      console.log(x.name, sum, x.count);
-      x.count -= sum;
+        }
+        return prevValue;
+      }, 0);
+      console.log(med.name, sum, med.count);
+      med.count -= sum;
       const newDateTaken = today;
-      x.lastDateTaken = new Date(newDateTaken);
-      newm.push(x);
+      med.doses.forEach(d => d.takingDate = new Date(newDateTaken));
+      newm.push(med);
     }
 
     newm.forEach(async (x) => await updateMedicine(x));
@@ -86,6 +87,10 @@ function App() {
       'Sb'
     ]
 
+    interface IDoseWithDate extends IDose {
+      date: Date
+    }
+
     const formatDate = (date: Date) => {
       let d = weekDays[date.getDay()];
       d = `${d}. ${date.getDate()}`;
@@ -99,30 +104,44 @@ function App() {
     const today = new Date();
     // const meds = [...medicines];
     console.log("medicines: " + meds.length)
+
     const elements = meds.reduce((collection: DoseDetails[], x) => {
-      let noOfDays = countDays(today, new Date(x.lastDateTaken));
-      console.log(`noOfDays = ${noOfDays}`)
-      if (noOfDays > 100) {
-        noOfDays = 0;
-      }
-      let items: DoseDetails[] = [];
-      for (let i = noOfDays; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const newArray = x.doses.filter(dose => {
+      let dosesArray: DoseDetails[] = [];
+
+      const newDosesArray = x.doses.flatMap(dose => {
+
+        let noOfDays = countDays(today, new Date(dose.takingDate));
+        console.log(`noOfDays = ${noOfDays}`)
+        if (noOfDays > 100) {
+          noOfDays = 0;
+        }
+
+        // Create array of numbers in sequence starting from 0
+        const days = [...Array.from(Array(noOfDays + 1).keys())];
+        console.log(days);
+
+        return days.reverse().reduce((foundDoses, dayNo) => {
+          const date = new Date(today);
+          date.setDate(date.getDate() - dayNo);
+
           const hourAndMinute = dose.time.split(":");
           date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-          const result = ((date > new Date(x.lastDateTaken.toString())) && (date < today))
-          return result;
-        }).map(dose => { return { medicineName: '', dose: `${dose.amount} tab. `, time: `${formatDate(date)}, godz ${dose.time}` } });
-        items = items.concat(newArray);
-      }
-      return collection.concat(items.map(y => { y.medicineName = x.name; return y }));
+          if ((date > new Date(dose.takingDate.toString())) && (date < today)) {
+            foundDoses.push({ ...dose, date });
+          }
+          return foundDoses;
+        }, new Array<IDoseWithDate>());
+      }).map(dose => { return { medicineName: '', dose: `${dose.amount} tab. `, time: `${formatDate(dose.date)}, godz ${dose.time}` } });
+      dosesArray = dosesArray.concat(newDosesArray);
+      return collection.concat(dosesArray.map(y => { y.medicineName = x.name; return y }));
     }, []);
+
+
     console.log(elements);
     return elements
       .sort((a, b) => { return a.time > b.time ? 1 : -1 });
 
+    // useCallback
   }, []);
 
   const handleMedicineClick = (medicineId: string) => {
@@ -155,7 +174,6 @@ function App() {
       id: '',
       name: newMedicineName,
       count: 0,
-      lastDateTaken: new Date(),
       doses: [],
     };
     await addMedicine(newMedicine);
@@ -196,42 +214,42 @@ function App() {
     // setShowSpinner(false);
   }
 
-  const getDateWhenMedicinesTaken = useCallback(() => {
-    // return medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const date = new Date(medicines[0]?.lastDateTaken?.toString());
-    const diff = countDays(today, date);
-    if (isNaN(diff)) {
-      return "-";
-    }
-    const h = date.getHours().toString();
-    let m = date.getMinutes().toString();
-    if (m.length === 1) {
-      m = "0" + m;
-    }
-    switch (diff) {
-      case -1: return `jutro ????`
-      case 0: return `dzisiaj o ${h}:${m}`
-      case 1: return `wczoraj o ${h}:${m}`
-      default: return diff + ` dni temu - ${date.toLocaleDateString('pl-PL')} o ${h}:${m}`;
-    }
-  }, [medicines]);
+  // const getDateWhenMedicinesTaken = useCallback(() => {
+  //   // return medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+  //   const date = new Date(medicines[0]?.lastDateTaken?.toString());
+  //   const diff = countDays(today, date);
+  //   if (isNaN(diff)) {
+  //     return "-";
+  //   }
+  //   const h = date.getHours().toString();
+  //   let m = date.getMinutes().toString();
+  //   if (m.length === 1) {
+  //     m = "0" + m;
+  //   }
+  //   switch (diff) {
+  //     case -1: return `jutro ????`
+  //     case 0: return `dzisiaj o ${h}:${m}`
+  //     case 1: return `wczoraj o ${h}:${m}`
+  //     default: return diff + ` dni temu - ${date.toLocaleDateString('pl-PL')} o ${h}:${m}`;
+  //   }
+  // }, [medicines]);
 
   return (
     <>
       <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
-        <h3><Spinner animation="border" variant='primary'/> Ładowanie...</h3>
+        <h3><Spinner animation="border" variant='primary' /> Ładowanie...</h3>
       </div>
       <Container className="my-2">
         <header className='mb-2'>
           <Row>
             <Col className="display-6">
-              Webtabsy <Button onClick={async () => await fetchMedicines()}>Fetch</Button>
+              Webtabsy
+              {/* <Button onClick={async () => await updateDoses()}>Fetch</Button> */}
             </Col>
             <Col xs="auto" className="text-end">
               <small>Dzisiaj: <strong>{new Date().toLocaleDateString('pl-PL')}</strong></small><br />
-              <small>Oznaczone: <strong>{getDateWhenMedicinesTaken()}</strong></small>
             </Col>
           </Row>
         </header>
@@ -243,7 +261,11 @@ function App() {
                 <ListGroup.Item key={x.medicineName + x.time}>
                   <Row>
                     <Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col>
-                    <Col>{x.medicineName} </Col><Col xs="auto"><small>{x.time}</small></Col>
+                    <Col>
+                      {x.medicineName} </Col><Col xs="auto"><small>{x.time}</small>
+                      <Button>Weź</Button>
+                      <Button>Pomiń</Button>
+                    </Col>
                   </Row>
                 </ListGroup.Item>)}
             </ListGroup>

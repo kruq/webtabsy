@@ -18,7 +18,7 @@ interface IMedicineProps extends IMedicine {
 }
 
 export default function Medicine(props: IMedicineProps) {
-    const defaultDose: IDose = { time: "00:00", amount: 0 }
+    const defaultDose: IDose = { time: "00:00", amount: 0, takingDate: new Date() }
 
     const [count, setCount] = useState(props.count);
     const [newDose, setNewDose] = useState<IDose>(defaultDose);
@@ -38,19 +38,6 @@ export default function Medicine(props: IMedicineProps) {
 
     const handleMedicineDeleteClick = () => {
         props.deleteMedicine(props.id);
-    }
-    
-    const handleMissedDose = async () => {
-        console.log(count);
-
-        const newCount = count + 1;
-        console.log(newCount);
-
-        setCount(newCount);
-        console.log(count);
-        await props.updateMedicine(props.id, { count: newCount });
-        console.log(count);
-
     }
 
     const handleAddDose = async (e: MouseEvent) => {
@@ -110,18 +97,12 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Header>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title"><span>{props.name}</span> <Badge bg="secondary">{props.count} tab.</Badge> <Badge bg="primary"> {countNumberOfDays()} dni</Badge></Col>
-                    <Col xs="auto"><Button onClick={handleMissedDose} variant="warning" size="sm">Pominięto</Button></Col>
                 </Row>
             </Card.Header>
             <Card.Body hidden={props.id !== props.idOfMedicineDetails}>
                 <Card.Title>
                 </Card.Title>
                 <Form>
-                    <Row>
-                        <Col>
-                            Wzięte: {new Date(props.lastDateTaken.toString()).toLocaleDateString('pl-PL')} {new Date(props.lastDateTaken.toString()).toLocaleTimeString('pl-PL')}
-                        </Col>
-                    </Row>
                     <Row>
                         <Col xs="auto">
                             <Form.Group>
@@ -136,7 +117,16 @@ export default function Medicine(props: IMedicineProps) {
                     <Row>
                         <Col xs="auto">
                             <ul>
-                                {props.doses?.map(x => <li key={x.time}><strong>{x.time}</strong>: {x.amount} tab. <Button onClick={() => handleRemoveDose(x)} size="sm" variant="outline-danger" className="mt-1">Usuń</Button></li>)}
+                                {props.doses?.map(dose =>
+                                    <li key={dose.time}>
+                                        <strong>{dose.time}</strong>: {dose.amount} tab.
+                                        <Button onClick={() => handleRemoveDose(dose)} size="sm" variant="outline-danger" className="mt-1">Usuń</Button>
+                                        <> </>
+                                        <span>
+                                            Wzięte: {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')} {new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL')}
+                                        </span>
+                                    </li>
+                                )}
                             </ul>
                             <strong>Nowa dawka</strong>
                         </Col>
