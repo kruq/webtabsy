@@ -15,13 +15,26 @@ import IDose from './models/IDose';
 import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 
 
+interface IDoseWithDate extends IDose {
+  date: Date,
+  // canEdit: boolean
+}
+
+type DoseDetails = {
+  medicine?: IMedicine,
+  doseAmount: string,
+  time: string,
+  dose: IDoseWithDate
+}
+
 function App() {
 
-  const [notTakenDoses, setNotTakenDoses] = useState<{ medicineName: string, time: string, dose: string }[]>([])
+  const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
   const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
   const [showSpinner, setShowSpinner] = useState(true);
+  const [lastCheckTime, setLastCheckTime] = useState<Date>(new Date());
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
@@ -74,7 +87,6 @@ function App() {
     setShowSpinner(false);
   };
 
-  type DoseDetails = { medicineName: string, dose: string, time: string }
 
   const refreshNotTakenDoses = useCallback((meds: IMedicine[]) => {
 
@@ -88,9 +100,7 @@ function App() {
       'Sb'
     ]
 
-    interface IDoseWithDate extends IDose {
-      date: Date
-    }
+
 
     const formatDate = (date: Date) => {
       let d = weekDays[date.getDay()];
@@ -112,14 +122,12 @@ function App() {
       const newDosesArray = x.doses.flatMap(dose => {
 
         let noOfDays = countDays(today, new Date(dose.takingDate));
-        console.log(`noOfDays = ${noOfDays}`)
         if (noOfDays > 100) {
           noOfDays = 0;
         }
 
         // Create array of numbers in sequence starting from 0
         const days = [...Array.from(Array(noOfDays + 1).keys())];
-        console.log(days);
 
         return days.reverse().reduce((foundDoses, dayNo) => {
           const date = new Date(today);
@@ -128,13 +136,15 @@ function App() {
           const hourAndMinute = dose.time.split(":");
           date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
           if ((date > new Date(dose.takingDate.toString())) && (date < today)) {
-            foundDoses.push({ ...dose, date });
+
+//            const canEdit = !foundDoses.some(y => y.amount === dose.amount && y.time === dose.time);
+            foundDoses.push({ ...dose, date});
           }
           return foundDoses;
         }, new Array<IDoseWithDate>());
-      }).map(dose => { return { medicineName: '', dose: `${dose.amount} tab. `, time: `${formatDate(dose.date)}, godz ${dose.time}` } });
+      }).map(dose => { return { doseAmount: `${dose.amount} tab. `, time: `${formatDate(dose.date)}, godz ${dose.time}`, dose } });
       dosesArray = dosesArray.concat(newDosesArray);
-      return collection.concat(dosesArray.map(y => { y.medicineName = x.name; return y }));
+      return collection.concat(dosesArray.map(y => { y.medicine = x; return y }));
     }, []);
 
 
@@ -160,13 +170,12 @@ function App() {
       setNotTakenDoses(refreshNotTakenDoses(meds));
       setShowSpinner(false);
     });
-    /*
-    timer = setInterval(() => handleRefresh(), 100 * 1000);
-    let timer: NodeJS.Timer;
+
+    const timer = setInterval(() => setLastCheckTime(new Date()), 60 * 1000);
     Notification.requestPermission().then((result) => console.log(result));
     return () => clearInterval(timer);
-    */
-  }, [refreshNotTakenDoses]);
+
+  }, [refreshNotTakenDoses, lastCheckTime]);
 
   const handleAddMedicineClick = async (e: MouseEvent) => {
     setShowSpinner(true);
@@ -251,6 +260,7 @@ function App() {
             </Col>
             <Col xs="auto" className="text-end">
               <small>Dzisiaj: <strong>{new Date().toLocaleDateString('pl-PL')}</strong></small><br />
+              <small>Ostatnio sprawdzano: <strong>{lastCheckTime.toLocaleString('pl-PL')}</strong></small>
             </Col>
           </Row>
           <hr />
@@ -262,14 +272,43 @@ function App() {
               <Card>
                 <ListGroup variant="flush">
                   {notTakenDoses.map(x =>
-                    <ListGroup.Item key={x.medicineName + x.time}>
+                    <ListGroup.Item key={x.medicine?.name + x.time}>
                       <Row>
-                        <Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col>
-                        <Col>{x.medicineName}</Col>
+                        <Col xs="3" sm="2" lg="1" className="text-end">{x.doseAmount}</Col>
+                        <Col>{x.medicine?.name}</Col>
                         <Col xs="auto">
-                          <small>{x.time}</small>
-                          <Button className='mx-1' size='sm'><HandThumbsUpFill /></Button>
-                          <Button className='mx-1' size='sm'><HandThumbsDownFill /></Button>
+                          <small className="mx-3">{x.time}</small>
+                          <Button className='mx-1' size='sm' variant='success' disabled={ notTakenDoses.some(y => y.dose.date < x.dose.date)} onClick={async () => {
+                            const meds = [...medicines];
+                            const medicine = meds.find(m => m === x.medicine);
+                            if (medicine && medicine.count > 0) {
+                              const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                              if (dose && dose.amount) {
+                                let newDate = new Date(x.dose.date);
+                                newDate.setTime(newDate.getTime() + 1000);
+                                dose.takingDate = newDate;
+                                medicine.count -= dose.amount;
+                                await updateMedicine(medicine);
+                                setMedicines(meds);
+                                setNotTakenDoses(refreshNotTakenDoses(meds));
+                              }
+                            }
+                          }}><HandThumbsUpFill /> Wzięte</Button>
+                          <Button className='mx-1' size='sm' variant='warning' disabled={ notTakenDoses.some(y => y.dose.date < x.dose.date)}  onClick={async () => {
+                            const meds = [...medicines];
+                            const medicine = meds.find(m => m === x.medicine);
+                            if (medicine && medicine.count > 0) {
+                              const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                              if (dose && dose.amount) {
+                                let newDate = new Date(x.dose.date);
+                                newDate.setTime(newDate.getTime() + 1000);
+                                dose.takingDate = newDate;
+                                await updateMedicine(medicine);
+                                setMedicines(meds);
+                                setNotTakenDoses(refreshNotTakenDoses(meds));
+                              }
+                            }
+                          }}><HandThumbsDownFill /> Pominięte</Button>
                         </Col>
                       </Row>
                     </ListGroup.Item>)}
@@ -278,7 +317,8 @@ function App() {
             </Col>
           </Row>
           <Row>
-            <Col xs="auto"><Button onClick={handleTakeMedicines} >Weź leki</Button></Col>
+            <Col></Col>
+            <Col xs="auto" className="mt-2"><Button onClick={handleTakeMedicines} size='sm' variant='success'><HandThumbsUpFill /> Wszystkie leki są wzięte</Button></Col>
           </Row>
           <hr />
         </section>

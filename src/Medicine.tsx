@@ -96,7 +96,11 @@ export default function Medicine(props: IMedicineProps) {
         <Card className="my-2">
             <Card.Header>
                 <Row>
-                    <Col onClick={() => handleMedicineTitleClick()} className="medicine-title"><span>{props.name}</span> <Badge bg="secondary">{props.count} tab.</Badge> <Badge bg="primary"> {countNumberOfDays()} dni</Badge></Col>
+                    <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
+                        <Badge bg="secondary" style={{width: '60px'}}>{props.count} tab.</Badge><> </>
+                        <Badge bg="primary" style={{width: '60px'}}> {countNumberOfDays()} dni</Badge> <> </>
+                        <span>{props.name}</span>
+                    </Col>
                 </Row>
             </Card.Header>
             <Card.Body hidden={props.id !== props.idOfMedicineDetails}>
