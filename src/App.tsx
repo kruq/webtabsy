@@ -255,7 +255,7 @@ function App() {
           </Row>
           <hr />
         </header>
-        <section className='mb-2' hidden={notTakenDoses.length == 0}>
+        <section className='mb-2' hidden={notTakenDoses.length === 0}>
           <Row>
             <Col>
               <h4>Pominięte leki</h4>
