@@ -12,6 +12,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import IDose from './models/IDose';
+import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 
 
 function App() {
@@ -252,30 +253,37 @@ function App() {
               <small>Dzisiaj: <strong>{new Date().toLocaleDateString('pl-PL')}</strong></small><br />
             </Col>
           </Row>
+          <hr />
         </header>
-        <section className='mb-2'>
-          <Card>
-            <Card.Header>Pominięte dawki</Card.Header>
-            <ListGroup variant="flush">
-              {notTakenDoses.map(x =>
-                <ListGroup.Item key={x.medicineName + x.time}>
-                  <Row>
-                    <Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col>
-                    <Col>
-                      {x.medicineName} </Col><Col xs="auto"><small>{x.time}</small>
-                      <Button>Weź</Button>
-                      <Button>Pomiń</Button>
-                    </Col>
-                  </Row>
-                </ListGroup.Item>)}
-            </ListGroup>
-          </Card>
-        </section>
-        <section>
+        <section className='mb-2' hidden={notTakenDoses.length == 0}>
+          <Row>
+            <Col>
+              <h4>Pominięte leki</h4>
+              <Card>
+                <ListGroup variant="flush">
+                  {notTakenDoses.map(x =>
+                    <ListGroup.Item key={x.medicineName + x.time}>
+                      <Row>
+                        <Col xs="3" sm="2" lg="1" className="text-end">{x.dose}</Col>
+                        <Col>{x.medicineName}</Col>
+                        <Col xs="auto">
+                          <small>{x.time}</small>
+                          <Button className='mx-1' size='sm'><HandThumbsUpFill /></Button>
+                          <Button className='mx-1' size='sm'><HandThumbsDownFill /></Button>
+                        </Col>
+                      </Row>
+                    </ListGroup.Item>)}
+                </ListGroup>
+              </Card>
+            </Col>
+          </Row>
           <Row>
             <Col xs="auto"><Button onClick={handleTakeMedicines} >Weź leki</Button></Col>
           </Row>
           <hr />
+        </section>
+        <section>
+          <h4>Lista leków</h4>
           <div>
             <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
             <div>{medicines.map((x: IMedicine, i: number) =>
@@ -292,7 +300,7 @@ function App() {
           </div>
           <hr />
           <div>
-            <h3>Nowy lek</h3>
+            <h4>Nowy lek</h4>
             <Form>
               <Form.Group className="mb-3">
                 <Form.Label>Nazwa leku</Form.Label>
