@@ -278,7 +278,7 @@ function App() {
                         <Col>{x.medicine?.name}</Col>
                         <Col xs="auto">
                           <small className="mx-3">{x.time}</small>
-                          <Button className='mx-1' size='sm' variant='success' disabled={ notTakenDoses.some(y => y.dose.date < x.dose.date)} onClick={async () => {
+                          <Button className='mx-1' variant='success' disabled={ notTakenDoses.some(y => y.dose.date < x.dose.date)} onClick={async () => {
                             const meds = [...medicines];
                             const medicine = meds.find(m => m === x.medicine);
                             if (medicine && medicine.count > 0) {
@@ -293,8 +293,8 @@ function App() {
                                 setNotTakenDoses(refreshNotTakenDoses(meds));
                               }
                             }
-                          }}><HandThumbsUpFill /> Wzięte</Button>
-                          <Button className='mx-1' size='sm' variant='warning' disabled={ notTakenDoses.some(y => y.dose.date < x.dose.date)}  onClick={async () => {
+                          }}><HandThumbsUpFill /></Button>
+                          <Button className='mx-1' variant='warning' disabled={ notTakenDoses.some(y => y.dose.date < x.dose.date)}  onClick={async () => {
                             const meds = [...medicines];
                             const medicine = meds.find(m => m === x.medicine);
                             if (medicine && medicine.count > 0) {
@@ -308,7 +308,7 @@ function App() {
                                 setNotTakenDoses(refreshNotTakenDoses(meds));
                               }
                             }
-                          }}><HandThumbsDownFill /> Pominięte</Button>
+                          }}><HandThumbsDownFill /></Button>
                         </Col>
                       </Row>
                     </ListGroup.Item>)}
@@ -318,7 +318,7 @@ function App() {
           </Row>
           <Row>
             <Col></Col>
-            <Col xs="auto" className="mt-2"><Button onClick={handleTakeMedicines} size='sm' variant='success'><HandThumbsUpFill /> Wszystkie leki są wzięte</Button></Col>
+            <Col xs="auto" className="mt-2"><Button onClick={handleTakeMedicines} variant='success'><HandThumbsUpFill /> Wszystkie leki są wzięte</Button></Col>
           </Row>
           <hr />
         </section>
