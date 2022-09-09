@@ -10,7 +10,6 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
-import ListGroup from 'react-bootstrap/ListGroup';
 import IDose from './models/IDose';
 import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 
