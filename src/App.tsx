@@ -171,12 +171,18 @@ function App() {
       setNotTakenDoses(notTakenDoses);
       // setShowSpinner(false);
       console.log('display notification');
-      if (notTakenDoses.length > 0) {
-        not = new Notification("Weź leki");
+
+      if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+        // dev code
+      } else {
+        if (notTakenDoses.length > 0) {
+          not = new Notification("Weź leki");
+        }
+        // production code
       }
     });
 
-    const timer = setInterval(() => setLastCheckTime(new Date()), 2 * 60 * 1000);
+    const timer = setInterval(() => setLastCheckTime(new Date()), 10 * 60 * 1000);
     // Notification.requestPermission().then((result) => console.log(result));
     return () => {
       clearInterval(timer);
