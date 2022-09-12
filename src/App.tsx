@@ -34,6 +34,8 @@ function App() {
   const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
   const [showSpinner, setShowSpinner] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<Date>(new Date());
+  const [showAll, setShowAll] = useState<boolean>(localStorage.getItem('showAll') === 'true');
+
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
@@ -200,6 +202,7 @@ function App() {
       id: '',
       name: newMedicineName,
       count: 0,
+      isVisible: true,
       doses: [],
     };
     await addMedicine(newMedicine);
@@ -325,7 +328,7 @@ function App() {
                           }
                         }}><HandThumbsDownFill /></Button>
                       </Col>
-                      <hr />
+                      <hr className="mt-1" />
                     </Row>
                   )}
                   <Row>
@@ -339,10 +342,21 @@ function App() {
           <hr />
         </section>
         <section>
-          <h4>Lista leków</h4>
+          <Row>
+            <Col>
+              <h4>Lista leków</h4>
+            </Col>
+            <Col xs="auto">
+              <Form.Switch
+                checked={showAll}
+                label='Pokaż wszystkie leki'
+                onChange={(e) => { setShowAll(e.target.checked); localStorage.setItem('showAll', e.target.checked.toString()); }}
+              />
+            </Col>
+          </Row>
           <div>
             <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
-            <div>{medicines.map((x: IMedicine, i: number) =>
+            <div>{medicines.sort((a, b) => a.name > b.name ? 1 : -1).filter(m => showAll || m.isVisible).map((x: IMedicine, i: number) =>
               <Medicine
                 key={i}
                 {...x}

@@ -5,6 +5,7 @@ import IDose from './models/IDose';
 import Button from 'react-bootstrap/Button';
 import Badge from 'react-bootstrap/Badge';
 import Form from 'react-bootstrap/Form';
+import FormCheck from 'react-bootstrap/FormCheck';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
@@ -21,6 +22,7 @@ export default function Medicine(props: IMedicineProps) {
     const defaultDose: IDose = { time: "00:00", amount: 0, takingDate: new Date() }
 
     const [count, setCount] = useState(props.count);
+    const [isVisible, setIsVisible] = useState(props.isVisible);
     const [newDose, setNewDose] = useState<IDose>(defaultDose);
     const [fnDebounce, setFnDebounce] = useState<NodeJS.Timer>();
 
@@ -34,6 +36,12 @@ export default function Medicine(props: IMedicineProps) {
         clearTimeout(fnDebounce);
         setFnDebounce(setTimeout(() => props.updateMedicine(props.id, { count: newValue }), 1000));
         setCount(newValue);
+    }
+
+    const handleMedicineVisibilityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = event.target.checked;
+        setIsVisible(isChecked);
+        props.updateMedicine(props.id, { isVisible: isChecked })
     }
 
     const handleMedicineDeleteClick = () => {
@@ -97,9 +105,11 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Header>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <Badge bg="secondary" style={{width: '60px'}}>{props.count} tab.</Badge><> </>
-                        <Badge bg="primary" style={{width: '60px'}}> {countNumberOfDays()} dni</Badge> <> </>
+                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="mr-2"> {countNumberOfDays()} dni</Badge><> </>
                         <span>{props.name}</span>
+                    </Col>
+                    <Col xs="auto">
+                        <Badge bg="secondary" style={{ width: '70px' }}>{props.count} tab.</Badge>
                     </Col>
                 </Row>
             </Card.Header>
@@ -113,6 +123,16 @@ export default function Medicine(props: IMedicineProps) {
                                 <Form.Label>Aktualna ilość tabletek:</Form.Label>
                                 <Form.Control type="number" value={count.toString()} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
                             </Form.Group>
+                        </Col>
+                        <Col></Col>
+                        <Col xs="auto">
+                            <FormCheck
+                                type="switch"
+                                id="medicine-visibility"
+                                label="Widoczny"
+                                checked={isVisible}
+                                onChange={(e) => handleMedicineVisibilityChange(e)}
+                            />
                         </Col>
                     </Row>
                     <Row className="mt-3">
