@@ -21,7 +21,7 @@ interface IDoseWithDate extends IDose {
 
 type DoseDetails = {
   medicine?: IMedicine,
-  doseAmount: string,
+  doseAmount: number,
   time: string,
   dose: IDoseWithDate
 }
@@ -143,7 +143,7 @@ function App() {
           }
           return foundDoses;
         }, new Array<IDoseWithDate>());
-      }).map(dose => { return { doseAmount: `${dose.amount} x `, time: `${formatDate(dose.date)}, ${dose.time}`, dose } });
+      }).map(dose => { return { doseAmount: dose.amount ?? 0, time: `${formatDate(dose.date)}, ${dose.time}`, dose } });
       dosesArray = dosesArray.concat(newDosesArray);
       return collection.concat(dosesArray.map(y => { y.medicine = x; return y }));
     }, []);
@@ -201,6 +201,7 @@ function App() {
     const newMedicine: IMedicine = {
       id: '',
       name: newMedicineName,
+      description: '',
       count: 0,
       isVisible: true,
       doses: [],
@@ -290,46 +291,53 @@ function App() {
                 <Card.Header>Pominięte leki</Card.Header>
                 <Card.Body>
                   {notTakenDoses.map(x =>
-                    <Row key={x.medicine?.name + x.time}>
-                      <Col className="d-flex align-items-center"><div>{x.doseAmount} {x.medicine?.name}</div></Col>
-                      <Col xs="auto" className="d-flex align-items-center">
-                        <div><small>{x.time}</small></div>
-                      </Col>
-                      <Col xs="auto" className="d-flex align-items-center">
-                        <Button variant='success' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
-                          const meds = [...medicines];
-                          const medicine = meds.find(m => m === x.medicine);
-                          if (medicine && medicine.count > 0) {
-                            const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                            if (dose && dose.amount) {
-                              let newDate = new Date(x.dose.date);
-                              newDate.setTime(newDate.getTime() + 1000);
-                              dose.takingDate = newDate;
-                              medicine.count -= dose.amount;
-                              await updateMedicine(medicine);
-                              setMedicines(meds);
-                              setNotTakenDoses(refreshNotTakenDoses(meds));
+                    <>
+                      <Row key={x.medicine?.name + x.time}>
+                        <Col className="d-flex align-items-center"><div style={{ width: '35px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</div> <div> {x.medicine?.name}</div></Col>
+                        <Col xs="auto" className="d-flex align-items-center">
+                          <small>{x.time}</small>
+                        </Col>
+                        <Col xs="auto" className="d-flex align-items-center">
+                          <Button variant='success' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
+                            const meds = [...medicines];
+                            const medicine = meds.find(m => m === x.medicine);
+                            if (medicine && medicine.count > 0) {
+                              const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                              if (dose && dose.amount) {
+                                let newDate = new Date(x.dose.date);
+                                newDate.setTime(newDate.getTime() + 1000);
+                                dose.takingDate = newDate;
+                                medicine.count -= dose.amount;
+                                await updateMedicine(medicine);
+                                setMedicines(meds);
+                                setNotTakenDoses(refreshNotTakenDoses(meds));
+                              }
                             }
-                          }
-                        }}><HandThumbsUpFill /></Button>
-                        <Button className='mx-1' variant='warning' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
-                          const meds = [...medicines];
-                          const medicine = meds.find(m => m === x.medicine);
-                          if (medicine && medicine.count > 0) {
-                            const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                            if (dose && dose.amount) {
-                              let newDate = new Date(x.dose.date);
-                              newDate.setTime(newDate.getTime() + 1000);
-                              dose.takingDate = newDate;
-                              await updateMedicine(medicine);
-                              setMedicines(meds);
-                              setNotTakenDoses(refreshNotTakenDoses(meds));
+                          }}><HandThumbsUpFill /></Button>
+                          <Button className='ms-1' variant='warning' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
+                            const meds = [...medicines];
+                            const medicine = meds.find(m => m === x.medicine);
+                            if (medicine && medicine.count > 0) {
+                              const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                              if (dose && dose.amount) {
+                                let newDate = new Date(x.dose.date);
+                                newDate.setTime(newDate.getTime() + 1000);
+                                dose.takingDate = newDate;
+                                await updateMedicine(medicine);
+                                setMedicines(meds);
+                                setNotTakenDoses(refreshNotTakenDoses(meds));
+                              }
                             }
-                          }
-                        }}><HandThumbsDownFill /></Button>
-                      </Col>
+                          }}><HandThumbsDownFill /></Button>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <small style={{marginLeft:'35px'}}>{x.medicine?.description}</small>
+                        </Col>
+                      </Row>
                       <hr className="mt-1" />
-                    </Row>
+                    </>
                   )}
                   <Row>
                     <Col></Col>

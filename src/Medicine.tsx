@@ -22,6 +22,7 @@ export default function Medicine(props: IMedicineProps) {
     const defaultDose: IDose = { time: "00:00", amount: 0, takingDate: new Date() }
 
     const [count, setCount] = useState(props.count);
+    const [description, setDescription] = useState(props.description);
     const [isVisible, setIsVisible] = useState(props.isVisible);
     const [newDose, setNewDose] = useState<IDose>(defaultDose);
     const [fnDebounce, setFnDebounce] = useState<NodeJS.Timer>();
@@ -36,6 +37,13 @@ export default function Medicine(props: IMedicineProps) {
         clearTimeout(fnDebounce);
         setFnDebounce(setTimeout(() => props.updateMedicine(props.id, { count: newValue }), 1000));
         setCount(newValue);
+    }
+
+    const handleMedicineDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value;
+        clearTimeout(fnDebounce);
+        setFnDebounce(setTimeout(() => props.updateMedicine(props.id, { description: newValue }), 1000));
+        setDescription(newValue);
     }
 
     const handleMedicineVisibilityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,8 +99,8 @@ export default function Medicine(props: IMedicineProps) {
     const countNumberOfDays = () => {
         const { doses } = { ...props };
         const sumDaily = doses.reduce((prev, current) => prev += current?.amount ?? 0, 0);
-        if (!sumDaily) { return 0; }
-        return Math.floor(props.count / sumDaily);
+        if (!sumDaily) { return Number.POSITIVE_INFINITY; }
+        return Math.floor(count / sumDaily);
     }
 
     useEffect(() => {
@@ -105,7 +113,7 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Header>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="mr-2"> {countNumberOfDays()} dni</Badge><> </>
+                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="mr-2" hidden={countNumberOfDays() === Number.POSITIVE_INFINITY}> {countNumberOfDays()} dni</Badge><> </>
                         <span>{props.name}</span>
                     </Col>
                     <Col xs="auto">
@@ -133,6 +141,14 @@ export default function Medicine(props: IMedicineProps) {
                                 checked={isVisible}
                                 onChange={(e) => handleMedicineVisibilityChange(e)}
                             />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <Form>
+                                <Form.Label>Opis:</Form.Label>
+                                <Form.Control type="input" value={description} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
+                            </Form>
                         </Col>
                     </Row>
                     <Row className="mt-3">
