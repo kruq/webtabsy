@@ -12,6 +12,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import IDose from './models/IDose';
 import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
+import logo from './assets/logo192.png';
 
 
 interface IDoseWithDate extends IDose {
@@ -275,7 +276,7 @@ function App() {
         <header className='mb-2'>
           <Row>
             <Col>
-              <h4>Webtabsy</h4>
+              <h4><img src={logo} style={{height:'32px'}} className='me-2'/>Webtabsy</h4>
               {/* <Button onClick={async () => await updateDoses()}>Fetch</Button> */}
             </Col>
             <Col xs="auto" className="text-end">
@@ -294,15 +295,14 @@ function App() {
                     <>
                       <Row key={x.medicine?.name + x.time}>
                         <Col className="d-flex align-items-center">
-                          <div style={{ width: '35px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</div> 
-                        <div> {x.medicine?.name}</div>
-                          <div hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>Brak leku</strong></div>
+                          <Card.Title>
+                            <span style={{ display: 'inline-block', width: '40px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
+                            <span> {x.medicine?.name}</span>
+                            <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>Brak leku</strong></span>
+                          </Card.Title>
                         </Col>
                         <Col xs="auto" className="d-flex align-items-center">
-                          <small>{x.time}</small>
-                        </Col>
-                        <Col xs="auto" className="d-flex align-items-center">
-                          <Button variant='success' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
+                          <Button variant='primary' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
                             const meds = [...medicines];
                             const medicine = meds.find(m => m === x.medicine);
                             if (medicine && medicine.count > 0) {
@@ -337,7 +337,7 @@ function App() {
                       </Row>
                       <Row>
                         <Col>
-                          <small style={{ marginLeft: '35px' }}>{x.medicine?.description}</small>
+                          <small style={{ marginLeft: '47px' }}>{x.time}</small><small>{x.medicine?.description}</small>
                         </Col>
                       </Row>
                       <hr className="mt-1" />
@@ -345,7 +345,7 @@ function App() {
                   )}
                   <Row>
                     <Col></Col>
-                    <Col xs="auto" className="mt-2"><Button onClick={handleTakeMedicines} variant='success'><HandThumbsUpFill /> Wszystkie leki są wzięte</Button></Col>
+                    <Col xs="auto" className="mt-2"><Button onClick={handleTakeMedicines} variant='primary'><HandThumbsUpFill /> Wszystkie leki są wzięte</Button></Col>
                   </Row>
                 </Card.Body>
               </Card>
