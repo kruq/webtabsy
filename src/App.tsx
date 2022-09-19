@@ -298,7 +298,7 @@ function App() {
                           <Card.Title>
                             <span style={{ display: 'inline-block', width: '40px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
                             <span> {x.medicine?.name}</span>
-                            <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>Brak leku</strong></span>
+                            <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
                           </Card.Title>
                         </Col>
                         <Col xs="auto" className="d-flex align-items-center">
@@ -337,7 +337,7 @@ function App() {
                       </Row>
                       <Row>
                         <Col>
-                          <small style={{ marginLeft: '47px' }}>{x.time}</small><small>{x.medicine?.description}</small>
+                          <small style={{ marginLeft: '47px', marginRight: '10px' }}><strong>{x.time}</strong></small><small>{x.medicine?.description}</small>
                         </Col>
                       </Row>
                       <hr className="mt-1" />
