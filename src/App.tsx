@@ -276,7 +276,7 @@ function App() {
         <header className='mb-2'>
           <Row>
             <Col>
-              <h4><img src={logo} style={{height:'32px'}} className='me-2'/>Webtabsy</h4>
+              <h4><img src={logo} alt='webtabsy logo' style={{height:'32px'}} className='me-2'/>Webtabsy</h4>
               {/* <Button onClick={async () => await updateDoses()}>Fetch</Button> */}
             </Col>
             <Col xs="auto" className="text-end">
