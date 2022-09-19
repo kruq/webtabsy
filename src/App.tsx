@@ -274,8 +274,8 @@ function App() {
       <Container className="my-2">
         <header className='mb-2'>
           <Row>
-            <Col className="display-6">
-              Webtabsy
+            <Col>
+              <h4>Webtabsy</h4>
               {/* <Button onClick={async () => await updateDoses()}>Fetch</Button> */}
             </Col>
             <Col xs="auto" className="text-end">
@@ -287,18 +287,22 @@ function App() {
         <section className='mb-2' hidden={notTakenDoses.length === 0}>
           <Row>
             <Col>
+              <h5>Pominięte leki</h5>
               <Card>
-                <Card.Header>Pominięte leki</Card.Header>
                 <Card.Body>
                   {notTakenDoses.map(x =>
                     <>
                       <Row key={x.medicine?.name + x.time}>
-                        <Col className="d-flex align-items-center"><div style={{ width: '35px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</div> <div> {x.medicine?.name}</div></Col>
+                        <Col className="d-flex align-items-center">
+                          <div style={{ width: '35px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</div> 
+                        <div> {x.medicine?.name}</div>
+                          <div hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>Brak leku</strong></div>
+                        </Col>
                         <Col xs="auto" className="d-flex align-items-center">
                           <small>{x.time}</small>
                         </Col>
                         <Col xs="auto" className="d-flex align-items-center">
-                          <Button variant='success' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
+                          <Button variant='success' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
                             const meds = [...medicines];
                             const medicine = meds.find(m => m === x.medicine);
                             if (medicine && medicine.count > 0) {
@@ -314,10 +318,10 @@ function App() {
                               }
                             }
                           }}><HandThumbsUpFill /></Button>
-                          <Button className='ms-1' variant='warning' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
+                          <Button className='ms-1' variant='warning' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
                             const meds = [...medicines];
                             const medicine = meds.find(m => m === x.medicine);
-                            if (medicine && medicine.count > 0) {
+                            if (medicine) {
                               const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
                               if (dose && dose.amount) {
                                 let newDate = new Date(x.dose.date);
@@ -333,7 +337,7 @@ function App() {
                       </Row>
                       <Row>
                         <Col>
-                          <small style={{marginLeft:'35px'}}>{x.medicine?.description}</small>
+                          <small style={{ marginLeft: '35px' }}>{x.medicine?.description}</small>
                         </Col>
                       </Row>
                       <hr className="mt-1" />
@@ -352,7 +356,7 @@ function App() {
         <section>
           <Row>
             <Col>
-              <h4>Lista leków</h4>
+              <h5>Lista leków</h5>
             </Col>
             <Col xs="auto">
               <Form.Switch
@@ -378,7 +382,7 @@ function App() {
           </div>
           <hr />
           <div>
-            <h4>Nowy lek</h4>
+            <h5>Nowy lek</h5>
             <Form>
               <Form.Group className="mb-3">
                 <Form.Label>Nazwa leku</Form.Label>

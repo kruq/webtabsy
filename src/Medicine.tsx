@@ -106,25 +106,25 @@ export default function Medicine(props: IMedicineProps) {
     useEffect(() => {
         // console.log("Render Medicine " + props.count);
         setCount(props.count);
-    }, [props.count]);
+        setDescription(props.description)
+    }, [props.count, props.description]);
 
     return (
         <Card className="my-2">
-            <Card.Header>
+
+            <Card.Body>
+                <Card.Title>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="mr-2" hidden={countNumberOfDays() === Number.POSITIVE_INFINITY}> {countNumberOfDays()} dni</Badge><> </>
+                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '80px' }} className="mr-2" hidden={countNumberOfDays() === Number.POSITIVE_INFINITY}> {countNumberOfDays()} dni</Badge><> </>
                         <span>{props.name}</span>
                     </Col>
                     <Col xs="auto">
-                        <Badge bg="secondary" style={{ width: '70px' }}>{props.count} tab.</Badge>
+                        <Badge bg="secondary" style={{ width: '90px' }}>{props.count} tab.</Badge>
                     </Col>
                 </Row>
-            </Card.Header>
-            <Card.Body hidden={props.id !== props.idOfMedicineDetails}>
-                <Card.Title>
                 </Card.Title>
-                <Form>
+                <Form hidden={props.id !== props.idOfMedicineDetails}>
                     <Row>
                         <Col xs="auto">
                             <Form.Group>
