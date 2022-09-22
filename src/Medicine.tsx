@@ -341,7 +341,7 @@ export default function Medicine(props: IMedicineProps) {
                             </Row>
                         </Form>
                     </dialog>
-                    <Row hidden={!props.purchases || props.purchases?.length == 0}>
+                    <Row hidden={!props.purchases || props.purchases?.length === 0}>
                         <Col>
                             <Table size='sm'>
                                 {/* <thead>
