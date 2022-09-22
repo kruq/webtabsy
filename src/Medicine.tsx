@@ -238,7 +238,7 @@ export default function Medicine(props: IMedicineProps) {
                         </Col>
                     </Row>
                     <Row>
-                        <Col xs="auto">
+                        <Col sm="auto">
                             <Form.Group>
                                 <Form.Label>Aktualna ilość tabletek:</Form.Label>
                                 <Form.Control type="number" value={count?.toString()} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
@@ -252,7 +252,7 @@ export default function Medicine(props: IMedicineProps) {
                         </Col>
                     </Row>
                     <Row className="mt-4">
-                        <Col className='text-primary'>
+                        <Col className='text-primary' xs='auto'>
                             <h5>Dawkowanie</h5>
                         </Col>
                         <Col className='text-end'>
@@ -306,7 +306,7 @@ export default function Medicine(props: IMedicineProps) {
                     </Row>
 
                     <Row className="mt-4">
-                        <Col className='text-primary'><h5>Historia zakupów</h5></Col>
+                        <Col className='text-primary' xs='auto'><h5>Historia zakupów</h5></Col>
                         <Col className='text-end'>
                             <Button onClick={() => { setAddPurchaseDialogVisible(true); setAddDoseDialogVisible(false); }} variant='link'>Dodaj</Button>
                         </Col>
@@ -372,7 +372,7 @@ export default function Medicine(props: IMedicineProps) {
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td className='text-end'>Średnia cena:</td>
+                                        <td className='text-end'><i>Średnia cena:</i></td>
                                         <td>{props.purchases?.reduce((x, y) => x + y.price, 0) / props.purchases.length}{' zł'}</td>
                                         <td></td>
                                         <td></td>
