@@ -30,8 +30,14 @@ interface INewPurchase {
 }
 
 export default function Medicine(props: IMedicineProps) {
-    const defaultDose: IDose = { id: Uuid(), time: "00:00", amount: 0, takingDate: new Date() }
-    const defaultPurchase: INewPurchase = { numberOfPackages: 0, numberOfTabletsInPackage: 0, pricePerPackage: 0 }
+    const lastPurchase: IPurchase | undefined = props.purchases?.[(props.purchases?.length ?? 0) - 1];
+
+    const defaultDose: IDose = { id: Uuid(), time: "12:00", amount: 1, takingDate: new Date() }
+    const defaultPurchase: INewPurchase = {
+        numberOfPackages: 1,
+        numberOfTabletsInPackage: lastPurchase?.numberOfTablets,
+        pricePerPackage: lastPurchase?.price
+    }
 
     const [count, setCount] = useState<number | undefined>(props.count);
     const [description, setDescription] = useState(props.description);
@@ -41,6 +47,8 @@ export default function Medicine(props: IMedicineProps) {
     const [newDose, setNewDose] = useState<IDose>(defaultDose);
     const [newPurchase, setNewPurchase] = useState<INewPurchase>(defaultPurchase);
 
+    const [addDoseDialogVisible, setAddDoseDialogVisible] = useState(false);
+    const [addPurchaseDialogVisible, setAddPurchaseDialogVisible] = useState(false);
 
     const handleMedicineTitleClick = () => {
         props.medicineClick(props.id);
@@ -90,6 +98,7 @@ export default function Medicine(props: IMedicineProps) {
         await props.updateMedicine(props.id, { doses });
         // setCount(m);
         setNewDose(defaultDose);
+        setAddDoseDialogVisible(false);
     }
 
     const handleRemoveDose = async (dose: IDose) => {
@@ -169,6 +178,7 @@ export default function Medicine(props: IMedicineProps) {
         setCount(c)
         await props.updateMedicine(props.id, { purchases, count: c });
         setNewPurchase(defaultPurchase);
+        setAddPurchaseDialogVisible(false);
     }
 
     const handleRemovePurchase = async (purchase: IPurchase) => {
@@ -198,7 +208,6 @@ export default function Medicine(props: IMedicineProps) {
 
     return (
         <Card className="my-2">
-
             <Card.Body>
                 <Card.Title>
                     <Row>
@@ -213,13 +222,8 @@ export default function Medicine(props: IMedicineProps) {
                 </Card.Title>
                 <div hidden={props.id !== props.idOfMedicineDetails}>
                     <Row>
-                        <Col xs="auto">
-                            <Form.Group>
-                                <Form.Label>Aktualna ilość tabletek:</Form.Label>
-                                <Form.Control type="number" value={count?.toString()} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
-                            </Form.Group>
+                        <Col>
                         </Col>
-                        <Col></Col>
                         <Col xs="auto">
                             <FormCheck
                                 type="switch"
@@ -231,6 +235,12 @@ export default function Medicine(props: IMedicineProps) {
                         </Col>
                     </Row>
                     <Row>
+                        <Col xs="auto">
+                            <Form.Group>
+                                <Form.Label>Aktualna ilość tabletek:</Form.Label>
+                                <Form.Control type="number" value={count?.toString()} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
+                            </Form.Group>
+                        </Col>
                         <Col>
                             <Form>
                                 <Form.Label>Opis:</Form.Label>
@@ -239,20 +249,50 @@ export default function Medicine(props: IMedicineProps) {
                         </Col>
                     </Row>
                     <Row className="mt-4">
-                        <Col className='text-primary'><h5>Dawkowanie</h5></Col>
+                        <Col className='text-primary'>
+                            <h5>Dawkowanie</h5>
+                        </Col>
+                        <Col className='text-end'>
+                            <Button onClick={() => { setAddDoseDialogVisible(true); setAddPurchaseDialogVisible(false); }} variant='link'>Dodaj</Button>
+                        </Col>
                     </Row>
+                    <dialog open={addDoseDialogVisible} style={{zIndex:'1000'}}>
+                        <Row>
+                            <Col>
+                                <strong>Nowa dawka</strong>
+                            </Col>
+                        </Row>
+                        <Form>
+                            <Row className="mt-2">
+                                <FormGroup as={Col}>
+                                    <Form.Label>Godzina:</Form.Label>
+                                    <Form.Control type="text" value={newDose?.time} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseTimeChange(e)}></Form.Control>
+                                </FormGroup>
+                                <FormGroup as={Col}>
+                                    <Form.Label>Ilość tabletek:</Form.Label>
+                                    <Form.Control type="number" value={newDose?.amount} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseAmountChange(e)}></Form.Control>
+                                </FormGroup>
+                            </Row>
+                            <Row className='text-end'>
+                                <Col>
+                                    <Button onClick={handleAddDose} variant="primary" type="submit" className='mt-3'>Dodaj dawkę</Button>
+                                    <Button className='mt-3 ms-2' variant='secondary' onClick={() => setAddDoseDialogVisible(false)}>Cancel</Button>
+                                </Col>
+                            </Row>
+                        </Form>
+                    </dialog>
                     <Row className="mt-2">
                         <Col>
                             <Table size='sm'>
                                 <tbody>
                                     {props.doses?.map(dose =>
                                         <tr key={dose.id}>
-                                            <td><strong>{dose.time}</strong></td>
-                                            <td>{dose.amount} tab.</td>
+                                            <td width="20%">{dose.time}</td>
+                                            <td width="20%">{dose.amount} tab.</td>
                                             <td>
-                                                Wzięte: {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')} {new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL')}
+                                                {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')} {new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL')}
                                             </td>
-                                            <td>
+                                            <td className='text-end'>
                                                 <Button onClick={() => handleRemoveDose(dose)} size="sm" variant="link" className='text-danger'>Usuń</Button>
                                             </td>
                                         </tr>
@@ -261,43 +301,59 @@ export default function Medicine(props: IMedicineProps) {
                             </Table>
                         </Col>
                     </Row>
-                    <Row>
-                        <Col>
-                            <strong>Nowa dawka</strong>
-                        </Col>
-                    </Row>
-                    <Form>
-                        <Row className="mt-2">
-                            <FormGroup as={Col}>
-                                <Form.Label>Godzina:</Form.Label>
-                                <Form.Control type="text" value={newDose?.time} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseTimeChange(e)}></Form.Control>
-                            </FormGroup>
-                            <FormGroup as={Col}>
-                                <Form.Label>Ilość tabletek:</Form.Label>
-                                <Form.Control type="number" value={newDose?.amount} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseAmountChange(e)}></Form.Control>
-                            </FormGroup>
-                        </Row>
-                        <Button onClick={handleAddDose} variant="primary" type="submit" className='mt-3'>Dodaj dawkę</Button>
-                    </Form>
+
                     <Row className="mt-4">
                         <Col className='text-primary'><h5>Historia zakupów</h5></Col>
+                        <Col className='text-end'>
+                            <Button onClick={() => { setAddPurchaseDialogVisible(true); setAddDoseDialogVisible(false); }} variant='link'>Dodaj</Button>
+                        </Col>
                     </Row>
+                    <dialog open={addPurchaseDialogVisible} style={{zIndex:'1000'}}>
+                        <Row className='mt-2'>
+                            <Col><strong>Zakupy leków</strong></Col>
+                        </Row>
+                        <Form>
+                            <Row className="mt-2">
+                                <FormGroup as={Col}>
+                                    <Form.Label>Ilość opakowań:</Form.Label>
+                                    <Form.Control type="number" value={newPurchase?.numberOfPackages ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePurchasePackageAmountChange(e)}></Form.Control>
+                                </FormGroup>
+                                <FormGroup as={Col}>
+                                    <Form.Label>Ilość tab. w opakowaniu:</Form.Label>
+                                    <Form.Control type="number" value={newPurchase?.numberOfTabletsInPackage ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePurchaseTabletsAmountChange(e)}></Form.Control>
+                                </FormGroup>
+                                <FormGroup as={Col}>
+                                    <Form.Label>Cena za opakowanie:</Form.Label>
+                                    <InputGroup>
+                                        <Form.Control type='number' value={newPurchase?.pricePerPackage ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePurchasePackagePriceChange(e)}></Form.Control>
+                                        <InputGroup.Text>zł</InputGroup.Text>
+                                    </InputGroup>
+                                </FormGroup>
+                            </Row>
+                            <Row>
+                                <Col className='text-end'>
+                                    <Button onClick={handleAddPurchase} variant="primary" type="submit" className='mt-3'>Dodaj zakupione leki</Button>
+                                    <Button className='mt-3 ms-2' variant='secondary' onClick={() => setAddPurchaseDialogVisible(false)}>Cancel</Button>
+                                </Col>
+                            </Row>
+                        </Form>
+                    </dialog>
                     <Row>
                         <Col>
                             <Table size='sm'>
                                 <tbody>
                                     {props.purchases?.map(x =>
                                         <tr key={x.id}>
-                                            <td>
-                                                {x.numberOfTablets}
+                                            <td width="20%">
+                                                {x.numberOfTablets}{' tab.'}
                                             </td>
-                                            <td>
-                                                {new Date(x.date.toString()).toLocaleDateString()}
-                                            </td>
-                                            <td>
+                                            <td width="20%">
                                                 {x.price}{' zł'}
                                             </td>
                                             <td>
+                                                {new Date(x.date.toString()).toLocaleDateString('pl')}
+                                            </td>
+                                            <td className='text-end'>
                                                 <Button onClick={() => handleRemovePurchase(x)} size="sm" variant="link" className='text-danger'>Usuń</Button>
                                             </td>
                                         </tr>
@@ -306,29 +362,6 @@ export default function Medicine(props: IMedicineProps) {
                             </Table>
                         </Col>
                     </Row>
-                    <Row className='mt-2'>
-                        <Col><strong>Zakupy leków</strong></Col>
-                    </Row>
-                    <Form>
-                        <Row className="mt-2">
-                            <FormGroup as={Col}>
-                                <Form.Label>Ilość opakowań:</Form.Label>
-                                <Form.Control type="number" value={newPurchase?.numberOfPackages ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePurchasePackageAmountChange(e)}></Form.Control>
-                            </FormGroup>
-                            <FormGroup as={Col}>
-                                <Form.Label>Ilość tab. w opakowaniu:</Form.Label>
-                                <Form.Control type="number" value={newPurchase?.numberOfTabletsInPackage ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePurchaseTabletsAmountChange(e)}></Form.Control>
-                            </FormGroup>
-                            <FormGroup as={Col}>
-                                <Form.Label>Cena za opakowanie:</Form.Label>
-                                <InputGroup>
-                                    <Form.Control type='number' value={newPurchase?.pricePerPackage ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePurchasePackagePriceChange(e)}></Form.Control>
-                                    <InputGroup.Text>zł</InputGroup.Text>
-                                </InputGroup>
-                            </FormGroup>
-                        </Row>
-                        <Button onClick={handleAddPurchase} variant="primary" type="submit" className='mt-3'>Dodaj zakupione leki</Button>
-                    </Form>
                 </div>
             </Card.Body>
             <Card.Footer hidden={props.id !== props.idOfMedicineDetails}>

@@ -353,7 +353,7 @@ function App() {
               <Form.Switch
                 checked={showAll}
                 label='Pokaż wszystkie leki'
-                onChange={(e) => { setShowAll(e.target.checked); localStorage.setItem('showAll', e.target.checked.toString()); }}
+                onChange={(e) => { setShowAll(e.target.checked); localStorage.setItem('showAll', e.target.checked.toString()); setIdOfMedicineDetails('');}}
               />
             </Col>
           </Row>
