@@ -341,7 +341,7 @@ export default function Medicine(props: IMedicineProps) {
                             </Row>
                         </Form>
                     </dialog>
-                    <Row>
+                    <Row hidden={!props.purchases || props.purchases?.length == 0}>
                         <Col>
                             <Table size='sm'>
                                 {/* <thead>
@@ -373,7 +373,7 @@ export default function Medicine(props: IMedicineProps) {
                                 <tfoot>
                                     <tr>
                                         <td className='text-end'>Średnia cena:</td>
-                                        <td>{props.purchases?.length > 0 && props.purchases?.reduce((x, y) => x + y.price, 0) / props.purchases.length}{' zł'}</td>
+                                        <td>{props.purchases?.reduce((x, y) => x + y.price, 0) / props.purchases.length}{' zł'}</td>
                                         <td></td>
                                         <td></td>
                                     </tr>
