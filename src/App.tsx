@@ -59,7 +59,6 @@ function App() {
     const newm: IMedicine[] = [];
     for (let medIndex = 0; medIndex < meds.length; medIndex++) {
       const med = meds[medIndex];
-      // console.log(`${x.name.toUpperCase()}`);
       let sum = 0;
       sum += med.doses.reduce((prevValue, dose) => {
         let noOfDays = countDays(today, new Date(dose.takingDate));
@@ -75,7 +74,6 @@ function App() {
         }
         return prevValue;
       }, 0);
-      console.log(med.name, sum, med.count);
       med.count -= sum;
       const newDateTaken = today;
       med.doses.forEach(d => d.takingDate = new Date(newDateTaken));
@@ -83,7 +81,6 @@ function App() {
     }
 
     newm.forEach(async (x) => await updateMedicine(x));
-    console.log("set medicines when take medicines", newm);
     setMedicines([...newm]);
     setNotTakenDoses([]);
     setShowSpinner(false);
@@ -113,10 +110,7 @@ function App() {
       return d;
     }
 
-    console.log('getNotTakenDoses');
     const today = new Date();
-    // const meds = [...medicines];
-    console.log("medicines: " + meds.length)
 
     const elements = meds.reduce((collection: DoseDetails[], x) => {
       let dosesArray: DoseDetails[] = [];
@@ -150,7 +144,6 @@ function App() {
     }, []);
 
 
-    console.log(elements);
     return elements
       .sort((a, b) => { return a.time > b.time ? 1 : -1 });
 
@@ -166,14 +159,11 @@ function App() {
   }
 
   useEffect(() => {
-    // setShowSpinner(true);
     let not: Notification;
     fetchMedicines().then(meds => {
       setMedicines(meds);
       const notTakenDoses = refreshNotTakenDoses(meds)
       setNotTakenDoses(notTakenDoses);
-      // setShowSpinner(false);
-      console.log('display notification');
 
       if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
         // dev code
@@ -183,10 +173,12 @@ function App() {
         }
         // production code
       }
+    }).catch((error) => {
+      console.log(error);
+      alert("Bład połączenia! ")
     });
 
     const timer = setInterval(() => setLastCheckTime(new Date()), 10 * 60 * 1000);
-    // Notification.requestPermission().then((result) => console.log(result));
     return () => {
       clearInterval(timer);
       if (not) {
@@ -206,6 +198,7 @@ function App() {
       count: 0,
       isVisible: true,
       doses: [],
+      purchases: []
     };
     await addMedicine(newMedicine);
     setMedicines(await fetchMedicines());
@@ -221,7 +214,6 @@ function App() {
     const meds = medicines.filter(m => m.id !== medicine.id);
     setMedicines(meds);
     const m = refreshNotTakenDoses(meds);
-    console.log("delete medicine", m);
     setNotTakenDoses(m);
     setShowSpinner(false);
   }
@@ -238,7 +230,6 @@ function App() {
     });
     setMedicines(meds);
     if (!newMedicine) { return }
-    console.log('Update new medicine', newMedicine, params);
     await updateMedicine(newMedicine);
     const m = refreshNotTakenDoses(meds);
     setNotTakenDoses(m);
@@ -276,7 +267,7 @@ function App() {
         <header className='mb-2'>
           <Row>
             <Col>
-              <h4><img src={logo} alt='webtabsy logo' style={{height:'32px'}} className='me-2'/>Webtabsy</h4>
+              <h4><img src={logo} alt='webtabsy logo' style={{ height: '32px' }} className='me-2' />Webtabsy</h4>
               {/* <Button onClick={async () => await updateDoses()}>Fetch</Button> */}
             </Col>
             <Col xs="auto" className="text-end">

@@ -1,4 +1,5 @@
 import IDose from "./IDose";
+import IPurchase from "./IPurchase";
 
 export default interface IMedicine { 
     id: string; 
@@ -7,4 +8,5 @@ export default interface IMedicine {
     count: number;
     isVisible: boolean;
     doses: IDose[];
+    purchases: IPurchase[];
   }

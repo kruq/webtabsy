@@ -7,11 +7,10 @@ export const fetchMedicines = async (): Promise<IMedicine[]> => {
     try {
         var res = await axios.get(apiUrl);
         // var res = await fetch(apiUrl, { mode: 'cors' });
-        console.log(res);
         return res.data;
     } catch (error) {
         console.log(error);
-        return [];
+        throw error;
     }
 }
 
