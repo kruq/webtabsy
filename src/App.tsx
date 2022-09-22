@@ -359,9 +359,9 @@ function App() {
           </Row>
           <div>
             <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
-            <div>{medicines.sort((a, b) => a.name > b.name ? 1 : -1).filter(m => showAll || m.isVisible).map((x: IMedicine, i: number) =>
+            <div>{medicines.sort((a, b) => a.name > b.name ? 1 : -1).filter(m => showAll || m.isVisible).map((x: IMedicine) =>
               <Medicine
-                key={i}
+                key={x.id}
                 {...x}
                 idOfMedicineDetails={idOfMedicineDetails}
                 medicineClick={handleMedicineClick}

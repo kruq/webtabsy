@@ -202,8 +202,9 @@ export default function Medicine(props: IMedicineProps) {
     }
 
     useEffect(() => {
-        setCount(props.count);
-        setDescription(props.description)
+        //setCount(props.count);
+        //setDescription(props.description);
+        // setIsVisible(props.isVisible);
     }, [props.count, props.description]);
 
     return (
@@ -226,9 +227,11 @@ export default function Medicine(props: IMedicineProps) {
                         </Col>
                         <Col xs="auto">
                             <FormCheck
+                                // className='mt-1'
+                                // style={{fontSize:'medium'}}
                                 type="switch"
                                 id="medicine-visibility"
-                                label="Widoczny"
+                                label=""
                                 checked={isVisible}
                                 onChange={(e) => handleMedicineVisibilityChange(e)}
                             />
@@ -256,7 +259,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Button onClick={() => { setAddDoseDialogVisible(true); setAddPurchaseDialogVisible(false); }} variant='link'>Dodaj</Button>
                         </Col>
                     </Row>
-                    <dialog open={addDoseDialogVisible} style={{zIndex:'1000'}}>
+                    <dialog open={addDoseDialogVisible} style={{ zIndex: '1000' }}>
                         <Row>
                             <Col>
                                 <strong>Nowa dawka</strong>
@@ -308,7 +311,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Button onClick={() => { setAddPurchaseDialogVisible(true); setAddDoseDialogVisible(false); }} variant='link'>Dodaj</Button>
                         </Col>
                     </Row>
-                    <dialog open={addPurchaseDialogVisible} style={{zIndex:'1000'}}>
+                    <dialog open={addPurchaseDialogVisible} style={{ zIndex: '1000' }}>
                         <Row className='mt-2'>
                             <Col><strong>Zakupy leków</strong></Col>
                         </Row>
@@ -341,6 +344,14 @@ export default function Medicine(props: IMedicineProps) {
                     <Row>
                         <Col>
                             <Table size='sm'>
+                                {/* <thead>
+                                    <tr>
+                                        <td>Ilość tabletek</td>
+                                        <td>Cena</td>
+                                        <td>Data zakupu</td>
+                                        <td></td>
+                                    </tr>
+                                </thead> */}
                                 <tbody>
                                     {props.purchases?.map(x =>
                                         <tr key={x.id}>
@@ -359,6 +370,14 @@ export default function Medicine(props: IMedicineProps) {
                                         </tr>
                                     )}
                                 </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td className='text-end'>Średnia cena:</td>
+                                        <td>{props.purchases?.length > 0 && props.purchases?.reduce((x, y) => x + y.price, 0) / props.purchases.length}{' zł'}</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
                             </Table>
                         </Col>
                     </Row>
