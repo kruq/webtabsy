@@ -174,8 +174,7 @@ function App() {
         // production code
       }
     }).catch((error) => {
-      console.log(error);
-      alert("Bład połączenia! ")
+      alert("Bład połączenia! " + error)
     });
 
     const timer = setInterval(() => setLastCheckTime(new Date()), 10 * 60 * 1000);
@@ -263,11 +262,11 @@ function App() {
       <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
         <h3><Spinner animation="border" variant='primary' /> Ładowanie...</h3>
       </div>
-      <Container className="my-2">
+      <Container className="mt-2 mb-3">
         <header className='mb-2'>
           <Row>
             <Col>
-              <h4><img src={logo} alt='webtabsy logo' style={{ height: '32px' }} className='me-2' />Webtabsy</h4>
+              <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
               {/* <Button onClick={async () => await updateDoses()}>Fetch</Button> */}
             </Col>
             <Col xs="auto" className="text-end">

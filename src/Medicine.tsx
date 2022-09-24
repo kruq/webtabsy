@@ -370,15 +370,8 @@ export default function Medicine(props: IMedicineProps) {
                                         </tr>
                                     )}
                                 </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td className='text-end'><i>Średnia cena:</i></td>
-                                        <td>{props.purchases?.reduce((x, y) => x + y.price, 0) / props.purchases.length}{' zł'}</td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
                             </Table>
+                            <i>Średnia cena: </i>{props.purchases?.reduce((x, y) => x + y.price, 0) / props.purchases.length}{' zł'}
                         </Col>
                     </Row>
                 </div>
