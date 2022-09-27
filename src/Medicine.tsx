@@ -14,6 +14,7 @@ import Table from 'react-bootstrap/Table';
 import FormGroup from 'react-bootstrap/FormGroup';
 import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
+import { Check2, Pencil } from 'react-bootstrap-icons';
 
 
 interface IMedicineProps extends IMedicine {
@@ -50,6 +51,10 @@ export default function Medicine(props: IMedicineProps) {
     const [addDoseDialogVisible, setAddDoseDialogVisible] = useState(false);
     const [addPurchaseDialogVisible, setAddPurchaseDialogVisible] = useState(false);
 
+    const [editNumberOfTabletes, setEditNumberOfTabletes] = useState(false);
+    const [editDescription, setEditDescription] = useState(false);
+
+
     const handleMedicineTitleClick = () => {
         props.medicineClick(props.id);
     }
@@ -61,7 +66,10 @@ export default function Medicine(props: IMedicineProps) {
         }
         clearTimeout(fnDebounce);
         if (newValue) {
-            setFnDebounce(setTimeout(() => props.updateMedicine(props.id, { count: newValue }), 1000));
+            setFnDebounce(setTimeout(() => {
+                props.updateMedicine(props.id, { count: newValue });
+                setEditNumberOfTabletes(false);
+            }, 1000));
         }
         setCount(newValue);
     }
@@ -69,7 +77,10 @@ export default function Medicine(props: IMedicineProps) {
     const handleMedicineDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.value;
         clearTimeout(fnDebounce);
-        setFnDebounce(setTimeout(() => props.updateMedicine(props.id, { description: newValue }), 1000));
+        setFnDebounce(setTimeout(() => {
+            props.updateMedicine(props.id, { description: newValue });
+            setEditDescription(false);
+        }, 1000));
         setDescription(newValue);
     }
 
@@ -210,50 +221,53 @@ export default function Medicine(props: IMedicineProps) {
     return (
         <Card className="my-2">
             <Card.Body>
-                <Card.Title>
-                    <Row>
-                        <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                            <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '80px' }} className="me-2" hidden={countNumberOfDays() === Number.POSITIVE_INFINITY}> {countNumberOfDays()} dni</Badge><> </>
-                            <span>{props.name}</span>
-                        </Col>
-                        <Col xs="auto">
-                            <Badge bg="secondary" style={{ width: '90px' }}>{props.count} tab.</Badge>
-                        </Col>
-                    </Row>
-                </Card.Title>
+                <Row className="fs-5">
+                    <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
+                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '80px' }} className="me-2" hidden={countNumberOfDays() === Number.POSITIVE_INFINITY}> {countNumberOfDays()} dni</Badge><> </>
+                        <span>{props.name}</span>
+                    </Col>
+                    <Col xs="auto">
+                        <Badge bg="secondary" style={{ width: '90px' }}>{props.count} tab.</Badge>
+                    </Col>
+                </Row>
                 <div hidden={props.id !== props.idOfMedicineDetails}>
-                    <Row>
-                        <Col>
-                        </Col>
-                        <Col xs="auto">
-                            <FormCheck
-                                // className='mt-1'
-                                // style={{fontSize:'medium'}}
-                                type="switch"
-                                id="medicine-visibility"
-                                label=""
-                                checked={isVisible}
-                                onChange={(e) => handleMedicineVisibilityChange(e)}
-                            />
+                    <Row className="mt-4 mb-3">
+                        <Col className='text-primary' xs='auto'>
+                            Ustawienia
                         </Col>
                     </Row>
                     <Row>
                         <Col sm="auto">
                             <Form.Group>
                                 <Form.Label>Aktualna ilość tabletek:</Form.Label>
-                                <Form.Control type="number" value={count?.toString()} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
+                                <div hidden={editNumberOfTabletes}>
+                                    {count}{' '}
+                                    <Button onClick={() => setEditNumberOfTabletes(true)} variant='none'>
+                                        <Pencil />
+                                    </Button>
+                                </div>
+                                <div>
+                                    <Form.Control type="number" value={count?.toString()} hidden={!editNumberOfTabletes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
+                                    <Button hidden={!editNumberOfTabletes} onClick={() => setEditNumberOfTabletes(false)} variant='none'>
+                                        <Check2 />
+                                    </Button>
+                                </div>
                             </Form.Group>
                         </Col>
                         <Col>
                             <Form>
                                 <Form.Label>Opis:</Form.Label>
-                                <Form.Control type="input" value={description} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
+                                <div hidden={editDescription}>{description}{' '}<Button onClick={() => setEditDescription(true)} variant='none'><Pencil /></Button></div>
+                                <Form.Control type="input" value={description} hidden={!editDescription} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
+                                <Button hidden={!editDescription} onClick={() => setEditDescription(false)} variant='none'>
+                                    <Check2 />
+                                </Button>
                             </Form>
                         </Col>
                     </Row>
                     <Row className="mt-4">
                         <Col className='text-primary' xs='auto'>
-                            <h5>Dawkowanie</h5>
+                            Dawkowanie
                         </Col>
                         <Col className='text-end'>
                             <Button onClick={() => { setAddDoseDialogVisible(true); setAddPurchaseDialogVisible(false); }} variant='link'>Dodaj</Button>
@@ -284,7 +298,7 @@ export default function Medicine(props: IMedicineProps) {
                             </Row>
                         </Form>
                     </dialog>
-                    <Row className="mt-2">
+                    <Row>
                         <Col>
                             <Table size='sm'>
                                 <tbody>
@@ -296,7 +310,7 @@ export default function Medicine(props: IMedicineProps) {
                                                 {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')} {new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL')}
                                             </td>
                                             <td className='text-end'>
-                                                <Button onClick={() => handleRemoveDose(dose)} size="sm" variant="link" className='text-danger'>Usuń</Button>
+                                                <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>
                                             </td>
                                         </tr>
                                     )}
@@ -306,7 +320,7 @@ export default function Medicine(props: IMedicineProps) {
                     </Row>
 
                     <Row className="mt-4">
-                        <Col className='text-primary' xs='auto'><h5>Historia zakupów</h5></Col>
+                        <Col className='text-primary' xs='auto'>Historia zakupów</Col>
                         <Col className='text-end'>
                             <Button onClick={() => { setAddPurchaseDialogVisible(true); setAddDoseDialogVisible(false); }} variant='link'>Dodaj</Button>
                         </Col>
@@ -365,7 +379,7 @@ export default function Medicine(props: IMedicineProps) {
                                                 {new Date(x.date.toString()).toLocaleDateString('pl')}
                                             </td>
                                             <td className='text-end'>
-                                                <Button onClick={() => handleRemovePurchase(x)} size="sm" variant="link" className='text-danger'>Usuń</Button>
+                                                <Button onClick={() => handleRemovePurchase(x)} variant="link" className='text-danger my-0'>Usuń</Button>
                                             </td>
                                         </tr>
                                     )}
@@ -379,6 +393,17 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Footer hidden={props.id !== props.idOfMedicineDetails}>
                 <Row>
                     <Col></Col>
+                    <Col xs="auto">
+                        <FormCheck
+                            // className='mt-1'
+                            // style={{fontSize:'medium'}}
+                            type="switch"
+                            id="medicine-visibility"
+                            label="Widoczny"
+                            checked={isVisible}
+                            onChange={(e) => handleMedicineVisibilityChange(e)}
+                        />
+                    </Col>
                     <Col xs="auto"><Button onClick={handleMedicineDeleteClick} variant="outline-danger" size="sm">Usuń lek</Button></Col>
                 </Row>
             </Card.Footer>

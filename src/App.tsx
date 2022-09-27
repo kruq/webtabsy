@@ -263,33 +263,30 @@ function App() {
         <h3><Spinner animation="border" variant='primary' /> Ładowanie...</h3>
       </div>
       <Container className="mt-2 mb-3">
-        <header className='mb-2'>
+        <header className='mb-4'>
           <Row>
             <Col>
               <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
               {/* <Button onClick={async () => await updateDoses()}>Fetch</Button> */}
             </Col>
             <Col xs="auto" className="text-end">
-              <small><strong>{lastCheckTime.toLocaleString('pl-PL')}</strong></small>
+              <small className='text-secondary'>{lastCheckTime.toLocaleString('pl-PL')}</small>
             </Col>
           </Row>
-          <hr />
         </header>
-        <section className='mb-2' hidden={notTakenDoses.length === 0}>
+        <section className='my-3' hidden={notTakenDoses.length === 0}>
           <Row>
             <Col>
-              <h5>Pominięte leki</h5>
+              <strong>Pominięte leki</strong>
               <Card>
                 <Card.Body>
                   {notTakenDoses.map(x =>
                     <>
                       <Row key={x.medicine?.name + x.time}>
-                        <Col className="d-flex align-items-center">
-                          <Card.Title>
-                            <span style={{ display: 'inline-block', width: '40px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
-                            <span> {x.medicine?.name}</span>
-                            <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
-                          </Card.Title>
+                        <Col className="d-flex align-items-center fs-5">
+                          <span style={{ display: 'inline-block', width: '40px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
+                          <span> {x.medicine?.name}</span>
+                          <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
                         </Col>
                         <Col xs="auto" className="d-flex align-items-center">
                           <Button variant='primary' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
@@ -327,7 +324,7 @@ function App() {
                       </Row>
                       <Row>
                         <Col>
-                          <small style={{ marginLeft: '47px', marginRight: '10px' }}><strong>{x.time}</strong></small><small>{x.medicine?.description}</small>
+                          <small style={{ marginLeft: '42px', marginRight: '10px' }} className="text-secondary">{x.time}</small><small>{x.medicine?.description}</small>
                         </Col>
                       </Row>
                       <hr className="mt-1" />
@@ -335,24 +332,25 @@ function App() {
                   )}
                   <Row>
                     <Col></Col>
-                    <Col xs="auto" className="mt-2"><Button onClick={handleTakeMedicines} variant='primary'><HandThumbsUpFill /> Wszystkie leki są wzięte</Button></Col>
+                    <Col xs="auto" className="mt-2">
+                      <Button onClick={handleTakeMedicines} variant='primary'><HandThumbsUpFill /> Wszystkie</Button>
+                    </Col>
                   </Row>
                 </Card.Body>
               </Card>
             </Col>
           </Row>
-          <hr />
         </section>
-        <section>
+        <section className='my-3'>
           <Row>
             <Col>
-              <h5>Lista leków</h5>
+              <strong>Lista leków</strong>
             </Col>
             <Col xs="auto">
               <Form.Switch
                 checked={showAll}
                 label='Pokaż wszystkie leki'
-                onChange={(e) => { setShowAll(e.target.checked); localStorage.setItem('showAll', e.target.checked.toString()); setIdOfMedicineDetails('');}}
+                onChange={(e) => { setShowAll(e.target.checked); localStorage.setItem('showAll', e.target.checked.toString()); setIdOfMedicineDetails(''); }}
               />
             </Col>
           </Row>
@@ -370,9 +368,10 @@ function App() {
             )}
             </div>
           </div>
-          <hr />
+        </section>
+        <section className='my-3'>
           <div>
-            <h5>Nowy lek</h5>
+            <strong>Nowy lek</strong>
             <Form>
               <Form.Group className="mb-3">
                 <Form.Label>Nazwa leku</Form.Label>
