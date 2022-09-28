@@ -290,70 +290,71 @@ function App() {
             </Col>
           </Row>
         </header>
-        <section className='my-3' hidden={notTakenDoses.length === 0}>
-          <Row>
-            <Col>
-              <strong>Pominięte leki</strong>
-              <Card>
-                <Card.Body>
+        <Row>
+          <Col md='6'>
+            <section className='my-3' hidden={notTakenDoses.length === 0}>
+              <Row>
+                <Col>
+                  <strong>Pominięte leki</strong>
                   {notTakenDoses.map(x =>
-                    <>
-                      <Row key={x.medicine?.name + x.time}>
-                        <Col className="fs-6">
-                          <Row>
-                            <Col>
-                              <span style={{ display: 'inline-block', width: '40px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
-                              <span>{x.medicine?.name}</span>
-                              <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
-                            </Col>
-                          </Row>
-                          <Row>
-                            <Col>
-                              <span style={{ marginLeft: '40px' }} className="text-secondary"><small>{x.time}</small></span>
-                            </Col>
-                          </Row>
-                          <Row>
-                            <Col>
-                              <span style={{ marginLeft: '40px' }}><small><i>{x.medicine?.description}</i></small></span>
-                            </Col>
-                          </Row>
-                        </Col>
-                        <Col xs="auto" className="d-flex align-items-center fs-6">
-                          <Button variant='primary' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
-                            const meds = [...medicines];
-                            const medicine = meds.find(m => m === x.medicine);
-                            if (medicine && medicine.count > 0) {
-                              const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                              if (dose && dose.amount) {
-                                let newDate = new Date(x.dose.date);
-                                newDate.setTime(newDate.getTime() + 1000);
-                                dose.takingDate = newDate;
-                                medicine.count -= dose.amount;
-                                await updateMedicine(medicine);
-                                setMedicines(meds);
-                                setNotTakenDoses(refreshNotTakenDoses(meds));
+                    <Card className='my-2'>
+                      <Card.Body>
+                        <Row key={x.medicine?.name + x.time}>
+                          <Col className="fs-6">
+                            <Row>
+                              <Col>
+                                <span style={{ display: 'inline-block', width: '30px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
+                                <span>{x.medicine?.name}</span>
+                                <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
+                              </Col>
+                            </Row>
+                            <Row>
+                              <Col style={{ marginLeft: '30px' }} className="text-secondary">
+                                <small>{x.time}</small>
+                              </Col>
+                            </Row>
+                            <Row>
+                              <Col style={{ marginLeft: '30px' }} >
+                                <small><i>{x.medicine?.description}</i></small>
+                              </Col>
+                            </Row>
+                          </Col>
+                          <Col xs="auto" className="d-flex align-items-center fs-6">
+                            <Button variant='primary' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
+                              const meds = [...medicines];
+                              const medicine = meds.find(m => m === x.medicine);
+                              if (medicine && medicine.count > 0) {
+                                const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                                if (dose && dose.amount) {
+                                  let newDate = new Date(x.dose.date);
+                                  newDate.setTime(newDate.getTime() + 1000);
+                                  dose.takingDate = newDate;
+                                  medicine.count -= dose.amount;
+                                  await updateMedicine(medicine);
+                                  setMedicines(meds);
+                                  setNotTakenDoses(refreshNotTakenDoses(meds));
+                                }
                               }
-                            }
-                          }}><HandThumbsUpFill /></Button>
-                          <Button className='ms-1' variant='warning' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
-                            const meds = [...medicines];
-                            const medicine = meds.find(m => m === x.medicine);
-                            if (medicine) {
-                              const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                              if (dose && dose.amount) {
-                                let newDate = new Date(x.dose.date);
-                                newDate.setTime(newDate.getTime() + 1000);
-                                dose.takingDate = newDate;
-                                await updateMedicine(medicine);
-                                setMedicines(meds);
-                                setNotTakenDoses(refreshNotTakenDoses(meds));
+                            }}><HandThumbsUpFill /></Button>
+                            <Button className='ms-1' variant='warning' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
+                              const meds = [...medicines];
+                              const medicine = meds.find(m => m === x.medicine);
+                              if (medicine) {
+                                const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                                if (dose && dose.amount) {
+                                  let newDate = new Date(x.dose.date);
+                                  newDate.setTime(newDate.getTime() + 1000);
+                                  dose.takingDate = newDate;
+                                  await updateMedicine(medicine);
+                                  setMedicines(meds);
+                                  setNotTakenDoses(refreshNotTakenDoses(meds));
+                                }
                               }
-                            }
-                          }}><HandThumbsDownFill /></Button>
-                        </Col>
-                      </Row>
-                      <hr className="mt-1" />
-                    </>
+                            }}><HandThumbsDownFill /></Button>
+                          </Col>
+                        </Row>
+                      </Card.Body>
+                    </Card>
                   )}
                   <Row>
                     <Col></Col>
@@ -361,58 +362,60 @@ function App() {
                       <Button onClick={handleTakeMedicines} variant='primary'><HandThumbsUpFill /> Wszystkie</Button>
                     </Col>
                   </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </section>
-        <section className='my-3'>
-          <Row>
-            <Col>
-              <strong>Lista leków</strong>
-            </Col>
-            <Col xs="auto">
-              <Form.Switch
-                checked={showAll}
-                label='Pokaż wszystkie leki'
-                onChange={(e) => { setShowAll(e.target.checked); localStorage.setItem('showAll', e.target.checked.toString()); setIdOfMedicineDetails(''); }}
-              />
-            </Col>
-          </Row>
-          <div>
-            <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
-            <div>{medicines
-              .sort((a, b) => (a.name > b.name ? 1 : -1))
-              .sort((a, b) => a.doses.length > 0 && b.doses.length === 0 ? -1 : 0)
-              .filter(m => showAll || m.isVisible)
-              .map((x: IMedicine) =>
-                <Medicine
-                  key={x.id}
-                  {...x}
-                  idOfMedicineDetails={idOfMedicineDetails}
-                  medicineClick={handleMedicineClick}
-                  updateMedicine={handleUpdateMedicine}
-                  deleteMedicine={handleDeleteMedicine}
-                />
-              )}
-            </div>
-          </div>
-        </section>
-        <section className='my-3'>
-          <div>
-            <strong>Nowy lek</strong>
-            <Form>
-              <Form.Group className="mb-3">
-                <Form.Label>Nazwa leku</Form.Label>
-                <Form.Control type="text"
-                  value={newMedicineName}
-                  onChange={handleNewMedicineNameChange}>
-                </Form.Control>
-              </Form.Group>
-              <Button type="submit" onClick={handleAddMedicineClick} variant="primary">Dodaj</Button>
-            </Form>
-          </div>
-        </section>
+                </Col>
+              </Row>
+            </section>
+          </Col>
+          <Col md='6'>
+            <section className='my-3'>
+              <Row>
+                <Col>
+                  <strong>Lista leków</strong>
+                </Col>
+                <Col xs="auto">
+                  <Form.Switch
+                    checked={showAll}
+                    label='Pokaż wszystkie leki'
+                    onChange={(e) => { setShowAll(e.target.checked); localStorage.setItem('showAll', e.target.checked.toString()); setIdOfMedicineDetails(''); }}
+                  />
+                </Col>
+              </Row>
+              <div>
+                <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
+                <div>{medicines
+                  .sort((a, b) => (a.name > b.name ? 1 : -1))
+                  .sort((a, b) => a.doses.length > 0 && b.doses.length === 0 ? -1 : 0)
+                  .filter(m => showAll || m.isVisible)
+                  .map((x: IMedicine) =>
+                    <Medicine
+                      key={x.id}
+                      {...x}
+                      idOfMedicineDetails={idOfMedicineDetails}
+                      medicineClick={handleMedicineClick}
+                      updateMedicine={handleUpdateMedicine}
+                      deleteMedicine={handleDeleteMedicine}
+                    />
+                  )}
+                </div>
+              </div>
+            </section>
+            <section className='my-3'>
+              <div>
+                <strong>Nowy lek</strong>
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Nazwa leku</Form.Label>
+                    <Form.Control type="text"
+                      value={newMedicineName}
+                      onChange={handleNewMedicineNameChange}>
+                    </Form.Control>
+                  </Form.Group>
+                  <Button type="submit" onClick={handleAddMedicineClick} variant="primary">Dodaj</Button>
+                </Form>
+              </div>
+            </section>
+          </Col>
+        </Row>
       </Container >
     </>
   );
