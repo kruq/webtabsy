@@ -190,8 +190,12 @@ function App() {
   }, [refreshNotTakenDoses, lastCheckTime]);
 
   const handleAddMedicineClick = async (e: MouseEvent) => {
-    setShowSpinner(true);
     e.preventDefault();
+    if (!newMedicineName.trim()) {
+      alert('Nie można dodać leku bez nazwy');
+      return;
+    }
+    setShowSpinner(true);
     const newMedicine: IMedicine = {
       id: '',
       name: newMedicineName,
@@ -295,12 +299,26 @@ function App() {
                   {notTakenDoses.map(x =>
                     <>
                       <Row key={x.medicine?.name + x.time}>
-                        <Col className="d-flex align-items-center fs-5">
-                          <span style={{ display: 'inline-block', width: '40px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
-                          <span> {x.medicine?.name}</span>
-                          <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
+                        <Col className="fs-6">
+                          <Row>
+                            <Col>
+                              <span style={{ display: 'inline-block', width: '40px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
+                              <span>{x.medicine?.name}</span>
+                              <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col>
+                              <span style={{ marginLeft: '40px' }} className="text-secondary"><small>{x.time}</small></span>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col>
+                              <span style={{ marginLeft: '40px' }}><small><i>{x.medicine?.description}</i></small></span>
+                            </Col>
+                          </Row>
                         </Col>
-                        <Col xs="auto" className="d-flex align-items-center">
+                        <Col xs="auto" className="d-flex align-items-center fs-6">
                           <Button variant='primary' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
                             const meds = [...medicines];
                             const medicine = meds.find(m => m === x.medicine);
@@ -334,17 +352,12 @@ function App() {
                           }}><HandThumbsDownFill /></Button>
                         </Col>
                       </Row>
-                      <Row>
-                        <Col>
-                          <small style={{ marginLeft: '42px', marginRight: '10px' }} className="text-secondary">{x.time}</small><small>{x.medicine?.description}</small>
-                        </Col>
-                      </Row>
                       <hr className="mt-1" />
                     </>
                   )}
                   <Row>
                     <Col></Col>
-                    <Col xs="auto" className="mt-2">
+                    <Col xs="auto">
                       <Button onClick={handleTakeMedicines} variant='primary'><HandThumbsUpFill /> Wszystkie</Button>
                     </Col>
                   </Row>
@@ -368,16 +381,20 @@ function App() {
           </Row>
           <div>
             <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
-            <div>{medicines.sort((a, b) => a.name > b.name ? 1 : -1).filter(m => showAll || m.isVisible).map((x: IMedicine) =>
-              <Medicine
-                key={x.id}
-                {...x}
-                idOfMedicineDetails={idOfMedicineDetails}
-                medicineClick={handleMedicineClick}
-                updateMedicine={handleUpdateMedicine}
-                deleteMedicine={handleDeleteMedicine}
-              />
-            )}
+            <div>{medicines
+              .sort((a, b) => (a.name > b.name ? 1 : -1))
+              .sort((a, b) => a.doses.length > 0 && b.doses.length === 0 ? -1 : 0)
+              .filter(m => showAll || m.isVisible)
+              .map((x: IMedicine) =>
+                <Medicine
+                  key={x.id}
+                  {...x}
+                  idOfMedicineDetails={idOfMedicineDetails}
+                  medicineClick={handleMedicineClick}
+                  updateMedicine={handleUpdateMedicine}
+                  deleteMedicine={handleDeleteMedicine}
+                />
+              )}
             </div>
           </div>
         </section>

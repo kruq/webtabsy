@@ -54,6 +54,7 @@ export default function Medicine(props: IMedicineProps) {
     const [editNumberOfTabletes, setEditNumberOfTabletes] = useState(false);
     const [editDescription, setEditDescription] = useState(false);
 
+    const purchasesWithPrice = props.purchases.filter(x => x.price !== null);
 
     const handleMedicineTitleClick = () => {
         props.medicineClick(props.id);
@@ -69,7 +70,7 @@ export default function Medicine(props: IMedicineProps) {
             setFnDebounce(setTimeout(() => {
                 props.updateMedicine(props.id, { count: newValue });
                 setEditNumberOfTabletes(false);
-            }, 1000));
+            }, 2000));
         }
         setCount(newValue);
     }
@@ -80,7 +81,7 @@ export default function Medicine(props: IMedicineProps) {
         setFnDebounce(setTimeout(() => {
             props.updateMedicine(props.id, { description: newValue });
             setEditDescription(false);
-        }, 1000));
+        }, 2000));
         setDescription(newValue);
     }
 
@@ -173,8 +174,11 @@ export default function Medicine(props: IMedicineProps) {
             alert("Nieprawidłowa ilość tabletek w opakowaniu");
             return;
         }
-        if (!newPurchase.pricePerPackage || newPurchase.pricePerPackage <= 0) {
+        if (newPurchase.pricePerPackage !== undefined && newPurchase.pricePerPackage <= 0) {
             alert("Nieprawidłowa cena");
+            return;
+        }
+        if (!newPurchase.pricePerPackage && !window.confirm('Czy na pewno nie chcesz podać ceny?')) {
             return;
         }
         let { purchases } = props;
@@ -221,13 +225,13 @@ export default function Medicine(props: IMedicineProps) {
     return (
         <Card className="my-2">
             <Card.Body>
-                <Row className="fs-5">
+                <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '80px' }} className="me-2" hidden={countNumberOfDays() === Number.POSITIVE_INFINITY}> {countNumberOfDays()} dni</Badge><> </>
+                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="me-2" hidden={countNumberOfDays() === Number.POSITIVE_INFINITY}> {countNumberOfDays()} dni</Badge><> </>
                         <span>{props.name}</span>
                     </Col>
                     <Col xs="auto">
-                        <Badge bg="secondary" style={{ width: '90px' }}>{props.count} tab.</Badge>
+                        <Badge bg="secondary" style={{ width: '70px' }}>{props.count} tab.</Badge>
                     </Col>
                 </Row>
                 <div hidden={props.id !== props.idOfMedicineDetails}>
@@ -373,7 +377,8 @@ export default function Medicine(props: IMedicineProps) {
                                                 {x.numberOfTablets}{' tab.'}
                                             </td>
                                             <td width="20%">
-                                                {x.price}{' zł'}
+                                                <span hidden={x.price === undefined}>{x.price}{' zł'}</span>
+                                                <span  hidden={x.price !== undefined}>-</span>
                                             </td>
                                             <td>
                                                 {new Date(x.date.toString()).toLocaleDateString('pl')}
@@ -385,7 +390,10 @@ export default function Medicine(props: IMedicineProps) {
                                     )}
                                 </tbody>
                             </Table>
-                            <i>Średnia cena: </i>{props.purchases?.reduce((x, y) => x + y.price, 0) / props.purchases.length}{' zł'}
+                            <i>Średnia cena: </i>
+                            {
+                                purchasesWithPrice.reduce((x, y) => x + (y.price ?? 0), 0) / purchasesWithPrice?.length
+                            }{' zł'}
                         </Col>
                     </Row>
                 </div>
