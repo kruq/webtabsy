@@ -291,11 +291,17 @@ function App() {
           </Row>
         </header>
         <Row>
-          <Col md='6'>
-            <section className='my-3' hidden={notTakenDoses.length === 0}>
+          <Col md='8'>
+            <section className='my-3'>
               <Row>
                 <Col>
                   <strong>Pominięte leki</strong>
+                  <Card hidden={notTakenDoses.length !== 0} className='my-2'>
+                    <Card.Body className="text-center">
+                      <h4>Gratulacje!</h4>
+                      <h6>Wszystkie leki zostały wzięte</h6>
+                    </Card.Body>
+                  </Card>
                   {notTakenDoses.map(x =>
                     <Card className='my-2'>
                       <Card.Body>
@@ -356,7 +362,7 @@ function App() {
                       </Card.Body>
                     </Card>
                   )}
-                  <Row>
+                  <Row hidden={notTakenDoses.length === 0}>
                     <Col></Col>
                     <Col xs="auto">
                       <Button onClick={handleTakeMedicines} variant='primary'><HandThumbsUpFill /> Wszystkie</Button>
@@ -366,7 +372,7 @@ function App() {
               </Row>
             </section>
           </Col>
-          <Col md='6'>
+          <Col md='4'>
             <section className='my-3'>
               <Row>
                 <Col>
