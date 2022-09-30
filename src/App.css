@@ -1,3 +1,13 @@
+button.btn-link {
+  text-decoration: none;
+  padding: 0px; 
+}
+
+button.btn-link:hover {
+  /* color: rgba(var(--bs-danger-rgb)); */
+  font-weight: bold;
+}
+
 /* .App {
     margin: 10px auto;
     width: 90%;

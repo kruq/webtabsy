@@ -13,12 +13,18 @@ import Card from 'react-bootstrap/Card';
 import IDose from './models/IDose';
 import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 import logo from './assets/logo192.png';
+import _ from 'lodash';
+import { group } from 'console';
 
 
 interface IDoseWithDate extends IDose {
   date: Date,
   // canEdit: boolean
 }
+
+class GroupdMedicines {
+  [key: string]: IMedicine[]
+};
 
 type DoseDetails = {
   medicine?: IMedicine,
@@ -36,6 +42,8 @@ function App() {
   const [showSpinner, setShowSpinner] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<Date>(new Date());
   const [showAll, setShowAll] = useState<boolean>(localStorage.getItem('showAll') === 'true');
+
+  const [addMedicineDialogVisible, setAddMedicinceDialogVisible] = useState(false);
 
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -241,6 +249,8 @@ function App() {
     // setShowSpinner(false);
   }
 
+
+
   // const getDateWhenMedicinesTaken = useCallback(() => {
   //   // return medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')
   //   const today = new Date();
@@ -291,7 +301,7 @@ function App() {
           </Row>
         </header>
         <Row>
-          <Col md='8'>
+          <Col md='4'>
             <section className='my-3'>
               <Row>
                 <Col>
@@ -372,7 +382,31 @@ function App() {
               </Row>
             </section>
           </Col>
-          <Col md='4'>
+          <Col md='3'>
+            <section className='my-3'>
+              <Row>
+                <Col>
+                  <strong>Grafik</strong>
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  {
+                    Object.entries(_.groupBy(
+                      medicines
+                        .filter(m => m.doses.length > 0)
+                        .map(m => { return m.doses.map(d => { return { dose: d, name: m.name } }) })
+                        .flatMap(x => x),
+                      x => x.dose.time
+                    )).sort((x, y) => x > y ? 1 : -1).map(x =>
+                      <Card className='my-2'><Card.Header>Godz. {x[0]}</Card.Header><Card.Body>{x[1].map(y => <div>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
+                    )
+                  }
+                </Col>
+              </Row>
+            </section>
+          </Col>
+          <Col md='5'>
             <section className='my-3'>
               <Row>
                 <Col>
@@ -380,10 +414,28 @@ function App() {
                 </Col>
                 <Col xs="auto">
                   <Form.Switch
-                    checked={showAll}
-                    label='Pokaż wszystkie leki'
-                    onChange={(e) => { setShowAll(e.target.checked); localStorage.setItem('showAll', e.target.checked.toString()); setIdOfMedicineDetails(''); }}
+                    checked={!showAll}
+                    label='Filtrowanie'
+                    onChange={(e) => { setShowAll(!e.target.checked); localStorage.setItem('showAll', (!e.target.checked).toString()); setIdOfMedicineDetails(''); }}
                   />
+                  <dialog open={addMedicineDialogVisible} style={{ zIndex: '1000' }}>
+                    <strong>Nowy lek</strong>
+                    <Form>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Nazwa leku</Form.Label>
+                        <Form.Control type="text"
+                          value={newMedicineName}
+                          onChange={handleNewMedicineNameChange}>
+                        </Form.Control>
+                      </Form.Group>
+                      <Row className='text-end'>
+                        <Col>
+                          <Button type="submit" onClick={handleAddMedicineClick} variant="primary">Dodaj</Button>
+                          <Button className='ms-2' variant='secondary' onClick={() => setAddMedicinceDialogVisible(false)}>Anuluj</Button>
+                        </Col>
+                      </Row>
+                    </Form>
+                  </dialog>
                 </Col>
               </Row>
               <div>
@@ -403,22 +455,11 @@ function App() {
                     />
                   )}
                 </div>
+                <Button variant='link' onClick={() => setAddMedicinceDialogVisible(true)} style={{ padding: '0px', border: '0px' }}>Dodaj lek</Button>
               </div>
             </section>
             <section className='my-3'>
-              <div>
-                <strong>Nowy lek</strong>
-                <Form>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Nazwa leku</Form.Label>
-                    <Form.Control type="text"
-                      value={newMedicineName}
-                      onChange={handleNewMedicineNameChange}>
-                    </Form.Control>
-                  </Form.Group>
-                  <Button type="submit" onClick={handleAddMedicineClick} variant="primary">Dodaj</Button>
-                </Form>
-              </div>
+
             </section>
           </Col>
         </Row>

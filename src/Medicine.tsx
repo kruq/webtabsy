@@ -297,7 +297,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Row className='text-end'>
                                 <Col>
                                     <Button onClick={handleAddDose} variant="primary" type="submit" className='mt-3'>Dodaj dawkę</Button>
-                                    <Button className='mt-3 ms-2' variant='secondary' onClick={() => setAddDoseDialogVisible(false)}>Cancel</Button>
+                                    <Button className='mt-3 ms-2' variant='secondary' onClick={() => setAddDoseDialogVisible(false)}>Anuluj</Button>
                                 </Col>
                             </Row>
                         </Form>
@@ -354,7 +354,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Row>
                                 <Col className='text-end'>
                                     <Button onClick={handleAddPurchase} variant="primary" type="submit" className='mt-3'>Dodaj zakupione leki</Button>
-                                    <Button className='mt-3 ms-2' variant='secondary' onClick={() => setAddPurchaseDialogVisible(false)}>Cancel</Button>
+                                    <Button className='mt-3 ms-2' variant='secondary' onClick={() => setAddPurchaseDialogVisible(false)}>Anuluj</Button>
                                 </Col>
                             </Row>
                         </Form>
