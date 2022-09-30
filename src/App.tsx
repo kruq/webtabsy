@@ -172,15 +172,22 @@ function App() {
       } else {
         if (notTakenDoses.length > 0) {
           // not = new Notification("Weź leki");
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.showNotification('Aaaa2222');
-          })
+          if (Notification.permission === 'granted') {
+            navigator.serviceWorker.ready.then((registration) => {
+              registration.showNotification('Aaaa2222');
+            })
+            navigator.serviceWorker.getRegistration().then((registration) => {
+              registration?.showNotification('Aaaa3333');
+            })
+          } else {
+            Notification.requestPermission(status => alert('Notification status ' + status));
+          }
         }
         // production code
       }
     }).catch((error) => {
       // if (error.code === "ERR_NETWORK") {
-        alert("Bład połączenia! " + error)
+      alert("Bład połączenia! " + error)
       // }
     });
 
