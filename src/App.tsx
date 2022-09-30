@@ -177,7 +177,7 @@ function App() {
           //   }
           navigator.serviceWorker.ready.then((registration) => {
             console.log(registration);
-            registration.showNotification('Weź leki (test z app)');
+            registration.showNotification('Weź leki');
           });
         }
         // production code
@@ -188,7 +188,7 @@ function App() {
       // }
     });
 
-    const timer = setInterval(() => setLastCheckTime(new Date()), 1 * 60 * 1000);
+    const timer = setInterval(() => setLastCheckTime(new Date()), 5 * 60 * 1000);
     return () => {
       clearInterval(timer);
     }
@@ -392,7 +392,7 @@ function App() {
                         .flatMap(x => x),
                       x => x.dose.time
                     )).sort((x, y) => x > y ? 1 : -1).map(x =>
-                      <Card className='my-2' key={'dose-time-' + x[0]}><Card.Header>Godz. {x[0]}</Card.Header><Card.Body>{x[1].map(y => <div key={'dose-' + y.dose.time + 'medicine-' + y.name}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
+                      <Card className='my-2' key={'dose-time-' + x[0]}><Card.Header>Godz. {x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'dose-' + y.dose.time + 'medicine-' + y.name}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
                     )
                   }
                 </Col>
