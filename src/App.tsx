@@ -11,7 +11,7 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import IDose from './models/IDose';
-import { HandThumbsUpFill, HandThumbsDownFill, QrCode } from 'react-bootstrap-icons';
+import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
 
