@@ -169,9 +169,15 @@ function App() {
 
       if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
         // dev code
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.showNotification('Aaaa222233333');
+        })
       } else {
         if (notTakenDoses.length > 0) {
-          not = new Notification("Weź leki");
+          // not = new Notification("Weź leki");
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification('Aaaa2222');
+          })
         }
         // production code
       }
@@ -181,7 +187,7 @@ function App() {
       }
     });
 
-    const timer = setInterval(() => setLastCheckTime(new Date()), 10 * 60 * 1000);
+    const timer = setInterval(() => setLastCheckTime(new Date()), 10 * 1000);
     return () => {
       clearInterval(timer);
       if (not) {
