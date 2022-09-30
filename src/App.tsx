@@ -11,7 +11,7 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import IDose from './models/IDose';
-import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
+import { HandThumbsUpFill, HandThumbsDownFill, QrCode } from 'react-bootstrap-icons';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
 
@@ -273,14 +273,9 @@ function App() {
   // }, [medicines]);
 
 
-  // const test = async () => {
-  //   fetchMedicines().catch(x => {
-  //     console.log(x);
-  //     if (x.code === "ERR_NETWORK") {
-  //       console.log('Brak internetu');
-  //     }
-  //   });
-  // }
+  const test = async () => {
+    navigator.serviceWorker.ready.then((r) => r.showNotification('teest'));
+  }
 
   return (
     <>
@@ -292,7 +287,7 @@ function App() {
           <Row>
             <Col>
               <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
-              {/* <Button onClick={async () => await test()}>Test</Button> */}
+              <Button onClick={async () => test()}>Test</Button>
             </Col>
             <Col xs="auto" className="text-end">
               <small className='text-secondary'>{lastCheckTime.toLocaleString('pl-PL')}</small>
