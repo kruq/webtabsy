@@ -14,7 +14,7 @@ import Table from 'react-bootstrap/Table';
 import FormGroup from 'react-bootstrap/FormGroup';
 import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
-import { Check2, Pencil } from 'react-bootstrap-icons';
+import { CheckLg, Pencil } from 'react-bootstrap-icons';
 
 
 interface IMedicineProps extends IMedicine {
@@ -241,31 +241,50 @@ export default function Medicine(props: IMedicineProps) {
                         </Col>
                     </Row>
                     <Row>
-                        <Col sm="auto">
+                        <Col xm='6'>
                             <Form.Group>
-                                <Form.Label>Aktualna ilość tabletek:</Form.Label>
-                                <div hidden={editNumberOfTabletes}>
-                                    {count}{' '}
-                                    <Button onClick={() => setEditNumberOfTabletes(true)} variant='none'>
-                                        <Pencil />
-                                    </Button>
-                                </div>
-                                <div>
-                                    <Form.Control type="number" value={count?.toString()} hidden={!editNumberOfTabletes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
-                                    <Button hidden={!editNumberOfTabletes} onClick={() => setEditNumberOfTabletes(false)} variant='none'>
-                                        <Check2 />
-                                    </Button>
-                                </div>
+                                <Row>
+                                    <Col>
+                                        <Form.Label>Ilość tabletek:</Form.Label>
+                                    </Col>
+                                </Row>
+                                <Row hidden={editNumberOfTabletes}>
+                                    <Col>{count}</Col>
+                                    <Col xs='auto'><Button onClick={() => setEditNumberOfTabletes(true)} variant='link'><Pencil /></Button></Col>
+                                </Row>
+                                <Row>
+                                    <Col>
+                                        <Form.Control type="number" value={count?.toString()} hidden={!editNumberOfTabletes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
+                                    </Col>
+                                    <Col xs='auto'>
+                                        <Button hidden={!editNumberOfTabletes} onClick={() => setEditNumberOfTabletes(false)} variant='link'><CheckLg /></Button>
+                                    </Col>
+                                </Row>
                             </Form.Group>
                         </Col>
-                        <Col>
+                        <Col sm='6'>
                             <Form>
-                                <Form.Label>Opis:</Form.Label>
-                                <div hidden={editDescription}>{description}{' '}<Button onClick={() => setEditDescription(true)} variant='none'><Pencil /></Button></div>
-                                <Form.Control type="input" value={description} hidden={!editDescription} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
-                                <Button hidden={!editDescription} onClick={() => setEditDescription(false)} variant='none'>
-                                    <Check2 />
-                                </Button>
+                                <Row>
+                                    <Col>
+                                        <Form.Label>Opis:</Form.Label>
+                                    </Col>
+                                </Row>
+                                <Row hidden={editDescription}>
+                                    <Col>
+                                        {description}{' '}
+                                    </Col>
+                                    <Col xs='auto'>
+                                        <Button onClick={() => setEditDescription(true)} variant='link'><Pencil /></Button>
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col>
+                                        <Form.Control type="input" value={description} hidden={!editDescription} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
+                                    </Col>
+                                    <Col xs='auto'>
+                                        <Button hidden={!editDescription} onClick={() => setEditDescription(false)} variant='link'><CheckLg /></Button>
+                                    </Col>
+                                </Row>
                             </Form>
                         </Col>
                     </Row>
@@ -378,7 +397,7 @@ export default function Medicine(props: IMedicineProps) {
                                             </td>
                                             <td width="20%">
                                                 <span hidden={x.price === undefined}>{x.price}{' zł'}</span>
-                                                <span  hidden={x.price !== undefined}>-</span>
+                                                <span hidden={x.price !== undefined}>-</span>
                                             </td>
                                             <td>
                                                 {new Date(x.date.toString()).toLocaleDateString('pl')}
