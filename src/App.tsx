@@ -179,9 +179,9 @@ function App() {
         // production code
       }
     }).catch((error) => {
-      if (error.code === "ERR_NETWORK") {
+      // if (error.code === "ERR_NETWORK") {
         alert("Bład połączenia! " + error)
-      }
+      // }
     });
 
     const timer = setInterval(() => setLastCheckTime(new Date()), 1 * 60 * 1000);
