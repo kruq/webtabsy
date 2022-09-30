@@ -172,7 +172,6 @@ function App() {
         // dev code
       } else {
         if (notTakenDoses.length > 0) {
-          // not = new Notification("Weź leki");
           // Notification.requestPermission(status => {
           //   if (Notification.permission !== 'granted') {
           //     alert('Notification status ' + status)
@@ -180,16 +179,15 @@ function App() {
           //   }
           navigator.serviceWorker.ready.then((registration) => {
             registration.showNotification('Weź leki (test z app)');
-            //   })
-            // });
-          }
+          });
+        }
         // production code
       }
-      }).catch((error) => {
-        // if (error.code === "ERR_NETWORK") {
-        alert("Bład połączenia! " + error)
-        // }
-      });
+    }).catch((error) => {
+      // if (error.code === "ERR_NETWORK") {
+      alert("Bład połączenia! " + error)
+      // }
+    });
 
     const timer = setInterval(() => setLastCheckTime(new Date()), 1 * 60 * 1000);
     return () => {
