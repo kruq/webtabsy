@@ -15,6 +15,8 @@ import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
 
+navigator.serviceWorker.register('sw.js');
+
 interface IDoseWithDate extends IDose {
   date: Date,
   // canEdit: boolean
@@ -161,7 +163,6 @@ function App() {
   }
 
   useEffect(() => {
-    let not: Notification;
     fetchMedicines().then(meds => {
       setMedicines(meds);
       const notTakenDoses = refreshNotTakenDoses(meds)
@@ -172,16 +173,15 @@ function App() {
       } else {
         if (notTakenDoses.length > 0) {
           // not = new Notification("Weź leki");
-          if (Notification.permission === 'granted') {
+          Notification.requestPermission(status => {
+            if (Notification.permission !== 'granted') {
+              alert('Notification status ' + status)
+              return;
+            }
             navigator.serviceWorker.ready.then((registration) => {
-              registration.showNotification('Aaaa2222');
+              registration.showNotification('Weź leki (test z app)');
             })
-            navigator.serviceWorker.getRegistration().then((registration) => {
-              registration?.showNotification('Aaaa3333');
-            })
-          } else {
-            Notification.requestPermission(status => alert('Notification status ' + status));
-          }
+          });
         }
         // production code
       }
@@ -194,9 +194,6 @@ function App() {
     const timer = setInterval(() => setLastCheckTime(new Date()), 1 * 60 * 1000);
     return () => {
       clearInterval(timer);
-      if (not) {
-        not.close();
-      }
     }
 
   }, [refreshNotTakenDoses, lastCheckTime]);
