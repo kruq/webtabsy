@@ -169,9 +169,6 @@ function App() {
 
       if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
         // dev code
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification('Aaaa222233333');
-        })
       } else {
         if (notTakenDoses.length > 0) {
           // not = new Notification("Weź leki");
@@ -187,7 +184,7 @@ function App() {
       }
     });
 
-    const timer = setInterval(() => setLastCheckTime(new Date()), 10 * 1000);
+    const timer = setInterval(() => setLastCheckTime(new Date()), 1 * 60 * 1000);
     return () => {
       clearInterval(timer);
       if (not) {
