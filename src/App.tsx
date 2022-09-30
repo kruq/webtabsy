@@ -14,17 +14,11 @@ import IDose from './models/IDose';
 import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
-import { group } from 'console';
-
 
 interface IDoseWithDate extends IDose {
   date: Date,
   // canEdit: boolean
 }
-
-class GroupdMedicines {
-  [key: string]: IMedicine[]
-};
 
 type DoseDetails = {
   medicine?: IMedicine,
