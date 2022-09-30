@@ -15,8 +15,6 @@ import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
 
-navigator.serviceWorker.register('./sw.js');
-
 interface IDoseWithDate extends IDose {
   date: Date,
   // canEdit: boolean
