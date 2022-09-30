@@ -176,6 +176,7 @@ function App() {
           //     return;
           //   }
           navigator.serviceWorker.ready.then((registration) => {
+            console.log(registration);
             registration.showNotification('Weź leki (test z app)');
           });
         }
@@ -271,9 +272,9 @@ function App() {
   // }, [medicines]);
 
 
-  const test = async () => {
-    navigator.serviceWorker.ready.then((r) => r.showNotification('teest'));
-  }
+  // const test = async () => {
+  //   navigator.serviceWorker.ready.then((r) => r.showNotification('teest'));
+  // }
 
   return (
     <>
@@ -285,7 +286,7 @@ function App() {
           <Row>
             <Col>
               <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
-              <Button onClick={async () => test()}>Test</Button>
+              {/* <Button onClick={async () => test()}>Test</Button> */}
             </Col>
             <Col xs="auto" className="text-end">
               <small className='text-secondary'>{lastCheckTime.toLocaleString('pl-PL')}</small>

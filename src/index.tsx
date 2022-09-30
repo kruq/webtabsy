@@ -22,5 +22,3 @@ root.render(
 reportWebVitals();
 
 serviceWorkerRegistration.register();
-
-navigator.serviceWorker.ready.then((r) => r.showNotification('index.tsx'));
