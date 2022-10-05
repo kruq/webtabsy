@@ -62,10 +62,10 @@ function App() {
       newm.push(med);
     }
 
-    for (const x of newm) { await updateMedicine(x); }
+    newm.forEach(x => updateMedicine(x));
+    
     setMedicines([...newm]);
     setNotTakenDoses([]);
-    setLastCheckTime(new Date());
     setShowSpinner(false);
   };
 
