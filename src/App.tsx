@@ -178,19 +178,20 @@ function App() {
           //     return;
           //   }
 
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.getNotifications().then((notifications) => {
-              notifications.forEach(n => { console.log('closing notification'); n.close(); });
-              console.log(registration);
-              registration.showNotification(`Weź leki (${notTakenDoses.length})`, {
-                body: notTakenDoses
-                  .map(ntd => ntd.time)
-                  .filter((value, index, self) => self.indexOf(value) === index)
-                  .reduce((prev, curr) => prev.concat(curr + '\r\n'), '')
-              });
-            });
 
-          });
+          // navigator.serviceWorker.ready.then((registration) => {
+          //   registration.getNotifications().then((notifications) => {
+          //     notifications.forEach(n => { console.log('closing notification'); n.close(); });
+          //     console.log(registration);
+          //     registration.showNotification(`Weź leki (${notTakenDoses.length})`, {
+          //       body: notTakenDoses
+          //         .map(ntd => ntd.time)
+          //         .filter((value, index, self) => self.indexOf(value) === index)
+          //         .reduce((prev, curr) => prev.concat(curr + '\r\n'), '')
+          //     });
+          //   });
+
+          // });
         }
         // production code
       }
