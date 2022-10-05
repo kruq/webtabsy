@@ -177,7 +177,7 @@ function App() {
               alert('Notification status ' + status)
               return;
             }
-          }
+          });
 
 
           // navigator.serviceWorker.ready.then((registration) => {
