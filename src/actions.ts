@@ -23,7 +23,7 @@ export const takeMedicinesAction = async (doses: DoseDetails[]) => {
             date.setDate(date.getDate() - i);
             const hourAndMinute = dose.time.split(":");
             date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-            if (date > new Date(dose.dose.takingDate.toString()) && date < today && dose.medicine != undefined) {
+            if (date > new Date(dose.dose.takingDate.toString()) && date < today && dose.medicine !== undefined) {
                 const totalDose = dose.dose.amount ?? 0;
                 const med = { ...dose.medicine };
                 med.count -= totalDose;
