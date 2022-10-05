@@ -166,11 +166,9 @@ function App() {
       const notTakenDoses = refreshNotTakenDoses(meds)
       setNotTakenDoses(notTakenDoses);
 
-      if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') 
-      {
+      if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
         // dev code
-      } else 
-      {
+      } else {
         Notification.requestPermission(status => {
           alert('Notification status ' + status)
           if (Notification.permission !== 'granted') {
@@ -180,19 +178,18 @@ function App() {
         if (notTakenDoses.length > 0) {
 
 
-          // navigator.serviceWorker.ready.then((registration) => {
-          //   registration.getNotifications().then((notifications) => {
-          //     notifications.forEach(n => { console.log('closing notification'); n.close(); });
-          //     console.log(registration);
-          //     registration.showNotification(`Weź leki (${notTakenDoses.length})`, {
-          //       body: notTakenDoses
-          //         .map(ntd => ntd.time)
-          //         .filter((value, index, self) => self.indexOf(value) === index)
-          //         .reduce((prev, curr) => prev.concat(curr + '\r\n'), '')
-          //     });
-          //   });
-
-          // });
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.getNotifications().then((notifications) => {
+              notifications.forEach(n => { console.log('closing notification'); n.close(); });
+              console.log(registration);
+              registration.showNotification(`Weź leki (${notTakenDoses.length})`, {
+                body: notTakenDoses
+                  .map(ntd => ntd.time)
+                  .filter((value, index, self) => self.indexOf(value) === index)
+                  .reduce((prev, curr) => prev.concat(curr + '\r\n'), '')
+              });
+            });
+          });
         }
         // production code
       }
