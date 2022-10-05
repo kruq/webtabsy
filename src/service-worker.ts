@@ -79,16 +79,16 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
-self.addEventListener('notificationclick', (event) => {
-  if (!event.action) {
+self.addEventListener('notificationclick', (event) => (async (e) => {
+  if (!e.action) {
     return;
   }
 
-  switch (event.action) {
+  switch (e.action) {
     case 'all-taken':
-        takeMedicinesAction(event.notification.data);
+        await takeMedicinesAction(e.notification.data);
       break;
     default:
       break;
-  }
-})
+  }})(event)
+)
