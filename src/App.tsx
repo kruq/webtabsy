@@ -182,7 +182,7 @@ function App() {
             console.log(registration);
             if (notTakenDoses.length > 0) {
               registration.showNotification(`Weź ${notTakenDoses.length} ${getCorrectFormOfWordMedicine(notTakenDoses.length)} `, {
-                icon: './logo192.png',
+                icon: './logo192maskable.png',
                 body: notTakenDoses
                   .map(ntd => ntd.time)
                   .filter((value, index, self) => self.indexOf(value) === index)
