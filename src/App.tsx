@@ -34,7 +34,7 @@ function App() {
   }
 
 
-  const handleTakeMedicines = () => {
+  const handleTakeMedicines = async () => {
     setShowSpinner(true);
     const today = new Date();
     const meds: IMedicine[] = [...medicines];
@@ -62,7 +62,7 @@ function App() {
       newm.push(med);
     }
 
-    newm.forEach(async (x) => await updateMedicine(x));
+    for (const x of newm) { await updateMedicine(x); }
     setMedicines([...newm]);
     setNotTakenDoses([]);
     setLastCheckTime(new Date());
@@ -366,7 +366,7 @@ function App() {
                   <Row hidden={notTakenDoses.length === 0}>
                     <Col></Col>
                     <Col xs="auto">
-                      <Button onClick={handleTakeMedicines} variant='primary'><HandThumbsUpFill /> Wszystkie</Button>
+                      <Button onClick={async () => await handleTakeMedicines()} variant='primary'><HandThumbsUpFill /> Wszystkie</Button>
                     </Col>
                   </Row>
                 </Col>
