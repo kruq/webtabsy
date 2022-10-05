@@ -171,13 +171,13 @@ function App() {
         // dev code
       } else 
       {
+        Notification.requestPermission(status => {
+          alert('Notification status ' + status)
+          if (Notification.permission !== 'granted') {
+            return;
+          }
+        });
         if (notTakenDoses.length > 0) {
-          Notification.requestPermission(status => {
-            if (Notification.permission !== 'granted') {
-              alert('Notification status ' + status)
-              return;
-            }
-          });
 
 
           // navigator.serviceWorker.ready.then((registration) => {
