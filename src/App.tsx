@@ -172,11 +172,12 @@ function App() {
       } else 
       {
         if (notTakenDoses.length > 0) {
-          // Notification.requestPermission(status => {
-          //   if (Notification.permission !== 'granted') {
-          //     alert('Notification status ' + status)
-          //     return;
-          //   }
+          Notification.requestPermission(status => {
+            if (Notification.permission !== 'granted') {
+              alert('Notification status ' + status)
+              return;
+            }
+          }
 
 
           // navigator.serviceWorker.ready.then((registration) => {
