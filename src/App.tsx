@@ -85,6 +85,7 @@ function App() {
     newm.forEach(async (x) => await updateMedicine(x));
     setMedicines([...newm]);
     setNotTakenDoses([]);
+    setLastCheckTime(new Date());
     setShowSpinner(false);
   };
 
@@ -175,20 +176,27 @@ function App() {
             return;
           }
         });
-        if (notTakenDoses.length > 0) {
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.getNotifications().then((notifications) => {
-              notifications.forEach(n => { console.log('closing notification'); n.close(); });
-              console.log(registration);
-              registration.showNotification(`Weź leki (${notTakenDoses.length})`, {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.getNotifications().then((notifications) => {
+            notifications.forEach(n => { console.log('closing notification'); n.close(); });
+            console.log(registration);
+            if (notTakenDoses.length > 0) {
+              registration.showNotification(`Weź ${notTakenDoses.length} ${getCorrectFormOfWordMedicine(notTakenDoses.length)} `, {
+                icon: './asset/logo192.png',
                 body: notTakenDoses
                   .map(ntd => ntd.time)
                   .filter((value, index, self) => self.indexOf(value) === index)
-                  .reduce((prev, curr) => prev.concat(curr + '\r\n'), '')
+                  .reduce((prev, curr) => prev.concat(curr + ';\r\n'), ''),
+                actions: [
+                  {
+                    action: 'all-taken',
+                    title: 'Oznacz jako wzięte'
+                  }
+                ]
               });
-            });
+            }
           });
-        }
+        });
         // production code
       }
     }).catch((error) => {
@@ -471,3 +479,16 @@ function App() {
 }
 
 export default App;
+
+function getCorrectFormOfWordMedicine(length: number) {
+  switch (length) {
+    case 1:
+      return 'lek';
+    case 2:
+    case 3:
+    case 4:
+      return 'leki';
+    default:
+      return 'leków';
+  }
+}
