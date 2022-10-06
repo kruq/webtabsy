@@ -63,7 +63,7 @@ function App() {
     }
 
     newm.forEach(x => updateMedicine(x));
-    
+
     setMedicines([...newm]);
     setNotTakenDoses([]);
     setShowSpinner(false);
@@ -390,7 +390,7 @@ function App() {
                         .flatMap(x => x),
                       x => x.dose.time
                     )).sort((x, y) => x > y ? 1 : -1).map(x =>
-                      <Card className='my-2' key={'dose-time-' + x[0]}><Card.Header>Godz. {x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'dose-' + y.dose.time + 'medicine-' + y.name}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
+                      <Card className='my-2' key={x[1][0].dose.id}><Card.Header>Godz. {x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
                     )
                   }
                 </Col>
@@ -421,7 +421,7 @@ function App() {
                       </Form.Group>
                       <Row className='text-end'>
                         <Col>
-                          <Button type="submit" onClick={handleAddMedicineClick} variant="primary">Dodaj</Button>
+                          <Button type="submit" onClick={(e) => { handleAddMedicineClick(e); setAddMedicinceDialogVisible(false); }} variant="primary">Dodaj</Button>
                           <Button className='ms-2' variant='secondary' onClick={() => setAddMedicinceDialogVisible(false)}>Anuluj</Button>
                         </Col>
                       </Row>

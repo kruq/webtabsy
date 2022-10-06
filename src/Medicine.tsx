@@ -46,6 +46,7 @@ export default function Medicine(props: IMedicineProps) {
     const [isVisible, setIsVisible] = useState(props.isVisible);
 
     const [newDose, setNewDose] = useState<IDose>(defaultDose);
+    const [newDoseValid, setNewDoseValid] = useState<boolean>(true);
     const [newPurchase, setNewPurchase] = useState<INewPurchase>(defaultPurchase);
 
     const [addDoseDialogVisible, setAddDoseDialogVisible] = useState(false);
@@ -105,10 +106,13 @@ export default function Medicine(props: IMedicineProps) {
             alert("Nie można dodać dawki z pustą wartością ilości");
             return;
         }
-        doses.forEach(x => x.id = Uuid())
         doses.push(newDose);
+        doses = doses.map(x => {
+            x.id = !x.id ? Uuid() : x.id;
+            x.time = x.time.length === 4 ? '0' + x.time : x.time;
+            return x;
+        }).sort((a, b) => a.time > b.time  ? 1 : -1);
         await props.updateMedicine(props.id, { doses });
-        // setCount(m);
         setNewDose(defaultDose);
         setAddDoseDialogVisible(false);
     }
@@ -125,6 +129,8 @@ export default function Medicine(props: IMedicineProps) {
     const handleDoseTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const time = event.target.value;
         const dose = { ...newDose, time };
+        const regex = /\d?\d:\d\d/;
+        setNewDoseValid(time.match(regex) != null);
         setNewDose(dose);
     }
 
@@ -315,7 +321,7 @@ export default function Medicine(props: IMedicineProps) {
                             </Row>
                             <Row className='text-end'>
                                 <Col>
-                                    <Button onClick={handleAddDose} variant="primary" type="submit" className='mt-3'>Dodaj dawkę</Button>
+                                    <Button onClick={handleAddDose} variant="primary" type="submit" className='mt-3' disabled={!newDoseValid}>Dodaj dawkę</Button>
                                     <Button className='mt-3 ms-2' variant='secondary' onClick={() => setAddDoseDialogVisible(false)}>Anuluj</Button>
                                 </Col>
                             </Row>
