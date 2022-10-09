@@ -42,6 +42,11 @@ function App() {
     for (let medIndex = 0; medIndex < meds.length; medIndex++) {
       const med = meds[medIndex];
       let sum = 0;
+      if (med.count === 0) {
+        newm.push(med);
+        continue;
+      }
+
       sum += med.doses.reduce((prevValue, dose) => {
         let noOfDays = countDays(today, new Date(dose.takingDate));
         for (let i = noOfDays; i >= 0; i--) {
@@ -59,13 +64,15 @@ function App() {
       med.count -= sum;
       const newDateTaken = today;
       med.doses.forEach(d => d.takingDate = new Date(newDateTaken));
+
       newm.push(med);
     }
 
     newm.forEach(x => updateMedicine(x));
 
     setMedicines([...newm]);
-    setNotTakenDoses([]);
+    setNotTakenDoses(refreshNotTakenDoses(newm));
+    // setLastCheckTime(new Date());
     setShowSpinner(false);
   };
 
@@ -291,33 +298,36 @@ function App() {
             </Col>
           </Row>
         </header>
-        <Row>
+        <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
+        <Row hidden={medicines.length === 0}>
           <Col md='4'>
             <section className='my-3'>
               <Row>
                 <Col>
                   <strong>Pominięte leki</strong>
-                  <Card hidden={notTakenDoses.length !== 0} className='my-2'>
+                  <Card hidden={medicines.length === 0 || notTakenDoses.length !== 0} className='my-2'>
                     <Card.Body className="text-center">
                       <h4>Gratulacje!</h4>
                       <h6>Wszystkie leki zostały wzięte</h6>
                     </Card.Body>
                   </Card>
-                  {notTakenDoses.map(x =>
-                    <Card className='my-2'>
+                  {medicines.length > 0 && notTakenDoses.map(x =>
+                    <Card className='my-2' key={'not-taken-dose-' + x.medicine?.name + x.time}>
                       <Card.Body>
-                        <Row key={x.medicine?.name + x.time}>
+                        <Row>
                           <Col className="fs-6">
                             <Row>
                               <Col>
                                 <span style={{ display: 'inline-block', width: '30px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
                                 <span>{x.medicine?.name}</span>
-                                <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
                               </Col>
                             </Row>
                             <Row>
                               <Col style={{ marginLeft: '30px' }} className="text-secondary">
-                                <small>{x.time}</small>
+                                <small>
+                                  {x.time}
+                                  <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
+                                </small>
                               </Col>
                             </Row>
                             <Row>
@@ -390,7 +400,7 @@ function App() {
                         .flatMap(x => x),
                       x => x.dose.time
                     )).sort((x, y) => x > y ? 1 : -1).map(x =>
-                      <Card className='my-2' key={x[1][0].dose.id}><Card.Header>Godz. {x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
+                      <Card className='my-2' key={'schedule-' + x[1][0].dose.id}><Card.Header>Godz. {x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
                     )
                   }
                 </Col>
@@ -429,15 +439,14 @@ function App() {
                   </dialog>
                 </Col>
               </Row>
-              <div>
-                <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
-                <div>{medicines
+              <Row>
+                <Col>{medicines
                   .sort((a, b) => (a.name > b.name ? 1 : -1))
                   .sort((a, b) => a.doses.length > 0 && b.doses.length === 0 ? -1 : 0)
                   .filter(m => showAll || m.isVisible)
                   .map((x: IMedicine) =>
                     <Medicine
-                      key={x.id}
+                      key={'medicine-' + x.id}
                       {...x}
                       idOfMedicineDetails={idOfMedicineDetails}
                       medicineClick={handleMedicineClick}
@@ -445,12 +454,13 @@ function App() {
                       deleteMedicine={handleDeleteMedicine}
                     />
                   )}
-                </div>
-                <Button variant='link' onClick={() => setAddMedicinceDialogVisible(true)} style={{ padding: '0px', border: '0px' }}>Dodaj lek</Button>
-              </div>
-            </section>
-            <section className='my-3'>
-
+                </Col>
+              </Row>
+              <Row>
+                <Col className='text-end pr-2'>
+                  <Button variant='link' onClick={() => setAddMedicinceDialogVisible(true)} style={{ padding: '0px', border: '0px' }} className='mr-2'>Dodaj lek</Button>
+                </Col>
+              </Row>
             </section>
           </Col>
         </Row>

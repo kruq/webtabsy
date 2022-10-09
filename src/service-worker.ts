@@ -79,6 +79,14 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
+self.addEventListener('activate', (event) => {
+  setInterval(() => {
+    self.registration.showNotification('Alert z service workera')
+  },
+    120000);
+});
+
+
 self.addEventListener('notificationclick', (event) => (async (e) => {
   if (!e.action) {
     return;
@@ -86,9 +94,10 @@ self.addEventListener('notificationclick', (event) => (async (e) => {
 
   switch (e.action) {
     case 'all-taken':
-        await takeMedicinesAction(e.notification.data);
+      await takeMedicinesAction(e.notification.data);
       break;
     default:
       break;
-  }})(event)
+  }
+})(event)
 )

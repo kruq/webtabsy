@@ -67,7 +67,7 @@ export default function Medicine(props: IMedicineProps) {
             newValue = undefined;
         }
         clearTimeout(fnDebounce);
-        if (newValue) {
+        if (newValue || newValue === 0) {
             setFnDebounce(setTimeout(() => {
                 props.updateMedicine(props.id, { count: newValue });
                 setEditNumberOfTabletes(false);
@@ -111,7 +111,7 @@ export default function Medicine(props: IMedicineProps) {
             x.id = !x.id ? Uuid() : x.id;
             x.time = x.time.length === 4 ? '0' + x.time : x.time;
             return x;
-        }).sort((a, b) => a.time > b.time  ? 1 : -1);
+        }).sort((a, b) => a.time > b.time ? 1 : -1);
         await props.updateMedicine(props.id, { doses });
         setNewDose(defaultDose);
         setAddDoseDialogVisible(false);
@@ -128,11 +128,22 @@ export default function Medicine(props: IMedicineProps) {
 
     const handleDoseTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const time = event.target.value;
-        const dose = { ...newDose, time };
-        const regex = /\d?\d:\d\d/;
+        const regex = /^\d?:?\d:?\d\d$/;
+        const position = time.replaceAll(':','').length - 2;
         setNewDoseValid(time.match(regex) != null);
+        
+        const newTime = (
+            time.match(regex) === null ?
+                time :
+                [time.replaceAll(':','').slice(0, position), ':', time.replaceAll(':','').slice(position)].join('')
+        )
+
+        const dose = {
+            ...newDose,
+            time: newTime
+        }
         setNewDose(dose);
-    }
+    };
 
     const handleDoseAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         let amount: number | undefined = parseFloat(event.target.value);
@@ -218,7 +229,7 @@ export default function Medicine(props: IMedicineProps) {
         }
         const { doses } = { ...props };
         const sumDaily = doses.reduce((prev, current) => prev += current?.amount ?? 0, 0);
-        if (!sumDaily) { return Number.POSITIVE_INFINITY; }
+        if (!sumDaily) { return 0 }
         return Math.floor(count / sumDaily);
     }
 
@@ -233,7 +244,7 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Body>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="me-2" hidden={countNumberOfDays() === Number.POSITIVE_INFINITY}> {countNumberOfDays()} dni</Badge><> </>
+                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="me-2" hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </>
                         <span>{props.name}</span>
                     </Col>
                     <Col xs="auto">
@@ -247,45 +258,45 @@ export default function Medicine(props: IMedicineProps) {
                         </Col>
                     </Row>
                     <Row>
-                        <Col xm='6'>
+                        <Col>
                             <Form.Group>
                                 <Row>
-                                    <Col>
-                                        <Form.Label>Ilość tabletek:</Form.Label>
+                                    <Col xs='auto'>
+                                        <p><Form.Label>Ilość tabletek:</Form.Label></p>
                                     </Col>
-                                </Row>
-                                <Row hidden={editNumberOfTabletes}>
-                                    <Col>{count}</Col>
-                                    <Col xs='auto'><Button onClick={() => setEditNumberOfTabletes(true)} variant='link'><Pencil /></Button></Col>
-                                </Row>
-                                <Row>
-                                    <Col>
+                                    <Col hidden={editNumberOfTabletes}>
+                                        {count}
+                                    </Col>
+                                    <Col hidden={!editNumberOfTabletes}>
                                         <Form.Control type="number" value={count?.toString()} hidden={!editNumberOfTabletes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
                                     </Col>
-                                    <Col xs='auto'>
-                                        <Button hidden={!editNumberOfTabletes} onClick={() => setEditNumberOfTabletes(false)} variant='link'><CheckLg /></Button>
+                                    <Col xs="auto">
+                                        <Button onClick={() => setEditNumberOfTabletes(true)} variant='link' hidden={editNumberOfTabletes}><Pencil /></Button>
+                                        <Button onClick={() => setEditNumberOfTabletes(false)} variant='link' hidden={!editNumberOfTabletes}><CheckLg /></Button>
                                     </Col>
                                 </Row>
                             </Form.Group>
                         </Col>
-                        <Col sm='6'>
+                    </Row>
+                    <Row>
+                        <Col>
                             <Form>
                                 <Row>
                                     <Col>
-                                        <Form.Label>Opis:</Form.Label>
+                                        <p><Form.Label>Opis:</Form.Label></p>
                                     </Col>
-                                </Row>
-                                <Row hidden={editDescription}>
-                                    <Col>
-                                        {description}{' '}
-                                    </Col>
-                                    <Col xs='auto'>
+                                    <Col xs='auto' hidden={editDescription}>
                                         <Button onClick={() => setEditDescription(true)} variant='link'><Pencil /></Button>
                                     </Col>
                                 </Row>
                                 <Row>
+                                    <Col hidden={editDescription}>
+                                        {description.split('\n').map((x, index) => <span key={'medicine-' + props.id + 'description-' + index}>{x}<br /></span>)}{' '}
+                                    </Col>
+                                </Row>
+                                <Row>
                                     <Col>
-                                        <Form.Control type="input" value={description} hidden={!editDescription} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
+                                        <Form.Control as="textarea" value={description} hidden={!editDescription} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
                                     </Col>
                                     <Col xs='auto'>
                                         <Button hidden={!editDescription} onClick={() => setEditDescription(false)} variant='link'><CheckLg /></Button>
@@ -332,7 +343,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Table size='sm'>
                                 <tbody>
                                     {props.doses?.map(dose =>
-                                        <tr key={dose.id}>
+                                        <tr key={'medicine-dose-' + dose.id}>
                                             <td width="20%">{dose.time}</td>
                                             <td width="20%">{dose.amount} tab.</td>
                                             <td>
@@ -397,7 +408,7 @@ export default function Medicine(props: IMedicineProps) {
                                 </thead> */}
                                 <tbody>
                                     {props.purchases?.map(x =>
-                                        <tr key={x.id}>
+                                        <tr key={'medicine-purchase-' + x.id}>
                                             <td width="20%">
                                                 {x.numberOfTablets}{' tab.'}
                                             </td>
