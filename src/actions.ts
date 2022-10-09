@@ -55,7 +55,6 @@ export const refreshNotTakenDoses = async () => {
                 noOfDays = 0;
             }
 
-            //     // Create array of numbers in sequence starting from 0
             const days = [...Array.from(Array(noOfDays + 1).keys())];
 
             return days.reverse().reduce((foundDoses, dayNo) => {
@@ -65,8 +64,7 @@ export const refreshNotTakenDoses = async () => {
                 const hourAndMinute = dose.time.split(":");
                 date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
                 if ((date > new Date(dose.takingDate.toString())) && (date < today)) {
-                    //  foundDoses.push(`${doseAmount: dose.amount ?? 0} ${formatDate(dose.date)}, ${dose.time}`);
-                    foundDoses.push(`${dose.amount ?? 0} ${dose.takingDate.toString()}, ${dose.time}} \r\n`);
+                    foundDoses.push(`${formatDate(dose.takingDate)}, ${dose.time}}`);
                 }
                 return foundDoses;
             }, new Array<string>());
@@ -75,6 +73,26 @@ export const refreshNotTakenDoses = async () => {
     }, new Array<string>());
 
 
-    return elements
+    return elements.filter((value, index, array) => array.indexOf(value) === index);
     //        .sort((a, b) => { return a.time > b.time ? 1 : -1 });
 };
+
+
+const weekDays = [
+    'Nd',
+    'Pn',
+    'Wt',
+    'Śr',
+    'Czw',
+    'Pt',
+    'Sb'
+]
+
+const formatDate = (date: Date) => {
+    let d = weekDays[date.getDay()];
+    d = `${d}. ${date.getDate()}`;
+    if (date.getDate() === (new Date()).getDate()) {
+        d = "dziś";
+    }
+    return d;
+}
