@@ -470,15 +470,15 @@ function App() {
 
 export default App;
 
-function getCorrectFormOfWordMedicine(length: number) {
-  switch (length) {
-    case 1:
-      return 'lek';
-    case 2:
-    case 3:
-    case 4:
-      return 'leki';
-    default:
-      return 'leków';
-  }
-}
+// function getCorrectFormOfWordMedicine(length: number) {
+//   switch (length) {
+//     case 1:
+//       return 'lek';
+//     case 2:
+//     case 3:
+//     case 4:
+//       return 'leki';
+//     default:
+//       return 'leków';
+//   }
+// }
