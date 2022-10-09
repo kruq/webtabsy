@@ -98,9 +98,13 @@ self.addEventListener('activate', _ => {
             body: result.reduce((target, value) => { return target + value + '\r\n' }, ''),
             actions: [
               {
+                action: 'open',
+                title: 'Otwórz'
+              },
+              {
                 action: 'all-taken',
                 title: 'Oznacz jako wzięte'
-              }
+              },
             ],
             data: result
           });
