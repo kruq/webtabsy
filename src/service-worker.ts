@@ -81,12 +81,15 @@ self.addEventListener('message', (event) => {
 // Any other custom service worker logic can go here.
 
 self.addEventListener('activate', _ => {
+  console.log('Starting notifications in SW')
   setInterval(() => {
-    refreshNotTakenDoses().then(result => {
-      if (result) {
-        self.registration.showNotification('Weź leki z SW')
-      }
-    });
+    refreshNotTakenDoses()
+      .then(result => {
+        if (result) {
+          self.registration.showNotification('Weź leki z SW')
+        }
+      })
+      .catch(error => console.error(error));
   }, 10000);
 });
 

@@ -166,7 +166,6 @@ function App() {
         navigator.serviceWorker.ready.then((registration) => {
           registration.getNotifications().then((notifications) => {
             // notifications.forEach(n => { console.log('closing notification'); n.close(); });
-            console.log(registration);
             if (notTakenDoses.length > 0) {
               registration.showNotification(`Weź ${notTakenDoses.length} ${getCorrectFormOfWordMedicine(notTakenDoses.length)} `, {
                 icon: './logo192maskable.png',
