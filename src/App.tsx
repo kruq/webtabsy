@@ -163,27 +163,27 @@ function App() {
             return;
           }
         });
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.getNotifications().then((notifications) => {
-            // notifications.forEach(n => { console.log('closing notification'); n.close(); });
-            if (notTakenDoses.length > 0) {
-              registration.showNotification(`Weź ${notTakenDoses.length} ${getCorrectFormOfWordMedicine(notTakenDoses.length)} `, {
-                icon: './logo192maskable.png',
-                body: notTakenDoses
-                  .map(ntd => ntd.time)
-                  .filter((value, index, self) => self.indexOf(value) === index)
-                  .reduce((prev, curr) => prev.concat(curr + ';\r\n'), ''),
-                actions: [
-                  {
-                    action: 'all-taken',
-                    title: 'Oznacz jako wzięte'
-                  }
-                ],
-                data: notTakenDoses
-              });
-            }
-          });
-        });
+        // navigator.serviceWorker.ready.then((registration) => {
+        //   registration.getNotifications().then((notifications) => {
+        //     // notifications.forEach(n => { console.log('closing notification'); n.close(); });
+        //     if (notTakenDoses.length > 0) {
+        //       registration.showNotification(`Weź ${notTakenDoses.length} ${getCorrectFormOfWordMedicine(notTakenDoses.length)} `, {
+        //         icon: './logo192maskable.png',
+        //         body: notTakenDoses
+        //           .map(ntd => ntd.time)
+        //           .filter((value, index, self) => self.indexOf(value) === index)
+        //           .reduce((prev, curr) => prev.concat(curr + ';\r\n'), ''),
+        //         actions: [
+        //           {
+        //             action: 'all-taken',
+        //             title: 'Oznacz jako wzięte'
+        //           }
+        //         ],
+        //         data: notTakenDoses
+        //       });
+        //     }
+        //   });
+        // });
         // production code
       }
     }).catch((error) => {

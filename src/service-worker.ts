@@ -8,6 +8,7 @@
 // You can also remove this file if you'd prefer not to use a
 // service worker, and the Workbox build step will be skipped.
 
+import { trace } from 'console';
 import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
@@ -86,11 +87,28 @@ self.addEventListener('activate', _ => {
     refreshNotTakenDoses()
       .then(result => {
         if (result) {
-          self.registration.showNotification('Weź leki z SW')
+          self.registration.getNotifications().then(notifications => {
+            notifications.forEach(n => {
+              console.log('closing notification');
+              n.close();
+            })
+          });
+
+          self.registration.showNotification(`Weź leki`, {
+            icon: './logo192maskable.png',
+            body: result.reduce((target, value) => { return target + value + '\r\n' }, ''),
+            actions: [
+              {
+                action: 'all-taken',
+                title: 'Oznacz jako wzięte'
+              }
+            ],
+            data: result
+          });
         }
       })
       .catch(error => console.error(error));
-  }, 10000);
+  }, 60000);
 });
 
 self.addEventListener('notificationclick', (event) => (async (e) => {
@@ -101,6 +119,9 @@ self.addEventListener('notificationclick', (event) => (async (e) => {
   switch (e.action) {
     case 'all-taken':
       await takeMedicinesAction(e.notification.data);
+      break;
+    case 'open':
+      self.clients.openWindow('/');
       break;
     default:
       break;
