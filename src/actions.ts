@@ -1,5 +1,5 @@
 import { DoseDetails } from "./types";
-import { updateMedicine } from './services/medicine.service';
+import { fetchMedicines, updateMedicine } from './services/medicine.service';
 
 
 export const countDays = (date1: Date, date2: Date) => {
@@ -39,4 +39,42 @@ export const takeMedicinesAction = async (doses: DoseDetails[]) => {
 
     // newm.forEach(async (x) => await updateMedicine(x));
 
+};
+
+export const refreshNotTakenDoses = async () => {
+
+    const today = new Date();
+
+    const meds = await fetchMedicines();
+
+    const elements = meds.reduce((collection: string[], x) => {
+        const newDosesArray = x.doses.flatMap(dose => {
+
+            let noOfDays = countDays(today, new Date(dose.takingDate));
+            if (noOfDays > 100) {
+                noOfDays = 0;
+            }
+
+            //     // Create array of numbers in sequence starting from 0
+            const days = [...Array.from(Array(noOfDays + 1).keys())];
+
+            return days.reverse().reduce((foundDoses, dayNo) => {
+                const date = new Date(today);
+                date.setDate(date.getDate() - dayNo);
+
+                const hourAndMinute = dose.time.split(":");
+                date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
+                if ((date > new Date(dose.takingDate.toString())) && (date < today)) {
+                    //  foundDoses.push(`${doseAmount: dose.amount ?? 0} ${formatDate(dose.date)}, ${dose.time}`);
+                    foundDoses.push(`${dose.amount ?? 0} ${dose.takingDate.toLocaleDateString('pl')}, ${dose.time}} \r\n`);
+                }
+                return foundDoses;
+            }, new Array<string>());
+        });
+        return collection.concat(newDosesArray);
+    }, new Array<string>());
+
+
+    return elements
+    //        .sort((a, b) => { return a.time > b.time ? 1 : -1 });
 };

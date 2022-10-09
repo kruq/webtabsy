@@ -13,7 +13,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
-import { takeMedicinesAction } from './actions';
+import { takeMedicinesAction, refreshNotTakenDoses } from './actions';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -79,10 +79,16 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
-setInterval(() => {
-  self.registration.showNotification('Alert z service workera')
-}, 120000);
 
+self.addEventListener('activate', _ => {
+  setInterval(() => {
+    refreshNotTakenDoses().then(result => {
+      if (result) {
+        self.registration.showNotification('Weź leki z SW')
+      }
+    });
+  }, 10000);
+});
 
 self.addEventListener('notificationclick', (event) => (async (e) => {
   if (!e.action) {
