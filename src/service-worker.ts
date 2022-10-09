@@ -79,12 +79,9 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
-self.addEventListener('activate', (event) => {
-  setInterval(() => {
-    self.registration.showNotification('Alert z service workera')
-  },
-    120000);
-});
+setInterval(() => {
+  self.registration.showNotification('Alert z service workera')
+}, 120000);
 
 
 self.addEventListener('notificationclick', (event) => (async (e) => {
