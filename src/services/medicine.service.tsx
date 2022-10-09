@@ -1,5 +1,4 @@
 import IMedicine from "../models/IMedicine";
-import axios from "axios";
 
 const apiUrl = 'https://webtabsyapi.azurewebsites.net/medicine';
 
