@@ -66,7 +66,7 @@ export const refreshNotTakenDoses = async () => {
                 date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
                 if ((date > new Date(dose.takingDate.toString())) && (date < today)) {
                     //  foundDoses.push(`${doseAmount: dose.amount ?? 0} ${formatDate(dose.date)}, ${dose.time}`);
-                    foundDoses.push(`${dose.amount ?? 0} ${dose.takingDate.getDate().toString()}, ${dose.time}} \r\n`);
+                    foundDoses.push(`${dose.amount ?? 0} ${dose.takingDate.toString()}, ${dose.time}} \r\n`);
                 }
                 return foundDoses;
             }, new Array<string>());
