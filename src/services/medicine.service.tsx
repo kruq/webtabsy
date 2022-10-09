@@ -5,9 +5,8 @@ const apiUrl = 'https://webtabsyapi.azurewebsites.net/medicine';
 
 export const fetchMedicines = async (): Promise<IMedicine[]> => {
     try {
-        var res = await axios.get(apiUrl);
-        // var res = await fetch(apiUrl, { mode: 'cors' });
-        return res.data;
+        var res2 = await fetch(apiUrl, { mode: 'cors' });
+        return res2.json();
     } catch (error) {
         console.log(error);
         throw error;
