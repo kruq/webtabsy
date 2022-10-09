@@ -96,26 +96,27 @@ self.addEventListener('activate', _ => {
           self.registration.showNotification(`Weź leki`, {
             icon: './logo192maskable.png',
             body: result.reduce((target, value) => { return target + value + '\r\n' }, ''),
-            actions: [
-              {
-                action: 'open',
-                title: 'Otwórz'
-              },
-              {
-                action: 'all-taken',
-                title: 'Oznacz jako wzięte'
-              },
-            ],
+            // actions: [
+            //   {
+            //     action: 'open',
+            //     title: 'Otwórz'
+            //   },
+            //   {
+            //     action: 'all-taken',
+            //     title: 'Oznacz jako wzięte'
+            //   },
+            // ],
             data: result
           });
         }
       })
       .catch(error => console.error(error));
-  }, 60000);
+  }, 5 * 60000);
 });
 
 self.addEventListener('notificationclick', (event) => (async (e) => {
   if (!e.action) {
+    self.clients.openWindow('/');
     return;
   }
 
@@ -124,7 +125,6 @@ self.addEventListener('notificationclick', (event) => (async (e) => {
       await takeMedicinesAction(e.notification.data);
       break;
     case 'open':
-      self.clients.openWindow('/');
       break;
     default:
       break;

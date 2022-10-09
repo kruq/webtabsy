@@ -192,7 +192,7 @@ function App() {
       // }
     });
 
-    const timer = setInterval(() => setLastCheckTime(new Date()), 5 * 60 * 1000);
+    const timer = setInterval(() => setLastCheckTime(new Date()), 5 * 60000);
     return () => {
       clearInterval(timer);
     }
