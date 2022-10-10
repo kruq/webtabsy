@@ -80,7 +80,12 @@ self.addEventListener('message', (event) => {
 
 // Any other custom service worker logic can go here.
 self.addEventListener('activate', _ => {
-  console.log('Starting notifications in SW')
+  console.log('Starting notifications in SW');
+  Notification.requestPermission(status => {
+    if (Notification.permission !== 'granted') {
+      alert('Notification status ' + status);
+    }
+  });
   setInterval(() => {
     refreshNotTakenDoses()
       .then(result => {

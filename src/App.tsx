@@ -157,12 +157,11 @@ function App() {
       if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
         // dev code
       } else {
-        Notification.requestPermission(status => {
-          if (Notification.permission !== 'granted') {
-            alert('Notification status ' + status)
-            return;
-          }
-        });
+        // Notification.requestPermission(status => {
+        //   if (Notification.permission !== 'granted') {
+        //     alert('Notification status ' + status);
+        //   }
+        // });
         // navigator.serviceWorker.ready.then((registration) => {
         //   registration.getNotifications().then((notifications) => {
         //     // notifications.forEach(n => { console.log('closing notification'); n.close(); });
