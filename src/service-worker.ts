@@ -110,7 +110,7 @@ self.addEventListener('activate', _ => {
         }
       })
       .catch(error => console.error(error));
-  }, 5 * 60000);
+  }, 10000);
 });
 
 self.addEventListener('notificationclick', (event) => (async (e) => {
