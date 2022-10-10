@@ -80,6 +80,7 @@ self.addEventListener('message', (event) => {
 
 // Any other custom service worker logic can go here.
 self.addEventListener('activate', _ => {
+  refreshNotTakenDoses().then(x => console.log(x));
   setInterval(() => {
     refreshNotTakenDoses()
       .then(result => {
