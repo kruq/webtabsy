@@ -80,7 +80,6 @@ self.addEventListener('message', (event) => {
 
 // Any other custom service worker logic can go here.
 self.addEventListener('activate', _ => {
-  refreshNotTakenDoses().then(x => console.log(x));
   setInterval(() => {
     refreshNotTakenDoses()
       .then(result => {
@@ -115,15 +114,12 @@ self.addEventListener('activate', _ => {
 
 self.addEventListener('notificationclick', (event) => (async (e) => {
   if (!e.action) {
-    self.clients.openWindow('/');
     return;
   }
 
   switch (e.action) {
     case 'all-taken':
       await takeMedicinesAction(e.notification.data);
-      break;
-    case 'open':
       break;
     default:
       break;
