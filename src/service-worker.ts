@@ -92,13 +92,18 @@ self.addEventListener('activate', _ => {
   setInterval(() => {
     refreshNotTakenDoses()
       .then(result => {
+        console.log('Starting notifications in SW');
+        Notification.requestPermission(status => {
+          alert('Notification status ' + status);
+        });
+
         if (result) {
-          self.registration.getNotifications().then(notifications => {
-            notifications.forEach(n => {
-              console.log('closing notification');
-              n.close();
-            })
-          });
+          // self.registration.getNotifications().then(notifications => {
+          //   notifications.forEach(n => {
+          //     console.log('closing notification');
+          //     n.close();
+          //   })
+          // });
 
           self.registration.showNotification(`Weź leki`, {
             icon: './logo192maskable.png',

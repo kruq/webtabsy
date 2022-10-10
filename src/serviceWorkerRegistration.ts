@@ -102,21 +102,6 @@ function registerValidSW(swUrl: string, config?: Config) {
             //   alert('Notification status ' + status);
             // });
 
-
-
-
-            navigator.permissions.query({ name: <any>'periodic-background-sync' }).then((result) => {
-              alert('Periodic status ' + result.state);
-              console.log('Periodic status ' + result);
-
-              if (result.state === 'granted') {
-                registration.periodicSync.register('news', {
-                  minInterval: 60 * 1000, // 1 day in ms
-                });
-              }
-            });
-
-
             if (navigator.serviceWorker.controller) {
               // At this point, the updated precached content has been fetched,
               // but the previous service worker will still serve the older
