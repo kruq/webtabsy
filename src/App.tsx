@@ -30,20 +30,18 @@ function App() {
   const [addMedicineDialogVisible, setAddMedicinceDialogVisible] = useState(false);
   const [showPermissionAlert, setShowPermissionAlert] = useState(false);
 
-  if (Notification.permission !== 'granted') {
-    Notification.requestPermission()
-      .then(
-        (value) => {
-          if (value === 'granted') {
-            setShowPermissionAlert(false);
-          } else {
-            setShowPermissionAlert(true);
-          }
-        }
-      ).catch(x => alert(x));
-  }
-
-
+  // if (Notification.permission !== 'granted') {
+  //   Notification.requestPermission()
+  //     .then(
+  //       (value) => {
+  //         if (value === 'granted') {
+  //           setShowPermissionAlert(false);
+  //         } else {
+  //           setShowPermissionAlert(true);
+  //         }
+  //       }
+  //     ).catch(x => alert(x));
+  // }
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
