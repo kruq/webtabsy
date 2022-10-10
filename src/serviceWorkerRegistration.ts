@@ -10,6 +10,32 @@
 // To learn more about the benefits of this model and instructions on how to
 // opt-in, read https://cra.link/PWA
 
+// Dodane przeze mnie
+
+
+interface SyncManager {
+  getTags(): Promise<string[]>;
+  register(tag: string, options?: {minInterval: number}): Promise<void>;
+}
+
+
+declare global {
+  interface ServiceWorkerRegistration {
+    readonly periodicSync: SyncManager;
+  }
+
+  interface SyncEvent extends ExtendableEvent {
+    readonly lastChance: boolean;
+    readonly tag: string;
+  }
+
+  interface ServiceWorkerGlobalScopeEventMap {
+    sync: SyncEvent;
+  }
+}
+
+// ---- dotąd
+
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
   // [::1] is the IPv6 localhost address.
@@ -63,16 +89,31 @@ function registerValidSW(swUrl: string, config?: Config) {
     .then((registration) => {
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
-        
+
         if (installingWorker == null) {
           return;
         }
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
 
-            console.log('Starting notifications in SW');
-            Notification.requestPermission(status => {
-              alert('Notification status ' + status);
+            // ==== ASK FOR NOTIFICATION PERMISSION ====
+            // console.log('Starting notifications in SW');
+            // Notification.requestPermission(status => {
+            //   alert('Notification status ' + status);
+            // });
+
+
+
+
+            navigator.permissions.query({ name: <any>'periodic-background-sync' }).then((result) => {
+              alert('Periodic status ' + result.state);
+              console.log('Periodic status ' + result);
+
+              if (result.state === 'granted') {
+                registration.periodicSync.register('news', {
+                  minInterval: 60 * 1000, // 1 day in ms
+                });
+              }
             });
 
 
