@@ -82,9 +82,7 @@ self.addEventListener('message', (event) => {
 self.addEventListener('activate', _ => {
   console.log('Starting notifications in SW');
   Notification.requestPermission(status => {
-    if (Notification.permission !== 'granted') {
-      alert('Notification status ' + status);
-    }
+    alert('Notification status ' + status);
   });
   setInterval(() => {
     refreshNotTakenDoses()

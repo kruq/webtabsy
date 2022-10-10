@@ -10,6 +10,7 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
+import Alert from 'react-bootstrap/Alert';
 import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
@@ -27,6 +28,21 @@ function App() {
   const [showAll, setShowAll] = useState<boolean>(localStorage.getItem('showAll') === 'true');
 
   const [addMedicineDialogVisible, setAddMedicinceDialogVisible] = useState(false);
+  const [showPermissionAlert, setShowPermissionAlert] = useState(false);
+
+  if (Notification.permission !== 'granted') {
+    Notification.requestPermission()
+      .then(
+        (value) => {
+          if (value === 'granted') {
+            setShowPermissionAlert(false);
+          } else {
+            setShowPermissionAlert(true);
+          }
+        }
+      ).catch(x => alert(x));
+  }
+
 
 
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,11 +173,6 @@ function App() {
       if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
         // dev code
       } else {
-        // Notification.requestPermission(status => {
-        //   if (Notification.permission !== 'granted') {
-        //     alert('Notification status ' + status);
-        //   }
-        // });
         // navigator.serviceWorker.ready.then((registration) => {
         //   registration.getNotifications().then((notifications) => {
         //     // notifications.forEach(n => { console.log('closing notification'); n.close(); });
@@ -286,6 +297,11 @@ function App() {
       </div>
       <Container className="mt-2 mb-3">
         <header className='mb-4'>
+          <Row>
+            <Col>
+              <Alert onClose={() => setShowPermissionAlert(false)} variant='warning' dismissible hidden={!showPermissionAlert}>Brak uprawniń do wyświetlania powiadomień</Alert>
+            </Col>
+          </Row>
           <Row>
             <Col>
               <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
