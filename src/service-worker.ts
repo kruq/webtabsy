@@ -80,14 +80,6 @@ self.addEventListener('message', (event) => {
 
 
 // Any other custom service worker logic can go here.
-self.addEventListener('periodicsync', (event) => {
-  if ((<SyncEvent>event).tag === 'news') {
-    console.log('Fetching news in the background!');
-    refreshNotTakenDoses().then(x => alert(x));
-  }
-});
-
-
 self.addEventListener('activate', _ => {
   setInterval(() => {
     refreshNotTakenDoses()

@@ -10,32 +10,6 @@
 // To learn more about the benefits of this model and instructions on how to
 // opt-in, read https://cra.link/PWA
 
-// Dodane przeze mnie
-
-
-interface SyncManager {
-  getTags(): Promise<string[]>;
-  register(tag: string, options?: {minInterval: number}): Promise<void>;
-}
-
-
-declare global {
-  interface ServiceWorkerRegistration {
-    readonly periodicSync: SyncManager;
-  }
-
-  interface SyncEvent extends ExtendableEvent {
-    readonly lastChance: boolean;
-    readonly tag: string;
-  }
-
-  interface ServiceWorkerGlobalScopeEventMap {
-    sync: SyncEvent;
-  }
-}
-
-// ---- dotąd
-
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
   // [::1] is the IPv6 localhost address.
