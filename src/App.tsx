@@ -61,7 +61,7 @@ function App() {
         continue;
       }
 
-      sum += med.doses.reduce((prevValue, dose) => {
+      sum += med.doses.filter(d => d.endDate === null || today < d.endDate ).reduce((prevValue, dose) => {
         let noOfDays = countDays(today, new Date(dose.takingDate));
         for (let i = noOfDays; i >= 0; i--) {
           const date = new Date(today);
@@ -119,7 +119,7 @@ function App() {
     const elements = meds.reduce((collection: DoseDetails[], x) => {
       let dosesArray: DoseDetails[] = [];
 
-      const newDosesArray = x.doses.flatMap(dose => {
+      const newDosesArray = x.doses.filter(d => d.endDate === null || today < d.endDate ).flatMap(dose => {
 
         let noOfDays = countDays(today, new Date(dose.takingDate));
         if (noOfDays > 100) {
@@ -324,7 +324,7 @@ function App() {
                     </Card.Body>
                   </Card>
                   {medicines.length > 0 && notTakenDoses.map(x =>
-                    <Card className='my-2' key={'not-taken-dose-' + x.medicine?.name + x.time}>
+                    <Card className='my-2' key={'not-taken-dose-' + x.dose.id + '-time-' + x.time}>
                       <Card.Body>
                         <Row>
                           <Col className="fs-6">

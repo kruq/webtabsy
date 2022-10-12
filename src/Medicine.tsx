@@ -33,7 +33,7 @@ interface INewPurchase {
 export default function Medicine(props: IMedicineProps) {
     const lastPurchase: IPurchase | undefined = props.purchases?.[(props.purchases?.length ?? 0) - 1];
 
-    const defaultDose: IDose = { id: Uuid(), time: "12:00", amount: 1, takingDate: new Date() }
+    const defaultDose: IDose = { id: Uuid(), time: "12:00", amount: 1, takingDate: new Date(), endDate: null }
     const defaultPurchase: INewPurchase = {
         numberOfPackages: 1,
         numberOfTabletsInPackage: lastPurchase?.numberOfTablets,
@@ -92,8 +92,10 @@ export default function Medicine(props: IMedicineProps) {
         props.updateMedicine(props.id, { isVisible: isChecked })
     }
 
-    const handleMedicineDeleteClick = () => {
-        props.deleteMedicine(props.id);
+    const handleRemoveMedicine = () => {
+        if (window.confirm('Czy chcesz usunąć lek?')) {
+            props.deleteMedicine(props.id);
+        }
     }
 
     const handleAddDose = async (e: MouseEvent) => {
@@ -106,7 +108,11 @@ export default function Medicine(props: IMedicineProps) {
             alert("Nie można dodać dawki z pustą wartością ilości");
             return;
         }
-        doses.push(newDose);
+        let value = newDose;
+        if (value.takingDate < new Date()) {
+            value.takingDate = new Date();
+        }
+        doses.push(value);
         doses = doses.map(x => {
             x.id = !x.id ? Uuid() : x.id;
             x.time = x.time.length === 4 ? '0' + x.time : x.time;
@@ -118,6 +124,9 @@ export default function Medicine(props: IMedicineProps) {
     }
 
     const handleRemoveDose = async (dose: IDose) => {
+        if (!window.confirm('Czy chcesz usunąć dawkę?')) {
+            return;
+        }
         const index = props.doses.indexOf(dose);
         if (index === -1) {
             return;
@@ -129,13 +138,13 @@ export default function Medicine(props: IMedicineProps) {
     const handleDoseTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const time = event.target.value;
         const regex = /^\d?:?\d:?\d\d$/;
-        const position = time.replaceAll(':','').length - 2;
+        const position = time.replaceAll(':', '').length - 2;
         setNewDoseValid(time.match(regex) != null);
-        
+
         const newTime = (
             time.match(regex) === null ?
                 time :
-                [time.replaceAll(':','').slice(0, position), ':', time.replaceAll(':','').slice(position)].join('')
+                [time.replaceAll(':', '').slice(0, position), ':', time.replaceAll(':', '').slice(position)].join('')
         )
 
         const dose = {
@@ -151,6 +160,30 @@ export default function Medicine(props: IMedicineProps) {
             amount = undefined;
         }
         const dose = { ...newDose, amount };
+        setNewDose(dose);
+    }
+
+    const handleTakingDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.value === undefined) {
+            const dose = { ...newDose, takingDate: new Date() };
+            setNewDose(dose);
+        }
+
+        let value: Date | undefined = new Date(event.target.value);
+        value.setHours(0, 0, 0, 0);
+        const dose = { ...newDose, takingDate: value };
+        setNewDose(dose);
+    }
+
+    const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.value === undefined) {
+            const dose = { ...newDose, endDate: null };
+            setNewDose(dose);
+        }
+
+        let value: Date | undefined = new Date(event.target.value);
+        value.setHours(23, 59, 59, 100);
+        const dose = { ...newDose, endDate: value };
         setNewDose(dose);
     }
 
@@ -214,6 +247,9 @@ export default function Medicine(props: IMedicineProps) {
     }
 
     const handleRemovePurchase = async (purchase: IPurchase) => {
+        if (!window.confirm('Czy chcesz usunąć dawkę?')) {
+            return;
+        }
         const index = props.purchases.indexOf(purchase);
         if (index === -1) {
             return;
@@ -231,6 +267,19 @@ export default function Medicine(props: IMedicineProps) {
         const sumDaily = doses.reduce((prev, current) => prev += current?.amount ?? 0, 0);
         if (!sumDaily) { return 0 }
         return Math.floor(count / sumDaily);
+    }
+
+    const formatDate = (date: Date | null): string | undefined => {
+        if (date === undefined || date === null) {
+            return undefined;
+        }
+
+        const day = date.getDate().toString().length === 1 ? '0' + date.getDate().toString() : date.getDate().toString();
+        const month = (date.getMonth() + 1).toString().length === 1 ? '0' + (date.getMonth() + 1).toString() : (date.getMonth() + 1).toString();
+
+
+        const result = `${date.getFullYear()}-${month}-${day}`;
+        return result;
     }
 
     useEffect(() => {
@@ -330,6 +379,16 @@ export default function Medicine(props: IMedicineProps) {
                                     <Form.Control type="number" value={newDose?.amount} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseAmountChange(e)}></Form.Control>
                                 </FormGroup>
                             </Row>
+                            <Row>
+                                <FormGroup as={Col}>
+                                    <Form.Label>Od kiedy:</Form.Label>
+                                    <Form.Control type="date" value={formatDate(newDose.takingDate)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTakingDateChange(e)}></Form.Control>
+                                </FormGroup>
+                                <FormGroup as={Col}>
+                                    <Form.Label>Do kiedy:</Form.Label>
+                                    <Form.Control type="date" value={formatDate(newDose?.endDate)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleEndDateChange(e)}></Form.Control>
+                                </FormGroup>
+                            </Row>
                             <Row className='text-end'>
                                 <Col>
                                     <Button onClick={handleAddDose} variant="primary" type="submit" className='mt-3' disabled={!newDoseValid}>Dodaj dawkę</Button>
@@ -347,7 +406,11 @@ export default function Medicine(props: IMedicineProps) {
                                             <td width="20%">{dose.time}</td>
                                             <td width="20%">{dose.amount} tab.</td>
                                             <td>
-                                                {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')} {new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL')}
+                                                {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')} 
+                                                {/* new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL') */ }
+                                            </td>
+                                            <td>
+                                                {(dose?.endDate !== null ? new Date(dose.endDate).toLocaleDateString('pl') : <i className='text-secondary'>bez końca</i>)}
                                             </td>
                                             <td className='text-end'>
                                                 <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>
@@ -448,7 +511,7 @@ export default function Medicine(props: IMedicineProps) {
                             onChange={(e) => handleMedicineVisibilityChange(e)}
                         />
                     </Col>
-                    <Col xs="auto"><Button onClick={handleMedicineDeleteClick} variant="outline-danger" size="sm">Usuń lek</Button></Col>
+                    <Col xs="auto"><Button onClick={handleRemoveMedicine} variant="outline-danger" size="sm">Usuń lek</Button></Col>
                 </Row>
             </Card.Footer>
         </Card >

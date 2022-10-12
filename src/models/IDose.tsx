@@ -2,5 +2,6 @@ export default interface IDose {
     id: string,
     time: string,
     amount: number | undefined,
-    takingDate: Date
+    takingDate: Date,
+    endDate: Date | null
 }
