@@ -61,20 +61,21 @@ function App() {
         continue;
       }
 
-      sum += med.doses.filter(d => d.endDate === null || today < d.endDate ).reduce((prevValue, dose) => {
-        let noOfDays = countDays(today, new Date(dose.takingDate));
-        for (let i = noOfDays; i >= 0; i--) {
-          const date = new Date(today);
-          date.setDate(date.getDate() - i);
-          const hourAndMinute = dose.time.split(":");
-          date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-          if (date > new Date(dose.takingDate.toString()) && date < today) {
-            const totalDose = dose.amount ?? 0;
-            return prevValue + totalDose;
+      sum += med.doses.filter(d => (d.endDate === null || today <= new Date(d.endDate?.toString() || '')) && today >= new Date(d.takingDate.toString()))
+        .reduce((prevValue, dose) => {
+          let noOfDays = countDays(today, new Date(dose.takingDate));
+          for (let i = noOfDays; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            const hourAndMinute = dose.time.split(":");
+            date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
+            if (date > new Date(dose.takingDate.toString()) && date < today) {
+              const totalDose = dose.amount ?? 0;
+              return prevValue + totalDose;
+            }
           }
-        }
-        return prevValue;
-      }, 0);
+          return prevValue;
+        }, 0);
       med.count -= sum;
       const newDateTaken = today;
       med.doses.forEach(d => d.takingDate = new Date(newDateTaken));
@@ -119,7 +120,7 @@ function App() {
     const elements = meds.reduce((collection: DoseDetails[], x) => {
       let dosesArray: DoseDetails[] = [];
 
-      const newDosesArray = x.doses.filter(d => d.endDate === null || today < d.endDate ).flatMap(dose => {
+      const newDosesArray = x.doses.filter(d => (d.endDate === null || today <= new Date(d.endDate?.toString() || '')) && today >= new Date(d.takingDate.toString())).flatMap(dose => {
 
         let noOfDays = countDays(today, new Date(dose.takingDate));
         if (noOfDays > 100) {
@@ -408,7 +409,18 @@ function App() {
                     Object.entries(_.groupBy(
                       medicines
                         .filter(m => m.doses.length > 0)
-                        .map(m => { return m.doses.map(d => { return { dose: d, name: m.name } }) })
+                        .map(m => {
+                          return m.doses
+                            .filter(d => (() => {
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              const endOfToday = today;
+                              endOfToday.setHours(23, 59, 59, 100);
+                              console.log(m.name, d.time, today, endOfToday);
+                              return (d.endDate === null || today <= new Date(d.endDate.toString())) && endOfToday >= new Date(d.takingDate.toString());
+                            })())
+                            .map(d => { return { dose: d, name: m.name } })
+                        })
                         .flatMap(x => x),
                       x => x.dose.time
                     )).sort((x, y) => x > y ? 1 : -1).map(x =>

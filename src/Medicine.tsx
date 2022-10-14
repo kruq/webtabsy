@@ -106,6 +106,8 @@ export default function Medicine(props: IMedicineProps) {
         }
         if (!newDose.amount) {
             alert("Nie można dodać dawki z pustą wartością ilości");
+            setNewDose(defaultDose);
+            setAddDoseDialogVisible(false);
             return;
         }
         let value = newDose;
@@ -406,8 +408,8 @@ export default function Medicine(props: IMedicineProps) {
                                             <td width="20%">{dose.time}</td>
                                             <td width="20%">{dose.amount} tab.</td>
                                             <td>
-                                                {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')} 
-                                                {/* new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL') */ }
+                                                {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')}
+                                                {/* new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL') */}
                                             </td>
                                             <td>
                                                 {(dose?.endDate !== null ? new Date(dose.endDate).toLocaleDateString('pl') : <i className='text-secondary'>bez końca</i>)}
