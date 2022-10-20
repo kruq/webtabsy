@@ -285,9 +285,10 @@ export default function Medicine(props: IMedicineProps) {
     }
 
     useEffect(() => {
-        //setCount(props.count);
+        setCount(props.count);
         //setDescription(props.description);
         // setIsVisible(props.isVisible);
+        console.log(props.count);
     }, [props.count, props.description]);
 
     return (
@@ -340,17 +341,17 @@ export default function Medicine(props: IMedicineProps) {
                                         <Button onClick={() => setEditDescription(true)} variant='link'><Pencil /></Button>
                                     </Col>
                                 </Row>
-                                <Row>
-                                    <Col hidden={editDescription}>
+                                <Row hidden={editDescription ||  !description}>
+                                    <Col>
                                         {description.split('\n').map((x, index) => <span key={'medicine-' + props.id + 'description-' + index}>{x}<br /></span>)}{' '}
                                     </Col>
                                 </Row>
-                                <Row>
+                                <Row hidden={!editDescription}> 
                                     <Col>
-                                        <Form.Control as="textarea" value={description} hidden={!editDescription} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
+                                        <Form.Control as="textarea" value={description} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
                                     </Col>
                                     <Col xs='auto'>
-                                        <Button hidden={!editDescription} onClick={() => setEditDescription(false)} variant='link'><CheckLg /></Button>
+                                        <Button onClick={() => setEditDescription(false)} variant='link'><CheckLg /></Button>
                                     </Col>
                                 </Row>
                             </Form>

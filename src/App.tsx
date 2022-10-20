@@ -196,9 +196,11 @@ function App() {
         // production code
       }
     }).catch((error) => {
-      // if (error.code === "ERR_NETWORK") {
-      alert("Bład połączenia! " + error)
-      // }
+      if (error.code === "ERR_NETWORK") {
+        alert("Bład połączenia! " + error)
+      } else {
+        alert("Wystąpił nieznany błąd");
+      }
     });
 
     const timer = setInterval(() => setLastCheckTime(new Date()), 5 * 60000);
