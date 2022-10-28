@@ -1,7 +1,8 @@
 import React, { useEffect, useState, MouseEvent } from 'react';
-import './Medicine.css';
-import IMedicine from './models/IMedicine';
-import IDose from './models/IDose';
+import './medicine.css';
+import IMedicine from '../models/IMedicine';
+import IDose from '../models/IDose';
+import IPurchase from '../models/IPurchase';
 import Button from 'react-bootstrap/Button';
 import Badge from 'react-bootstrap/Badge';
 import Form from 'react-bootstrap/Form';
@@ -12,9 +13,9 @@ import Card from 'react-bootstrap/Card';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Table from 'react-bootstrap/Table';
 import FormGroup from 'react-bootstrap/FormGroup';
-import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
-import { CheckLg, Pencil } from 'react-bootstrap-icons';
+import { ArrowRightCircle, CheckLg, Pencil } from 'react-bootstrap-icons';
+import { Link } from 'react-router-dom';
 
 
 interface IMedicineProps extends IMedicine {
@@ -288,7 +289,6 @@ export default function Medicine(props: IMedicineProps) {
         setCount(props.count);
         //setDescription(props.description);
         // setIsVisible(props.isVisible);
-        console.log(props.count);
     }, [props.count, props.description]);
 
     return (
@@ -301,6 +301,9 @@ export default function Medicine(props: IMedicineProps) {
                     </Col>
                     <Col xs="auto">
                         <Badge bg="secondary" style={{ width: '70px' }}>{props.count} tab.</Badge>
+                    </Col>
+                    <Col xs="auto">
+                        <Link to={"/medicines/" + props.id}><ArrowRightCircle /></Link>
                     </Col>
                 </Row>
                 <div hidden={props.id !== props.idOfMedicineDetails}>
@@ -494,7 +497,7 @@ export default function Medicine(props: IMedicineProps) {
                             </Table>
                             <i>Średnia cena: </i>
                             {
-                                purchasesWithPrice.reduce((x, y) => x + (y.price ?? 0), 0) / purchasesWithPrice?.length
+                                Math.round(purchasesWithPrice.reduce((x, y) => x + (y.price ?? 0), 0) * 100 / purchasesWithPrice?.length) / 100
                             }{' zł'}
                         </Col>
                     </Row>

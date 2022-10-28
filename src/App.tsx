@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, MouseEvent } from 'react';
 import './App.css';
-import Medicine from './Medicine';
+import Medicine from './components/medicine.component';
 import IMedicine from './models/IMedicine';
 import { addMedicine, fetchMedicines, updateMedicine, deleteMedicine } from './services/medicine.service';
 import Container from 'react-bootstrap/Container';
@@ -11,13 +11,33 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import Alert from 'react-bootstrap/Alert';
-import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
+import { Check2, Check2All, XLg } from 'react-bootstrap-icons';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
 import { DoseDetails, IDoseWithDate } from './types';
 import { countDays } from './actions';
+import { Route, Routes, useParams } from 'react-router-dom';
+import ErrorPage from './ErrorPage';
+
+function NoMedicine() {
+  return <p>Brak leku</p>
+}
 
 function App() {
+  return <Routes>
+    <Route path="/" element={<All />} errorElement={<ErrorPage />} />
+    <Route path="/medicines" element={<NoMedicine />} />
+    <Route path="/medicines/:id" element={<MedicineDetails />} />
+  </Routes>
+}
+
+function MedicineDetails() {
+  let params = useParams();
+
+  return <p>Medicine {params.id}</p>
+}
+
+function All() {
 
   const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -143,7 +163,13 @@ function App() {
           }
           return foundDoses;
         }, new Array<IDoseWithDate>());
-      }).map(dose => { return { doseAmount: dose.amount ?? 0, time: `${formatDate(dose.date)}, ${dose.time}`, dose } });
+      }).map(dose => {
+        return {
+          doseAmount: dose.amount ?? 0,
+          time: `${formatDate(dose.date)}, ${dose.time}`,
+          dose
+        }
+      });
       dosesArray = dosesArray.concat(newDosesArray);
       return collection.concat(dosesArray.map(y => { y.medicine = x; return y }));
     }, []);
@@ -351,38 +377,44 @@ function App() {
                               </Col>
                             </Row>
                           </Col>
-                          <Col xs="auto" className="d-flex align-items-center fs-6">
-                            <Button variant='primary' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
-                              const meds = [...medicines];
-                              const medicine = meds.find(m => m === x.medicine);
-                              if (medicine && medicine.count > 0) {
-                                const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                                if (dose && dose.amount) {
-                                  let newDate = new Date(x.dose.date);
-                                  newDate.setTime(newDate.getTime() + 1000);
-                                  dose.takingDate = newDate;
-                                  medicine.count -= dose.amount;
-                                  await updateMedicine(medicine);
-                                  setMedicines(meds);
-                                  setNotTakenDoses(refreshNotTakenDoses(meds));
+                          <Col xs="auto" className="d-flex align-items-center fs-6 gap-3">
+                            <div hidden={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                              style={{ cursor: 'pointer' }}
+                              className="text-primary fs-4"
+                              onClick={async () => {
+                                const meds = [...medicines];
+                                const medicine = meds.find(m => m === x.medicine);
+                                if (medicine && medicine.count > 0) {
+                                  const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                                  if (dose && dose.amount) {
+                                    let newDate = new Date(x.dose.date);
+                                    newDate.setTime(newDate.getTime() + 1000);
+                                    dose.takingDate = newDate;
+                                    medicine.count -= dose.amount;
+                                    await updateMedicine(medicine);
+                                    setMedicines(meds);
+                                    setNotTakenDoses(refreshNotTakenDoses(meds));
+                                  }
                                 }
-                              }
-                            }}><HandThumbsUpFill /></Button>
-                            <Button className='ms-1' variant='warning' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
-                              const meds = [...medicines];
-                              const medicine = meds.find(m => m === x.medicine);
-                              if (medicine) {
-                                const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                                if (dose && dose.amount) {
-                                  let newDate = new Date(x.dose.date);
-                                  newDate.setTime(newDate.getTime() + 1000);
-                                  dose.takingDate = newDate;
-                                  await updateMedicine(medicine);
-                                  setMedicines(meds);
-                                  setNotTakenDoses(refreshNotTakenDoses(meds));
+                              }}><Check2 /></div>
+                            <div hidden={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0}
+                              style={{ cursor: 'pointer' }}
+                              className="text-danger fs-4"
+                              onClick={async () => {
+                                const meds = [...medicines];
+                                const medicine = meds.find(m => m === x.medicine);
+                                if (medicine) {
+                                  const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                                  if (dose && dose.amount) {
+                                    let newDate = new Date(x.dose.date);
+                                    newDate.setTime(newDate.getTime() + 1000);
+                                    dose.takingDate = newDate;
+                                    await updateMedicine(medicine);
+                                    setMedicines(meds);
+                                    setNotTakenDoses(refreshNotTakenDoses(meds));
+                                  }
                                 }
-                              }
-                            }}><HandThumbsDownFill /></Button>
+                              }}><XLg /></div>
                           </Col>
                         </Row>
                       </Card.Body>
@@ -391,7 +423,7 @@ function App() {
                   <Row hidden={notTakenDoses.length === 0}>
                     <Col></Col>
                     <Col xs="auto">
-                      <Button onClick={async () => await handleTakeMedicines()} variant='primary'><HandThumbsUpFill /> Wszystkie</Button>
+                      <Button onClick={async () => await handleTakeMedicines()} variant='primary'><Check2All /> Wszystkie</Button>
                     </Col>
                   </Row>
                 </Col>
@@ -418,7 +450,7 @@ function App() {
                               today.setHours(0, 0, 0, 0);
                               const endOfToday = today;
                               endOfToday.setHours(23, 59, 59, 100);
-                              console.log(m.name, d.time, today, endOfToday);
+                              // console.log(m.name, d.time, today, endOfToday);
                               return (d.endDate === null || today <= new Date(d.endDate.toString())) && endOfToday >= new Date(d.takingDate.toString());
                             })())
                             .map(d => { return { dose: d, name: m.name } })
