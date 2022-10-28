@@ -271,6 +271,15 @@ export default function Medicine(props: IMedicineProps) {
         return Math.floor(count / sumDaily);
     }
 
+    const takeOneHandler = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (!count) {
+            return;
+        }
+        const newValue = count - 1;
+        await props.updateMedicine(props.id, { count: newValue });
+        setCount(newValue);
+    }
+
     const formatDate = (date: Date | null): string | undefined => {
         if (date === undefined || date === null) {
             return undefined;
@@ -298,6 +307,9 @@ export default function Medicine(props: IMedicineProps) {
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
                         <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="me-2" hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </>
                         <span>{props.name}</span>
+                    </Col>
+                    <Col xs="auto">
+                        <Button variant='link' onClick={async (e) => await takeOneHandler(e)}>Weź</Button>
                     </Col>
                     <Col xs="auto">
                         <Badge bg="secondary" style={{ width: '70px' }}>{props.count} tab.</Badge>
@@ -341,12 +353,12 @@ export default function Medicine(props: IMedicineProps) {
                                         <Button onClick={() => setEditDescription(true)} variant='link'><Pencil /></Button>
                                     </Col>
                                 </Row>
-                                <Row hidden={editDescription ||  !description}>
+                                <Row hidden={editDescription || !description}>
                                     <Col>
                                         {description.split('\n').map((x, index) => <span key={'medicine-' + props.id + 'description-' + index}>{x}<br /></span>)}{' '}
                                     </Col>
                                 </Row>
-                                <Row hidden={!editDescription}> 
+                                <Row hidden={!editDescription}>
                                     <Col>
                                         <Form.Control as="textarea" value={description} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
                                     </Col>
