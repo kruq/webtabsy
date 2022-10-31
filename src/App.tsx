@@ -61,15 +61,15 @@ function App() {
         continue;
       }
 
-      sum += med.doses.filter(d => (d.endDate === null || today <= new Date(d.endDate?.toString() || '')) && today >= new Date(d.takingDate.toString()))
+      sum += med.doses.filter(d => (d.endDate === null || today <= d.endDate || '') && today >= d.takingDate)
         .reduce((prevValue, dose) => {
-          let noOfDays = countDays(today, new Date(dose.takingDate));
+          let noOfDays = countDays(today, dose.takingDate);
           for (let i = noOfDays; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
             const hourAndMinute = dose.time.split(":");
             date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-            if (date > new Date(dose.takingDate.toString()) && date < today) {
+            if (date > dose.takingDate && date < today) {
               const totalDose = dose.amount ?? 0;
               return prevValue + totalDose;
             }
@@ -87,7 +87,6 @@ function App() {
 
     setMedicines([...newm]);
     setNotTakenDoses(refreshNotTakenDoses(newm));
-    // setLastCheckTime(new Date());
     setShowSpinner(false);
   };
 
@@ -120,9 +119,9 @@ function App() {
     const elements = meds.reduce((collection: DoseDetails[], x) => {
       let dosesArray: DoseDetails[] = [];
 
-      const newDosesArray = x.doses.filter(d => (d.endDate === null || today <= new Date(d.endDate?.toString() || '')) && today >= new Date(d.takingDate.toString())).flatMap(dose => {
+      const newDosesArray = x.doses.filter(d => (d.endDate === null || today <= d.endDate) && today >= d.takingDate).flatMap(dose => {
 
-        let noOfDays = countDays(today, new Date(dose.takingDate));
+        let noOfDays = countDays(today, dose.takingDate);
         if (noOfDays > 100) {
           noOfDays = 0;
         }
@@ -136,9 +135,7 @@ function App() {
 
           const hourAndMinute = dose.time.split(":");
           date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-          if ((date > new Date(dose.takingDate.toString())) && (date < today)) {
-
-            //            const canEdit = !foundDoses.some(y => y.amount === dose.amount && y.time === dose.time);
+          if ((date > dose.takingDate) && (date < today)) {
             foundDoses.push({ ...dose, date });
           }
           return foundDoses;
@@ -358,7 +355,7 @@ function App() {
                               if (medicine && medicine.count > 0) {
                                 const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
                                 if (dose && dose.amount) {
-                                  let newDate = new Date(x.dose.date);
+                                  let newDate = x.dose.date;
                                   newDate.setTime(newDate.getTime() + 1000);
                                   dose.takingDate = newDate;
                                   medicine.count -= dose.amount;
@@ -374,7 +371,7 @@ function App() {
                               if (medicine) {
                                 const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
                                 if (dose && dose.amount) {
-                                  let newDate = new Date(x.dose.date);
+                                  let newDate = x.dose.date;
                                   newDate.setTime(newDate.getTime() + 1000);
                                   dose.takingDate = newDate;
                                   await updateMedicine(medicine);
@@ -419,7 +416,7 @@ function App() {
                               const endOfToday = today;
                               endOfToday.setHours(23, 59, 59, 100);
                               console.log(m.name, d.time, today, endOfToday);
-                              return (d.endDate === null || today <= new Date(d.endDate.toString())) && endOfToday >= new Date(d.takingDate.toString());
+                              return (d.endDate === null || today <= d.endDate) && endOfToday >= d.takingDate;
                             })())
                             .map(d => { return { dose: d, name: m.name } })
                         })

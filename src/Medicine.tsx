@@ -421,11 +421,10 @@ export default function Medicine(props: IMedicineProps) {
                                             <td width="20%">{dose.time}</td>
                                             <td width="20%">{dose.amount} tab.</td>
                                             <td>
-                                                {new Date(dose.takingDate.toString()).toLocaleDateString('pl-PL')}
-                                                {/* new Date(dose.takingDate.toString()).toLocaleTimeString('pl-PL') */}
+                                                {dose.takingDate.toLocaleDateString('pl-PL')}
                                             </td>
                                             <td>
-                                                {(dose?.endDate !== null ? new Date(dose.endDate).toLocaleDateString('pl') : <i className='text-secondary'>bez końca</i>)}
+                                                {(dose?.endDate !== null ? dose.endDate.toLocaleDateString('pl') : <i className='text-secondary'>bez końca</i>)}
                                             </td>
                                             <td className='text-end'>
                                                 <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>
@@ -476,14 +475,6 @@ export default function Medicine(props: IMedicineProps) {
                     <Row hidden={!props.purchases || props.purchases?.length === 0}>
                         <Col>
                             <Table size='sm'>
-                                {/* <thead>
-                                    <tr>
-                                        <td>Ilość tabletek</td>
-                                        <td>Cena</td>
-                                        <td>Data zakupu</td>
-                                        <td></td>
-                                    </tr>
-                                </thead> */}
                                 <tbody>
                                     {props.purchases?.map(x =>
                                         <tr key={'medicine-purchase-' + x.id}>
@@ -495,7 +486,7 @@ export default function Medicine(props: IMedicineProps) {
                                                 <span hidden={x.price !== undefined}>-</span>
                                             </td>
                                             <td>
-                                                {new Date(x.date.toString()).toLocaleDateString('pl')}
+                                                {x.date.toLocaleDateString('pl')}
                                             </td>
                                             <td className='text-end'>
                                                 <Button onClick={() => handleRemovePurchase(x)} variant="link" className='text-danger my-0'>Usuń</Button>
@@ -506,7 +497,7 @@ export default function Medicine(props: IMedicineProps) {
                             </Table>
                             <i>Średnia cena: </i>
                             {
-                                purchasesWithPrice.reduce((x, y) => x + (y.price ?? 0), 0) / purchasesWithPrice?.length
+                                Math.round(purchasesWithPrice.reduce((x, y) => x + (y.price ?? 0), 0) * 100 / purchasesWithPrice?.length) / 100
                             }{' zł'}
                         </Col>
                     </Row>
