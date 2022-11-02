@@ -465,7 +465,6 @@ function App() {
               <Row>
                 <Col>{medicines
                   .sort((a, b) => (a.name > b.name ? 1 : -1))
-                  .sort((a, b) => a.doses.length > 0 && b.doses.length === 0 ? -1 : 0)
                   .filter(m => showAll || m.isVisible)
                   .map((x: IMedicine) =>
                     <Medicine
