@@ -293,7 +293,7 @@ function App() {
       <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
         <h3><Spinner animation="border" variant='primary' /> Ładowanie...</h3>
       </div>
-      <Container className="mt-2 mb-3">
+      <Container className="mt-2 mb-3" fluid>
         <header className='mb-4'>
           <Row>
             <Col>
@@ -493,16 +493,3 @@ function App() {
 }
 
 export default App;
-
-// function getCorrectFormOfWordMedicine(length: number) {
-//   switch (length) {
-//     case 1:
-//       return 'lek';
-//     case 2:
-//     case 3:
-//     case 4:
-//       return 'leki';
-//     default:
-//       return 'leków';
-//   }
-// }

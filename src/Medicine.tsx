@@ -14,7 +14,7 @@ import Table from 'react-bootstrap/Table';
 import FormGroup from 'react-bootstrap/FormGroup';
 import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
-import { CheckLg, Pencil } from 'react-bootstrap-icons';
+import { CheckLg, DashCircle, Pencil } from 'react-bootstrap-icons';
 
 
 interface IMedicineProps extends IMedicine {
@@ -305,14 +305,14 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Body>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="me-2" hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </>
+                        <Badge bg="secondary" style={{ width: '70px' }} className="me-2" >{props.count} tab.</Badge>
                         <span>{props.name}</span>
                     </Col>
                     <Col xs="auto">
-                        <Button variant='link' onClick={async (e) => await takeOneHandler(e)}>Weź</Button>
+                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </>
                     </Col>
                     <Col xs="auto">
-                        <Badge bg="secondary" style={{ width: '70px' }}>{props.count} tab.</Badge>
+                        <Button variant='link' onClick={async (e) => await takeOneHandler(e)} aria-label='Take one pill'><DashCircle /> Weź lek</Button>
                     </Col>
                 </Row>
                 <div hidden={props.id !== props.idOfMedicineDetails}>
@@ -321,6 +321,20 @@ export default function Medicine(props: IMedicineProps) {
                             Ustawienia
                         </Col>
                     </Row>
+                    {/* <Row>
+                        <Col>
+                            <Row>
+                                <Col>
+                                    <Form.Check.Label>Nazwa leku:</Form.Check.Label>
+                                </Col>
+                                <Col>
+                                    <Form.Group>
+                                        <Form.Control type="text" value={props.name}></Form.Control>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        </Col>
+                    </Row> */}
                     <Row>
                         <Col>
                             <Form.Group>
