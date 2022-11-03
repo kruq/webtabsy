@@ -3,7 +3,6 @@ import './Medicine.css';
 import IMedicine from './models/IMedicine';
 import IDose from './models/IDose';
 import Button from 'react-bootstrap/Button';
-import Badge from 'react-bootstrap/Badge';
 import Form from 'react-bootstrap/Form';
 import FormCheck from 'react-bootstrap/FormCheck';
 import Row from 'react-bootstrap/Row';
@@ -14,7 +13,9 @@ import Table from 'react-bootstrap/Table';
 import FormGroup from 'react-bootstrap/FormGroup';
 import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
-import { CheckLg, DashCircle, Pencil } from 'react-bootstrap-icons';
+import { CgPill, } from 'react-icons/cg';
+import { TfiPencil, TfiCheck } from 'react-icons/tfi';
+
 
 
 interface IMedicineProps extends IMedicine {
@@ -40,6 +41,7 @@ export default function Medicine(props: IMedicineProps) {
         pricePerPackage: lastPurchase?.price
     }
 
+    const [name, setName] = useState(props.name);
     const [count, setCount] = useState<number | undefined>(props.count);
     const [description, setDescription] = useState(props.description);
     const [fnDebounce, setFnDebounce] = useState<NodeJS.Timer>();
@@ -59,6 +61,15 @@ export default function Medicine(props: IMedicineProps) {
 
     const handleMedicineTitleClick = () => {
         props.medicineClick(props.id);
+    }
+
+    const handleMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value;
+        clearTimeout(fnDebounce);
+        setFnDebounce(setTimeout(() => {
+            props.updateMedicine(props.id, { name: newValue });
+        }, 2000));
+        setName(newValue);
     }
 
     const handleMedicineCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -305,14 +316,20 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Body>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <Badge bg="secondary" style={{ width: '70px' }} className="me-2" >{props.count} tab.</Badge>
-                        <span>{props.name}</span>
+                        <small className='text-secondary'>{props.count} tab.</small> 
+                        {/* <Badge bg="secondary" style={{ width: '70px' }} className="d-none d-md-inline" >{props.count} tab.</Badge> */}
                     </Col>
                     <Col xs="auto">
-                        <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </>
+                        <small className={`text-${countNumberOfDays() < 8 ? "danger" : "success"}`}>{countNumberOfDays()} dni</small> 
+                        {/* <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="d-none d-md-inline" hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </> */}
+                    </Col>
+                </Row>
+                <Row className='mt-2'>
+                    <Col>
+                        <h6>{props.name}</h6>
                     </Col>
                     <Col xs="auto">
-                        <Button variant='link' onClick={async (e) => await takeOneHandler(e)} aria-label='Take one pill'><DashCircle /> Weź lek</Button>
+                        <Button variant='outline-primary' size='sm' onClick={async (e) => await takeOneHandler(e)} aria-label='Take one pill'><CgPill /> Weź lek</Button>
                     </Col>
                 </Row>
                 <div hidden={props.id !== props.idOfMedicineDetails}>
@@ -321,20 +338,20 @@ export default function Medicine(props: IMedicineProps) {
                             Ustawienia
                         </Col>
                     </Row>
-                    {/* <Row>
+                    <Row>
                         <Col>
                             <Row>
-                                <Col>
+                                <Col xs="auto">
                                     <Form.Check.Label>Nazwa leku:</Form.Check.Label>
                                 </Col>
                                 <Col>
                                     <Form.Group>
-                                        <Form.Control type="text" value={props.name}></Form.Control>
+                                        <Form.Control type="text" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineNameChange(e)} ></Form.Control>
                                     </Form.Group>
                                 </Col>
                             </Row>
                         </Col>
-                    </Row> */}
+                    </Row>
                     <Row>
                         <Col>
                             <Form.Group>
@@ -349,8 +366,8 @@ export default function Medicine(props: IMedicineProps) {
                                         <Form.Control type="number" value={count?.toString()} hidden={!editNumberOfTabletes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
                                     </Col>
                                     <Col xs="auto">
-                                        <Button onClick={() => setEditNumberOfTabletes(true)} variant='link' hidden={editNumberOfTabletes}><Pencil /></Button>
-                                        <Button onClick={() => setEditNumberOfTabletes(false)} variant='link' hidden={!editNumberOfTabletes}><CheckLg /></Button>
+                                        <Button onClick={() => setEditNumberOfTabletes(true)} variant='link' hidden={editNumberOfTabletes}><TfiPencil /></Button>
+                                        <Button onClick={() => setEditNumberOfTabletes(false)} variant='link' hidden={!editNumberOfTabletes}><TfiCheck /></Button>
                                     </Col>
                                 </Row>
                             </Form.Group>
@@ -364,7 +381,7 @@ export default function Medicine(props: IMedicineProps) {
                                         <p><Form.Label>Opis:</Form.Label></p>
                                     </Col>
                                     <Col xs='auto' hidden={editDescription}>
-                                        <Button onClick={() => setEditDescription(true)} variant='link'><Pencil /></Button>
+                                        <Button onClick={() => setEditDescription(true)} variant='link'><TfiPencil /></Button>
                                     </Col>
                                 </Row>
                                 <Row hidden={editDescription || !description}>
@@ -377,7 +394,7 @@ export default function Medicine(props: IMedicineProps) {
                                         <Form.Control as="textarea" value={description} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
                                     </Col>
                                     <Col xs='auto'>
-                                        <Button onClick={() => setEditDescription(false)} variant='link'><CheckLg /></Button>
+                                        <Button onClick={() => setEditDescription(false)} variant='link'><TfiCheck /></Button>
                                     </Col>
                                 </Row>
                             </Form>
@@ -516,7 +533,7 @@ export default function Medicine(props: IMedicineProps) {
                         </Col>
                     </Row>
                 </div>
-            </Card.Body>
+            </Card.Body >
             <Card.Footer hidden={props.id !== props.idOfMedicineDetails}>
                 <Row>
                     <Col></Col>

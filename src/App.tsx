@@ -11,7 +11,7 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import Alert from 'react-bootstrap/Alert';
-import { HandThumbsUpFill, HandThumbsDownFill } from 'react-bootstrap-icons';
+import { CgCheckO, CgCloseO } from 'react-icons/cg';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
 import { DoseDetails, IDoseWithDate } from './types';
@@ -327,15 +327,32 @@ function App() {
                     <Card className='my-2' key={'not-taken-dose-' + x.dose.id + '-time-' + x.time}>
                       <Card.Body>
                         <Row>
-                          <Col className="fs-6">
+                          <Col>
                             <Row>
-                              <Col>
+                              <Col className="fs-5">
                                 <span style={{ display: 'inline-block', width: '30px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
                                 <span>{x.medicine?.name}</span>
                               </Col>
+                              <Col xs='auto'>
+                                <Button className='ms-1' variant='link' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
+                                  const meds = [...medicines];
+                                  const medicine = meds.find(m => m === x.medicine);
+                                  if (medicine) {
+                                    const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                                    if (dose && dose.amount) {
+                                      let newDate = x.dose.date;
+                                      newDate.setTime(newDate.getTime() + 1000);
+                                      dose.takingDate = newDate;
+                                      await updateMedicine(medicine);
+                                      setMedicines(meds);
+                                      setNotTakenDoses(refreshNotTakenDoses(meds));
+                                    }
+                                  }
+                                }}><CgCloseO /></Button>
+                              </Col>
                             </Row>
                             <Row>
-                              <Col style={{ marginLeft: '30px' }} className="text-secondary">
+                              <Col xs="auto" style={{ marginLeft: '30px' }} className="text-secondary">
                                 <small>
                                   {x.time}
                                   <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
@@ -347,39 +364,32 @@ function App() {
                                 <small><i>{x.medicine?.description}</i></small>
                               </Col>
                             </Row>
-                          </Col>
-                          <Col xs="auto" className="d-flex align-items-center fs-6">
-                            <Button variant='primary' disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)} onClick={async () => {
-                              const meds = [...medicines];
-                              const medicine = meds.find(m => m === x.medicine);
-                              if (medicine && medicine.count > 0) {
-                                const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                                if (dose && dose.amount) {
-                                  let newDate = x.dose.date;
-                                  newDate.setTime(newDate.getTime() + 1000);
-                                  dose.takingDate = newDate;
-                                  medicine.count -= dose.amount;
-                                  await updateMedicine(medicine);
-                                  setMedicines(meds);
-                                  setNotTakenDoses(refreshNotTakenDoses(meds));
-                                }
-                              }
-                            }}><HandThumbsUpFill /></Button>
-                            <Button className='ms-1' variant='warning' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
-                              const meds = [...medicines];
-                              const medicine = meds.find(m => m === x.medicine);
-                              if (medicine) {
-                                const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                                if (dose && dose.amount) {
-                                  let newDate = x.dose.date;
-                                  newDate.setTime(newDate.getTime() + 1000);
-                                  dose.takingDate = newDate;
-                                  await updateMedicine(medicine);
-                                  setMedicines(meds);
-                                  setNotTakenDoses(refreshNotTakenDoses(meds));
-                                }
-                              }
-                            }}><HandThumbsDownFill /></Button>
+                            <Row>
+                              <Col></Col>
+                              <Col xs="auto">
+                                <Button variant='link'
+                                  disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                                  className='fs-5'
+                                  onClick={async () => {
+                                    const meds = [...medicines];
+                                    const medicine = meds.find(m => m === x.medicine);
+                                    if (medicine && medicine.count > 0) {
+                                      const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                                      if (dose && dose.amount) {
+                                        let newDate = x.dose.date;
+                                        newDate.setTime(newDate.getTime() + 1000);
+                                        dose.takingDate = newDate;
+                                        medicine.count -= dose.amount;
+                                        await updateMedicine(medicine);
+                                        setMedicines(meds);
+                                        setNotTakenDoses(refreshNotTakenDoses(meds));
+                                      }
+                                    }
+                                  }}>
+                                  <CgCheckO /> Potwierdź
+                                </Button>
+                              </Col>
+                            </Row>
                           </Col>
                         </Row>
                       </Card.Body>
@@ -388,7 +398,7 @@ function App() {
                   <Row hidden={notTakenDoses.length === 0}>
                     <Col></Col>
                     <Col xs="auto">
-                      <Button onClick={async () => await handleTakeMedicines()} variant='primary'><HandThumbsUpFill /> Wszystkie</Button>
+                      <Button onClick={async () => await handleTakeMedicines()} variant='link'><CgCheckO /> Potwierdź wszystkie</Button>
                     </Col>
                   </Row>
                 </Col>
@@ -442,7 +452,27 @@ function App() {
                     label='Filtrowanie'
                     onChange={(e) => { setShowAll(!e.target.checked); localStorage.setItem('showAll', (!e.target.checked).toString()); setIdOfMedicineDetails(''); }}
                   />
-                  <dialog open={addMedicineDialogVisible} style={{ zIndex: '1000' }}>
+                </Col>
+              </Row>
+              <Row>
+                <Col>{medicines
+                  .sort((a, b) => (a.name > b.name ? 1 : -1))
+                  .filter(m => showAll || m.isVisible)
+                  .map((x: IMedicine) =>
+                    <Medicine
+                      key={'medicine-' + x.id}
+                      {...x}
+                      idOfMedicineDetails={idOfMedicineDetails}
+                      medicineClick={handleMedicineClick}
+                      updateMedicine={handleUpdateMedicine}
+                      deleteMedicine={handleDeleteMedicine}
+                    />
+                  )}
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <dialog open={addMedicineDialogVisible} style={{ zIndex: '1000', position: 'absolute', margin: 'auto', bottom: '0' }}>
                     <strong>Nowy lek</strong>
                     <Form>
                       <Form.Group className="mb-3">
@@ -460,22 +490,6 @@ function App() {
                       </Row>
                     </Form>
                   </dialog>
-                </Col>
-              </Row>
-              <Row>
-                <Col>{medicines
-                  .sort((a, b) => (a.name > b.name ? 1 : -1))
-                  .filter(m => showAll || m.isVisible)
-                  .map((x: IMedicine) =>
-                    <Medicine
-                      key={'medicine-' + x.id}
-                      {...x}
-                      idOfMedicineDetails={idOfMedicineDetails}
-                      medicineClick={handleMedicineClick}
-                      updateMedicine={handleUpdateMedicine}
-                      deleteMedicine={handleDeleteMedicine}
-                    />
-                  )}
                 </Col>
               </Row>
               <Row>
