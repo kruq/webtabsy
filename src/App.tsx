@@ -11,11 +11,11 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import Alert from 'react-bootstrap/Alert';
-import { CgCheckO, CgCloseO } from 'react-icons/cg';
 import logo from './assets/logo192.png';
 import _ from 'lodash';
 import { DoseDetails, IDoseWithDate } from './types';
 import { countDays } from './actions';
+import { TfiCheck, TfiClose } from 'react-icons/tfi';
 
 function App() {
 
@@ -327,69 +327,62 @@ function App() {
                     <Card className='my-2' key={'not-taken-dose-' + x.dose.id + '-time-' + x.time}>
                       <Card.Body>
                         <Row>
+                          <Col className="fs-5">
+                            <span style={{ display: 'inline', width: '30px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
+                            <span>{x.medicine?.name}</span>
+                          </Col>
+                          <Col xs='auto' className="text-secondary">
+                            <small>
+                              {x.time}
+                              <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
+                            </small>
+                          </Col>
+                        </Row>
+                        <Row>
                           <Col>
-                            <Row>
-                              <Col className="fs-5">
-                                <span style={{ display: 'inline-block', width: '30px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
-                                <span>{x.medicine?.name}</span>
-                              </Col>
-                              <Col xs='auto'>
-                                <Button className='ms-1' variant='link' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
-                                  const meds = [...medicines];
-                                  const medicine = meds.find(m => m === x.medicine);
-                                  if (medicine) {
-                                    const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                                    if (dose && dose.amount) {
-                                      let newDate = x.dose.date;
-                                      newDate.setTime(newDate.getTime() + 1000);
-                                      dose.takingDate = newDate;
-                                      await updateMedicine(medicine);
-                                      setMedicines(meds);
-                                      setNotTakenDoses(refreshNotTakenDoses(meds));
-                                    }
+                            <small><i>{x.medicine?.description}</i></small>
+                          </Col>
+                        </Row>
+                        <Row className='mt-1'>
+                          <Col>
+                            <Button className='ms-1 text-warning' variant='link' size='sm' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
+                              const meds = [...medicines];
+                              const medicine = meds.find(m => m === x.medicine);
+                              if (medicine) {
+                                const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                                if (dose && dose.amount) {
+                                  let newDate = x.dose.date;
+                                  newDate.setTime(newDate.getTime() + 1000);
+                                  dose.takingDate = newDate;
+                                  await updateMedicine(medicine);
+                                  setMedicines(meds);
+                                  setNotTakenDoses(refreshNotTakenDoses(meds));
+                                }
+                              }
+                            }}><TfiClose /> Pominięte</Button>
+                          </Col>
+                          <Col xs='auto'>
+                            <Button variant='link'
+                              size='sm'
+                              disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                              onClick={async () => {
+                                const meds = [...medicines];
+                                const medicine = meds.find(m => m === x.medicine);
+                                if (medicine && medicine.count > 0) {
+                                  const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
+                                  if (dose && dose.amount) {
+                                    let newDate = x.dose.date;
+                                    newDate.setTime(newDate.getTime() + 1000);
+                                    dose.takingDate = newDate;
+                                    medicine.count -= dose.amount;
+                                    await updateMedicine(medicine);
+                                    setMedicines(meds);
+                                    setNotTakenDoses(refreshNotTakenDoses(meds));
                                   }
-                                }}><CgCloseO /></Button>
-                              </Col>
-                            </Row>
-                            <Row>
-                              <Col xs="auto" style={{ marginLeft: '30px' }} className="text-secondary">
-                                <small>
-                                  {x.time}
-                                  <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
-                                </small>
-                              </Col>
-                            </Row>
-                            <Row>
-                              <Col style={{ marginLeft: '30px' }} >
-                                <small><i>{x.medicine?.description}</i></small>
-                              </Col>
-                            </Row>
-                            <Row>
-                              <Col></Col>
-                              <Col xs="auto">
-                                <Button variant='link'
-                                  disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                                  className='fs-5'
-                                  onClick={async () => {
-                                    const meds = [...medicines];
-                                    const medicine = meds.find(m => m === x.medicine);
-                                    if (medicine && medicine.count > 0) {
-                                      const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                                      if (dose && dose.amount) {
-                                        let newDate = x.dose.date;
-                                        newDate.setTime(newDate.getTime() + 1000);
-                                        dose.takingDate = newDate;
-                                        medicine.count -= dose.amount;
-                                        await updateMedicine(medicine);
-                                        setMedicines(meds);
-                                        setNotTakenDoses(refreshNotTakenDoses(meds));
-                                      }
-                                    }
-                                  }}>
-                                  <CgCheckO /> Potwierdź
-                                </Button>
-                              </Col>
-                            </Row>
+                                }
+                              }}>
+                              <TfiCheck /> Potwierdź
+                            </Button>
                           </Col>
                         </Row>
                       </Card.Body>
@@ -398,7 +391,7 @@ function App() {
                   <Row hidden={notTakenDoses.length === 0}>
                     <Col></Col>
                     <Col xs="auto">
-                      <Button onClick={async () => await handleTakeMedicines()} variant='link'><CgCheckO /> Potwierdź wszystkie</Button>
+                      <Button onClick={async () => await handleTakeMedicines()} variant='link'><TfiCheck /> Potwierdź wszystkie</Button>
                     </Col>
                   </Row>
                 </Col>
