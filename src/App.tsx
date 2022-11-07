@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, MouseEvent } from 'react';
 import './App.css';
-import Medicine from './Medicine';
+import Medicine from './medicine.component';
 import IMedicine from './models/IMedicine';
 import { addMedicine, fetchMedicines, updateMedicine, deleteMedicine } from './services/medicine.service';
+import { findOverdueDoses } from './services/overdueDoses.service';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -16,6 +17,8 @@ import _ from 'lodash';
 import { DoseDetails, IDoseWithDate } from './types';
 import { countDays } from './actions';
 import { TfiCheck, TfiClose } from 'react-icons/tfi';
+import OverdueDoseGroup from './models/OverdueDosesGroup';
+import Schedule from './schedule.component';
 
 function App() {
 
@@ -29,6 +32,8 @@ function App() {
 
   const [addMedicineDialogVisible, setAddMedicinceDialogVisible] = useState(false);
   const [showPermissionAlert, setShowPermissionAlert] = useState(false);
+
+  const [overdueDosesGroups, setOverdueDosesGroups] = useState<OverdueDoseGroup[]>([]);
 
   // if (Notification.permission !== 'granted') {
   //   Notification.requestPermission()
@@ -61,15 +66,15 @@ function App() {
         continue;
       }
 
-      sum += med.doses.filter(d => (d.endDate === null || today <= d.endDate || '') && today >= d.takingDate)
+      sum += med.doses.filter(d => (d.endDate === null || today <= d.endDate || '') && today >= d.nextDoseDate)
         .reduce((prevValue, dose) => {
-          let noOfDays = countDays(today, dose.takingDate);
+          let noOfDays = countDays(today, dose.nextDoseDate);
           for (let i = noOfDays; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
             const hourAndMinute = dose.time.split(":");
             date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-            if (date > dose.takingDate && date < today) {
+            if (date > dose.nextDoseDate && date < today) {
               const totalDose = dose.amount ?? 0;
               return prevValue + totalDose;
             }
@@ -78,7 +83,7 @@ function App() {
         }, 0);
       med.count -= sum;
       const newDateTaken = today;
-      med.doses.forEach(d => d.takingDate = new Date(newDateTaken));
+      med.doses.forEach(d => d.nextDoseDate = new Date(newDateTaken));
 
       newm.push(med);
     }
@@ -119,9 +124,10 @@ function App() {
     const elements = meds.reduce((collection: DoseDetails[], x) => {
       let dosesArray: DoseDetails[] = [];
 
-      const newDosesArray = x.doses.filter(d => (d.endDate === null || today <= d.endDate) && today >= d.takingDate).flatMap(dose => {
+      const newDosesArray = x.doses.filter(d => (d.endDate === null || today <= d.endDate) && today >= d.nextDoseDate).flatMap(dose => {
+        console.log(dose.time);
 
-        let noOfDays = countDays(today, dose.takingDate);
+        let noOfDays = countDays(today, dose.nextDoseDate);
         if (noOfDays > 100) {
           noOfDays = 0;
         }
@@ -135,7 +141,7 @@ function App() {
 
           const hourAndMinute = dose.time.split(":");
           date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-          if ((date > dose.takingDate) && (date < today)) {
+          if ((date > dose.nextDoseDate) && (date < today)) {
             foundDoses.push({ ...dose, date });
           }
           return foundDoses;
@@ -144,6 +150,7 @@ function App() {
       dosesArray = dosesArray.concat(newDosesArray);
       return collection.concat(dosesArray.map(y => { y.medicine = x; return y }));
     }, []);
+
 
 
     return elements
@@ -161,6 +168,9 @@ function App() {
   }
 
   useEffect(() => {
+    findOverdueDoses().then(groups => {
+      setOverdueDosesGroups(groups);
+    });
     fetchMedicines().then(meds => {
       setMedicines(meds);
       const notTakenDoses = refreshNotTakenDoses(meds)
@@ -352,8 +362,8 @@ function App() {
                                 const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
                                 if (dose && dose.amount) {
                                   let newDate = x.dose.date;
-                                  newDate.setTime(newDate.getTime() + 1000);
-                                  dose.takingDate = newDate;
+                                  newDate.setDate(newDate.getDate() + 1);
+                                  dose.nextDoseDate = newDate;
                                   await updateMedicine(medicine);
                                   setMedicines(meds);
                                   setNotTakenDoses(refreshNotTakenDoses(meds));
@@ -373,7 +383,7 @@ function App() {
                                   if (dose && dose.amount) {
                                     let newDate = x.dose.date;
                                     newDate.setTime(newDate.getTime() + 1000);
-                                    dose.takingDate = newDate;
+                                    dose.nextDoseDate = newDate;
                                     medicine.count -= dose.amount;
                                     await updateMedicine(medicine);
                                     setMedicines(meds);
@@ -396,41 +406,40 @@ function App() {
                   </Row>
                 </Col>
               </Row>
+              <Row>
+                <Col>
+                  {overdueDosesGroups.map(group => <div><h4>{group.time}</h4>{group.doses.map(dose => <p>{dose.medicineName}
+                    <Button variant='link'
+                      size='sm'
+                      // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                      onClick={async () => {
+                        const meds = [...medicines];
+                        const medicine = meds.find(m => m.name === dose.medicineName);
+                        if (medicine && medicine.count > 0) {
+                          const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                          if (d2 && d2.amount) {
+                            let newDate = d2.nextDoseDate;
+                            const timeParts = d2.time.split(':');
+                            newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                            newDate.setDate(newDate.getDate() + 1);
+                            d2.nextDoseDate = newDate;
+                            medicine.count -= d2.amount;
+                            await updateMedicine(medicine);
+                            setMedicines(meds);
+                            setNotTakenDoses(refreshNotTakenDoses(meds));
+                          }
+                        }
+                      }}>
+                      <TfiCheck /> Potwierdź
+                    </Button>
+                  </p>)}</div>)}
+                </Col>
+              </Row>
             </section>
           </Col>
           <Col md='3'>
             <section className='my-3'>
-              <Row>
-                <Col>
-                  <strong>Grafik</strong>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  {
-                    Object.entries(_.groupBy(
-                      medicines
-                        .filter(m => m.doses.length > 0)
-                        .map(m => {
-                          return m.doses
-                            .filter(d => (() => {
-                              const today = new Date();
-                              today.setHours(0, 0, 0, 0);
-                              const endOfToday = today;
-                              endOfToday.setHours(23, 59, 59, 100);
-                              console.log(m.name, d.time, today, endOfToday);
-                              return (d.endDate === null || today <= d.endDate) && endOfToday >= d.takingDate;
-                            })())
-                            .map(d => { return { dose: d, name: m.name } })
-                        })
-                        .flatMap(x => x),
-                      x => x.dose.time
-                    )).sort((x, y) => x > y ? 1 : -1).map(x =>
-                      <Card className='my-2' key={'schedule-' + x[1][0].dose.id}><Card.Header>Godz. {x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
-                    )
-                  }
-                </Col>
-              </Row>
+              <Schedule medicines={medicines }/>
             </section>
           </Col>
           <Col md='5'>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, MouseEvent } from 'react';
 import './Medicine.css';
 import IMedicine from './models/IMedicine';
-import IDose from './models/IDose';
+import Dose from './models/Dose';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import FormCheck from 'react-bootstrap/FormCheck';
@@ -34,7 +34,7 @@ interface INewPurchase {
 export default function Medicine(props: IMedicineProps) {
     const lastPurchase: IPurchase | undefined = props.purchases?.[(props.purchases?.length ?? 0) - 1];
 
-    const defaultDose: IDose = { id: Uuid(), time: "12:00", amount: 1, takingDate: new Date(), endDate: null }
+    const defaultDose: Dose = { id: Uuid(), time: "", amount: 1, nextDoseDate: new Date(), endDate: null }
     const defaultPurchase: INewPurchase = {
         numberOfPackages: 1,
         numberOfTabletsInPackage: lastPurchase?.numberOfTablets,
@@ -47,7 +47,7 @@ export default function Medicine(props: IMedicineProps) {
     const [fnDebounce, setFnDebounce] = useState<NodeJS.Timer>();
     const [isVisible, setIsVisible] = useState(props.isVisible);
 
-    const [newDose, setNewDose] = useState<IDose>(defaultDose);
+    const [newDose, setNewDose] = useState<Dose>(defaultDose);
     const [newDoseValid, setNewDoseValid] = useState<boolean>(true);
     const [newPurchase, setNewPurchase] = useState<INewPurchase>(defaultPurchase);
 
@@ -122,13 +122,23 @@ export default function Medicine(props: IMedicineProps) {
             return;
         }
         let value = newDose;
-        if (value.takingDate < new Date()) {
-            value.takingDate = new Date();
+        if (value.nextDoseDate < new Date()) {
+            value.nextDoseDate = new Date();
         }
         doses.push(value);
         doses = doses.map(x => {
             x.id = !x.id ? Uuid() : x.id;
             x.time = x.time.length === 4 ? '0' + x.time : x.time;
+            x.nextDoseDate = (() => {
+                let date = new Date(x.nextDoseDate.toString());
+                const timeParts = x.time.split(':');
+                date.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                // TODO: przemyśleć jak jest lepiej
+                if (date < new Date()) {
+                    date.setDate(date.getDate() + 1);
+                }
+                return date;
+            })();
             return x;
         }).sort((a, b) => a.time > b.time ? 1 : -1);
         await props.updateMedicine(props.id, { doses });
@@ -136,7 +146,7 @@ export default function Medicine(props: IMedicineProps) {
         setAddDoseDialogVisible(false);
     }
 
-    const handleRemoveDose = async (dose: IDose) => {
+    const handleRemoveDose = async (dose: Dose) => {
         if (!window.confirm('Czy chcesz usunąć dawkę?')) {
             return;
         }
@@ -168,15 +178,18 @@ export default function Medicine(props: IMedicineProps) {
     };
 
     const handleDoseAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        let amount: number | undefined = parseFloat(event.target.value);
+        if (event.target.value === undefined) {
+            return;
+        }
+        let amount: number = parseFloat(event.target.value);
         if (isNaN(amount)) {
-            amount = undefined;
+            return; 
         }
         const dose = { ...newDose, amount };
         setNewDose(dose);
     }
 
-    const handleTakingDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNextDosegDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.value === undefined) {
             const dose = { ...newDose, takingDate: new Date() };
             setNewDose(dose);
@@ -316,7 +329,7 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Body>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <small className='text-secondary'>{props.count} tab.</small> 
+                        <small className={`text-${props.count < 8 ? "danger" : "success"}`}>{props.count} tab.</small> 
                         {/* <Badge bg="secondary" style={{ width: '70px' }} className="d-none d-md-inline" >{props.count} tab.</Badge> */}
                     </Col>
                     <Col xs="auto">
@@ -428,7 +441,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Row>
                                 <FormGroup as={Col}>
                                     <Form.Label>Od kiedy:</Form.Label>
-                                    <Form.Control type="date" value={formatDate(newDose.takingDate)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTakingDateChange(e)}></Form.Control>
+                                    <Form.Control type="date" value={formatDate(newDose.nextDoseDate)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNextDosegDateChange(e)}></Form.Control>
                                 </FormGroup>
                                 <FormGroup as={Col}>
                                     <Form.Label>Do kiedy:</Form.Label>
@@ -452,10 +465,10 @@ export default function Medicine(props: IMedicineProps) {
                                             <td width="20%">{dose.time}</td>
                                             <td width="20%">{dose.amount} tab.</td>
                                             <td>
-                                                {dose.takingDate.toLocaleDateString('pl-PL')}
+                                                {dose.nextDoseDate.toLocaleString('pl-PL')}
                                             </td>
                                             <td>
-                                                {(dose?.endDate !== null ? dose.endDate.toLocaleDateString('pl') : <i className='text-secondary'>bez końca</i>)}
+                                                {(dose?.endDate !== null ? dose.endDate.toLocaleString('pl') : <i className='text-secondary'>bez końca</i>)}
                                             </td>
                                             <td className='text-end'>
                                                 <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>

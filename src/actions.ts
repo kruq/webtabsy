@@ -17,13 +17,13 @@ export const takeMedicinesAction = async (doses: DoseDetails[]) => {
     console.log(doses.map(d => d.medicine?.name + ' ' + d.time + ' ' + d.doseAmount).reduce((prev, curr) => prev + curr + ';\r\n', ''));
 
     for (const dose of doses) {
-        let noOfDays = countDays(today, new Date(dose.dose.takingDate));
+        let noOfDays = countDays(today, new Date(dose.dose.nextDoseDate));
         for (let i = noOfDays; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
             const hourAndMinute = dose.time.split(":");
             date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-            if (date > new Date(dose.dose.takingDate.toString()) && date < today && dose.medicine !== undefined) {
+            if (date > new Date(dose.dose.nextDoseDate.toString()) && date < today && dose.medicine !== undefined) {
                 const totalDose = dose.dose.amount ?? 0;
                 const med = { ...dose.medicine };
                 med.count -= totalDose;
@@ -50,7 +50,7 @@ export const refreshNotTakenDoses = async () => {
     const elements = meds.reduce((collection: string[], x) => {
         const newDosesArray = x.doses.flatMap(dose => {
 
-            let noOfDays = countDays(today, new Date(dose.takingDate));
+            let noOfDays = countDays(today, new Date(dose.nextDoseDate));
             if (noOfDays > 100) {
                 noOfDays = 0;
             }
@@ -63,8 +63,8 @@ export const refreshNotTakenDoses = async () => {
 
                 const hourAndMinute = dose.time.split(":");
                 date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-                if ((date > new Date(dose.takingDate.toString())) && (date < today)) {
-                    foundDoses.push(`${formatDate(new Date(dose.takingDate.toString()))}, ${dose.time}`);
+                if ((date > new Date(dose.nextDoseDate.toString())) && (date < today)) {
+                    foundDoses.push(`${formatDate(new Date(dose.nextDoseDate.toString()))}, ${dose.time}`);
                 }
                 return foundDoses;
             }, new Array<string>());
