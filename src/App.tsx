@@ -48,6 +48,27 @@ function App() {
   //     ).catch(x => alert(x));
   // }
 
+
+  const weekDays = [
+    'Nd',
+    'Pn',
+    'Wt',
+    'Śr',
+    'Czw',
+    'Pt',
+    'Sb'
+  ]
+
+  const formatDate = (date: Date) => {
+    let d = weekDays[date.getDay()];
+    d = `${d}. ${date.getDate()}`;
+    if (date.getDate() === (new Date()).getDate()) {
+      d = "dziś";
+    }
+    return d;
+  }
+
+
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
   }
@@ -91,72 +112,57 @@ function App() {
     newm.forEach(x => updateMedicine(x));
 
     setMedicines([...newm]);
-    setNotTakenDoses(refreshNotTakenDoses(newm));
+    //    setNotTakenDoses(refreshOverdueDoses(newm));
+    refreshOverdueDoses(newm);
     setShowSpinner(false);
   };
 
 
-  const refreshNotTakenDoses = useCallback((meds: IMedicine[]) => {
-
-    const weekDays = [
-      'Nd',
-      'Pn',
-      'Wt',
-      'Śr',
-      'Czw',
-      'Pt',
-      'Sb'
-    ]
+  const refreshOverdueDoses = useCallback((meds: IMedicine[]) => {
 
 
+    // const today = new Date();
 
-    const formatDate = (date: Date) => {
-      let d = weekDays[date.getDay()];
-      d = `${d}. ${date.getDate()}`;
-      if (date.getDate() === (new Date()).getDate()) {
-        d = "dziś";
-      }
-      return d;
-    }
+    findOverdueDoses().then(groups => {
+      setOverdueDosesGroups(groups);
+    });
 
-    const today = new Date();
+    // const elements = meds.reduce((collection: DoseDetails[], x) => {
+    //   let dosesArray: DoseDetails[] = [];
 
-    const elements = meds.reduce((collection: DoseDetails[], x) => {
-      let dosesArray: DoseDetails[] = [];
+    //   const newDosesArray = x.doses.filter(d => (d.endDate === null || today <= d.endDate) && today >= d.nextDoseDate).flatMap(dose => {
+    //     console.log(dose.time);
 
-      const newDosesArray = x.doses.filter(d => (d.endDate === null || today <= d.endDate) && today >= d.nextDoseDate).flatMap(dose => {
-        console.log(dose.time);
+    //     let noOfDays = countDays(today, dose.nextDoseDate);
+    //     if (noOfDays > 100) {
+    //       noOfDays = 0;
+    //     }
 
-        let noOfDays = countDays(today, dose.nextDoseDate);
-        if (noOfDays > 100) {
-          noOfDays = 0;
-        }
+    //     // Create array of numbers in sequence starting from 0
+    //     const days = [...Array.from(Array(noOfDays + 1).keys())];
 
-        // Create array of numbers in sequence starting from 0
-        const days = [...Array.from(Array(noOfDays + 1).keys())];
+    //     return days.reverse().reduce((foundDoses, dayNo) => {
+    //       const date = new Date(today);
+    //       date.setDate(date.getDate() - dayNo);
 
-        return days.reverse().reduce((foundDoses, dayNo) => {
-          const date = new Date(today);
-          date.setDate(date.getDate() - dayNo);
-
-          const hourAndMinute = dose.time.split(":");
-          date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-          if ((date > dose.nextDoseDate) && (date < today)) {
-            foundDoses.push({ ...dose, date });
-          }
-          return foundDoses;
-        }, new Array<IDoseWithDate>());
-      }).map(dose => { return { doseAmount: dose.amount ?? 0, time: `${formatDate(dose.date)}, ${dose.time}`, dose } });
-      dosesArray = dosesArray.concat(newDosesArray);
-      return collection.concat(dosesArray.map(y => { y.medicine = x; return y }));
-    }, []);
+    //       const hourAndMinute = dose.time.split(":");
+    //       date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
+    //       if ((date > dose.nextDoseDate) && (date < today)) {
+    //         foundDoses.push({ ...dose, date });
+    //       }
+    //       return foundDoses;
+    //     }, new Array<IDoseWithDate>());
+    //   }).map(dose => { return { doseAmount: dose.amount ?? 0, time: `${formatDate(dose.date)}, ${dose.time}`, dose } });
+    //   dosesArray = dosesArray.concat(newDosesArray);
+    //   return collection.concat(dosesArray.map(y => { y.medicine = x; return y }));
+    // }, []);
 
 
 
-    return elements
-      .sort((a, b) => { return a.time > b.time ? 1 : -1 });
+    // return elements
+    //   .sort((a, b) => { return a.time > b.time ? 1 : -1 });
 
-    // useCallback
+    // // useCallback
   }, []);
 
   const handleMedicineClick = (medicineId: string) => {
@@ -173,8 +179,10 @@ function App() {
     });
     fetchMedicines().then(meds => {
       setMedicines(meds);
-      const notTakenDoses = refreshNotTakenDoses(meds)
-      setNotTakenDoses(notTakenDoses);
+      // const notTakenDoses = refreshOverdueDoses(meds)
+      // setNotTakenDoses(notTakenDoses);
+      refreshOverdueDoses(meds);
+
 
       if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
         // dev code
@@ -215,7 +223,7 @@ function App() {
       clearInterval(timer);
     }
 
-  }, [refreshNotTakenDoses, lastCheckTime]);
+  }, [refreshOverdueDoses, lastCheckTime]);
 
   const handleAddMedicineClick = async (e: MouseEvent) => {
     e.preventDefault();
@@ -246,8 +254,9 @@ function App() {
     await deleteMedicine(medicine);
     const meds = medicines.filter(m => m.id !== medicine.id);
     setMedicines(meds);
-    const m = refreshNotTakenDoses(meds);
-    setNotTakenDoses(m);
+    // const m = refreshOverdueDoses(meds);
+    // setNotTakenDoses(m);
+    refreshOverdueDoses(meds);
     setShowSpinner(false);
   }
 
@@ -264,9 +273,10 @@ function App() {
     setMedicines(meds);
     if (!newMedicine) { return }
     await updateMedicine(newMedicine);
-    const m = refreshNotTakenDoses(meds);
-    setNotTakenDoses(m);
+    // const m = refreshOverdueDoses(meds);
+    // setNotTakenDoses(m);
     // setShowSpinner(false);
+    refreshOverdueDoses(meds);
   }
 
 
@@ -333,71 +343,6 @@ function App() {
                       <h6>Wszystkie leki zostały wzięte</h6>
                     </Card.Body>
                   </Card>
-                  {medicines.length > 0 && notTakenDoses.map(x =>
-                    <Card className='my-2' key={'not-taken-dose-' + x.dose.id + '-time-' + x.time}>
-                      <Card.Body>
-                        <Row>
-                          <Col className="fs-5">
-                            <span style={{ display: 'inline', width: '30px', textAlign: 'right' }}>{x.doseAmount === 0.5 ? String.fromCharCode(189) : x.doseAmount}&nbsp;x&nbsp;</span>
-                            <span>{x.medicine?.name}</span>
-                          </Col>
-                          <Col xs='auto' className="text-secondary">
-                            <small>
-                              {x.time}
-                              <span hidden={(x.medicine?.count ?? 0) > 0} className='ms-2 text-danger'><strong>(brak leku)</strong></span>
-                            </small>
-                          </Col>
-                        </Row>
-                        <Row>
-                          <Col>
-                            <small><i>{x.medicine?.description}</i></small>
-                          </Col>
-                        </Row>
-                        <Row className='mt-1'>
-                          <Col>
-                            <Button className='ms-1 text-warning' variant='link' size='sm' disabled={notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date) && (x.medicine?.count ?? 0) > 0} onClick={async () => {
-                              const meds = [...medicines];
-                              const medicine = meds.find(m => m === x.medicine);
-                              if (medicine) {
-                                const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                                if (dose && dose.amount) {
-                                  let newDate = x.dose.date;
-                                  newDate.setDate(newDate.getDate() + 1);
-                                  dose.nextDoseDate = newDate;
-                                  await updateMedicine(medicine);
-                                  setMedicines(meds);
-                                  setNotTakenDoses(refreshNotTakenDoses(meds));
-                                }
-                              }
-                            }}><TfiClose /> Pominięte</Button>
-                          </Col>
-                          <Col xs='auto'>
-                            <Button variant='link'
-                              size='sm'
-                              disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                              onClick={async () => {
-                                const meds = [...medicines];
-                                const medicine = meds.find(m => m === x.medicine);
-                                if (medicine && medicine.count > 0) {
-                                  const dose = medicines.find(m => m === x.medicine)?.doses?.find(d => d.time === x.dose.time);
-                                  if (dose && dose.amount) {
-                                    let newDate = x.dose.date;
-                                    newDate.setTime(newDate.getTime() + 1000);
-                                    dose.nextDoseDate = newDate;
-                                    medicine.count -= dose.amount;
-                                    await updateMedicine(medicine);
-                                    setMedicines(meds);
-                                    setNotTakenDoses(refreshNotTakenDoses(meds));
-                                  }
-                                }
-                              }}>
-                              <TfiCheck /> Potwierdź
-                            </Button>
-                          </Col>
-                        </Row>
-                      </Card.Body>
-                    </Card>
-                  )}
                   <Row hidden={notTakenDoses.length === 0}>
                     <Col></Col>
                     <Col xs="auto">
@@ -408,7 +353,7 @@ function App() {
               </Row>
               <Row>
                 <Col>
-                  {overdueDosesGroups.map(group => <div><h4>{group.time}</h4>{group.doses.map(dose => <p>{dose.medicineName}
+                  {overdueDosesGroups.map(group => <div><h4>{group.date.toLocaleString('pl')}</h4>{group.doses.map(dose => <p>{dose.medicineName}
                     <Button variant='link'
                       size='sm'
                       // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
@@ -426,7 +371,8 @@ function App() {
                             medicine.count -= d2.amount;
                             await updateMedicine(medicine);
                             setMedicines(meds);
-                            setNotTakenDoses(refreshNotTakenDoses(meds));
+                            // setNotTakenDoses(refreshOverdueDoses(meds));
+                            refreshOverdueDoses(meds);
                           }
                         }
                       }}>
@@ -439,7 +385,7 @@ function App() {
           </Col>
           <Col md='3'>
             <section className='my-3'>
-              <Schedule medicines={medicines }/>
+              <Schedule medicines={medicines} />
             </section>
           </Col>
           <Col md='5'>

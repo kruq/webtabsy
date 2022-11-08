@@ -1,11 +1,11 @@
 import OverdueDose from "./OverdueDoses";
 
 export default class OverdueDoseGroup {
-    time: string;
+    date: Date;
     doses: OverdueDose[];
 
-    constructor(group: {time: string, doses: OverdueDose[] | null}) {
-        this.time = group.time;
+    constructor(group: {time: Date, doses: OverdueDose[] | null}) {
+        this.date = group.time;
         this.doses = group.doses ?? new Array<OverdueDose>();
     }
 }

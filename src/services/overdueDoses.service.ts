@@ -11,7 +11,7 @@ export async function findOverdueDoses(): Promise<OverdueDoseGroup[]> {
         var response = await fetch(API_URL + '/' + timezoneOffset, { mode: 'cors', });
         const data: IOverdueDoseGroup[] = await response.json();
         const result: OverdueDoseGroup[] = data.map(item => new OverdueDoseGroup({
-            time: item.time,
+            time: new Date(item.date),
             doses: item.doses.map(dose => new OverdueDose({
                 ...dose,
                 nextDoseDate: new Date(dose.nextDoseDate),

@@ -1,6 +1,6 @@
 import OverdueDose from "./IOverdueDoses";
 
 export default interface IOverdueDoseGroup {
-    time: string;
+    date: string;
     doses: OverdueDose[];
 }
