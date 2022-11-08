@@ -1,4 +1,4 @@
-import IDose from "./models/IDose"
+import IDose from "./models/Dose"
 import IMedicine from "./models/IMedicine"
 
 export interface IDoseWithDate extends IDose {
