@@ -13,8 +13,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import Alert from 'react-bootstrap/Alert';
 import logo from './assets/logo192.png';
-import _ from 'lodash';
-import { DoseDetails, IDoseWithDate } from './types';
+// import { DoseDetails } from './types';
 import { countDays } from './actions';
 import { TfiCheck, TfiClose } from 'react-icons/tfi';
 import OverdueDoseGroup from './models/OverdueDosesGroup';
@@ -22,7 +21,7 @@ import Schedule from './schedule.component';
 
 function App() {
 
-  const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
+  // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
   const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
@@ -337,13 +336,13 @@ function App() {
               <Row>
                 <Col>
                   <strong>Pominięte leki</strong>
-                  <Card hidden={medicines.length === 0 || notTakenDoses.length !== 0} className='my-2'>
+                  <Card hidden={medicines.length === 0 || overdueDosesGroups.length !== 0} className='my-2'>
                     <Card.Body className="text-center">
                       <h4>Gratulacje!</h4>
                       <h6>Wszystkie leki zostały wzięte</h6>
                     </Card.Body>
                   </Card>
-                  <Row hidden={notTakenDoses.length === 0}>
+                  <Row hidden={overdueDosesGroups.length === 0}>
                     <Col></Col>
                     <Col xs="auto">
                       <Button onClick={async () => await handleTakeMedicines()} variant='link'><TfiCheck /> Potwierdź wszystkie</Button>
@@ -353,32 +352,62 @@ function App() {
               </Row>
               <Row>
                 <Col>
-                  {overdueDosesGroups.map(group => <div><h4>{group.date.toLocaleString('pl')}</h4>{group.doses.map(dose => <p>{dose.medicineName}
-                    <Button variant='link'
-                      size='sm'
-                      // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                      onClick={async () => {
-                        const meds = [...medicines];
-                        const medicine = meds.find(m => m.name === dose.medicineName);
-                        if (medicine && medicine.count > 0) {
-                          const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
-                          if (d2 && d2.amount) {
-                            let newDate = d2.nextDoseDate;
-                            const timeParts = d2.time.split(':');
-                            newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                            newDate.setDate(newDate.getDate() + 1);
-                            d2.nextDoseDate = newDate;
-                            medicine.count -= d2.amount;
-                            await updateMedicine(medicine);
-                            setMedicines(meds);
-                            // setNotTakenDoses(refreshOverdueDoses(meds));
-                            refreshOverdueDoses(meds);
-                          }
-                        }
-                      }}>
-                      <TfiCheck /> Potwierdź
-                    </Button>
-                  </p>)}</div>)}
+                  {overdueDosesGroups.map(group => <div><h6>{formatDate(group.date)}</h6>{group.doses.map(dose =>
+                    <Row>
+                      <Col>
+                        <h5>{dose.medicineName}</h5>
+                      </Col>
+                      <Col xs='auto'>
+                        <Button variant='link'
+                          size='sm'
+                          // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                          onClick={async () => {
+                            const meds = [...medicines];
+                            const medicine = meds.find(m => m.name === dose.medicineName);
+                            if (medicine && medicine.count > 0) {
+                              const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                              if (d2 && d2.amount) {
+                                let newDate = d2.nextDoseDate;
+                                const timeParts = d2.time.split(':');
+                                newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                newDate.setDate(newDate.getDate() + 1);
+                                d2.nextDoseDate = newDate;
+                                medicine.count -= d2.amount;
+                                await updateMedicine(medicine);
+                                setMedicines(meds);
+                                refreshOverdueDoses(meds);
+                              }
+                            }
+                          }}>
+                          <TfiCheck /> Potwierdź
+                        </Button>
+                      </Col>
+
+                      <Col xs='auto'>
+                        <Button variant='link'
+                          size='sm'
+                          // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                          onClick={async () => {
+                            const meds = [...medicines];
+                            const medicine = meds.find(m => m.name === dose.medicineName);
+                            if (medicine && medicine.count > 0) {
+                              const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                              if (d2 && d2.amount) {
+                                medicine.count -= d2.amount;
+                                await updateMedicine(medicine);
+                                setMedicines(meds);
+                                refreshOverdueDoses(meds);
+                              }
+                            }
+                          }}>
+                          <TfiClose/> Pomiń
+                        </Button>
+                      </Col>
+                    </Row>
+                  )
+                  }
+                  </div>
+                  )}
                 </Col>
               </Row>
             </section>
