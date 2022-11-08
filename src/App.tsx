@@ -64,7 +64,7 @@ function App() {
     if (date.getDate() === (new Date()).getDate()) {
       d = "dziś";
     }
-    return d;
+    return d + " o " + date.toLocaleTimeString();
   }
 
 
