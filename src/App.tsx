@@ -181,7 +181,7 @@ function App() {
       setMedicines(meds);
       // const notTakenDoses = refreshOverdueDoses(meds)
       // setNotTakenDoses(notTakenDoses);
-      refreshOverdueDoses(meds);
+      // refreshOverdueDoses(meds);
 
 
       if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
