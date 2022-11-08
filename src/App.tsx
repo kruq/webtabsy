@@ -64,7 +64,7 @@ function App() {
     if (date.getDate() === (new Date()).getDate()) {
       d = "dziś";
     }
-    return d + " o " + date.toLocaleTimeString();
+    return d + " o " + date.toLocaleTimeString('pl-PL');
   }
 
 
@@ -352,10 +352,10 @@ function App() {
               </Row>
               <Row>
                 <Col>
-                  {overdueDosesGroups.map(group => <div><h6>{formatDate(group.date)}</h6>{group.doses.map(dose =>
+                  {overdueDosesGroups.map(group => <div><h6 className='text-secondary mt-2 mb-1'>{formatDate(group.date)}</h6>{group.doses.map(dose =>
                     <Row>
                       <Col>
-                        <h5>{dose.medicineName}</h5>
+                        <h5 className='ms-2'>{dose.medicineName}</h5>
                       </Col>
                       <Col xs='auto'>
                         <Button variant='link'
@@ -393,7 +393,11 @@ function App() {
                             if (medicine && medicine.count > 0) {
                               const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
                               if (d2 && d2.amount) {
-                                medicine.count -= d2.amount;
+                                let newDate = d2.nextDoseDate;
+                                const timeParts = d2.time.split(':');
+                                newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                newDate.setDate(newDate.getDate() + 1);
+                                d2.nextDoseDate = newDate;
                                 await updateMedicine(medicine);
                                 setMedicines(meds);
                                 refreshOverdueDoses(meds);
