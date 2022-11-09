@@ -342,12 +342,6 @@ function App() {
                       <h6>Wszystkie leki zostały wzięte</h6>
                     </Card.Body>
                   </Card>
-                  <Row hidden={overdueDosesGroups.length === 0}>
-                    <Col></Col>
-                    <Col xs="auto">
-                      <Button onClick={async () => await handleTakeMedicines()} variant='link'><TfiCheck /> Potwierdź wszystkie</Button>
-                    </Col>
-                  </Row>
                 </Col>
               </Row>
               <Row>
@@ -414,6 +408,12 @@ function App() {
                     }
                   </div>
                   )}
+                </Col>
+              </Row>
+              <Row hidden={overdueDosesGroups.length === 0}>
+                <Col></Col>
+                <Col xs="auto">
+                  <Button onClick={async () => await handleTakeMedicines()} variant='link'><TfiCheck /> Potwierdź wszystkie</Button>
                 </Col>
               </Row>
             </section>
