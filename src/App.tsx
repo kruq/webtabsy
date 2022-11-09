@@ -352,64 +352,66 @@ function App() {
               </Row>
               <Row>
                 <Col>
-                  {overdueDosesGroups.map(group => <div><h6 className='text-secondary mt-2 mb-1'>{formatDate(group.date)}</h6>{group.doses.map(dose =>
-                    <Row>
-                      <Col>
-                        <h5 className='ms-2'>{dose.medicineName}</h5>
-                      </Col>
-                      <Col xs='auto'>
-                        <Button variant='link'
-                          size='sm'
-                          // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                          onClick={async () => {
-                            const meds = [...medicines];
-                            const medicine = meds.find(m => m.name === dose.medicineName);
-                            if (medicine && medicine.count > 0) {
-                              const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
-                              if (d2 && d2.amount) {
-                                let newDate = d2.nextDoseDate;
-                                const timeParts = d2.time.split(':');
-                                newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                                newDate.setDate(newDate.getDate() + 1);
-                                d2.nextDoseDate = newDate;
-                                medicine.count -= d2.amount;
-                                await updateMedicine(medicine);
-                                setMedicines(meds);
-                                refreshOverdueDoses(meds);
+                  {overdueDosesGroups.map(group => <div>
+                    <p className='text-secondary mt-3 mb-1'><small>{formatDate(group.date)}</small></p>
+                    {group.doses.map(dose =>
+                      <Row>
+                        <Col>
+                          <p>{dose.medicineName}</p>
+                        </Col>
+                        <Col xs='auto'>
+                          <Button variant='link'
+                            size='sm'
+                            // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                            onClick={async () => {
+                              const meds = [...medicines];
+                              const medicine = meds.find(m => m.name === dose.medicineName);
+                              if (medicine && medicine.count > 0) {
+                                const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                                if (d2 && d2.amount) {
+                                  let newDate = d2.nextDoseDate;
+                                  const timeParts = d2.time.split(':');
+                                  newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                  newDate.setDate(newDate.getDate() + 1);
+                                  d2.nextDoseDate = newDate;
+                                  medicine.count -= d2.amount;
+                                  await updateMedicine(medicine);
+                                  setMedicines(meds);
+                                  refreshOverdueDoses(meds);
+                                }
                               }
-                            }
-                          }}>
-                          <TfiCheck /> Potwierdź
-                        </Button>
-                      </Col>
+                            }}>
+                            <TfiCheck /> Potwierdź
+                          </Button>
+                        </Col>
 
-                      <Col xs='auto'>
-                        <Button variant='link'
-                          size='sm'
-                          // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                          onClick={async () => {
-                            const meds = [...medicines];
-                            const medicine = meds.find(m => m.name === dose.medicineName);
-                            if (medicine && medicine.count > 0) {
-                              const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
-                              if (d2 && d2.amount) {
-                                let newDate = d2.nextDoseDate;
-                                const timeParts = d2.time.split(':');
-                                newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                                newDate.setDate(newDate.getDate() + 1);
-                                d2.nextDoseDate = newDate;
-                                await updateMedicine(medicine);
-                                setMedicines(meds);
-                                refreshOverdueDoses(meds);
+                        <Col xs='auto'>
+                          <Button variant='link'
+                            size='sm'
+                            // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                            onClick={async () => {
+                              const meds = [...medicines];
+                              const medicine = meds.find(m => m.name === dose.medicineName);
+                              if (medicine && medicine.count > 0) {
+                                const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                                if (d2 && d2.amount) {
+                                  let newDate = d2.nextDoseDate;
+                                  const timeParts = d2.time.split(':');
+                                  newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                  newDate.setDate(newDate.getDate() + 1);
+                                  d2.nextDoseDate = newDate;
+                                  await updateMedicine(medicine);
+                                  setMedicines(meds);
+                                  refreshOverdueDoses(meds);
+                                }
                               }
-                            }
-                          }}>
-                          <TfiClose/> Pomiń
-                        </Button>
-                      </Col>
-                    </Row>
-                  )
-                  }
+                            }}>
+                            <TfiClose /> Pomiń
+                          </Button>
+                        </Col>
+                      </Row>
+                    )
+                    }
                   </div>
                   )}
                 </Col>
