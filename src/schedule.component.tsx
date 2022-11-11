@@ -29,8 +29,11 @@ export default function Schedule(props: IScheduleProps) {
                         })
                         .flatMap(x => x),
                     x => x.dose.time
-                )).sort((x, y) => x > y ? 1 : -1).map(x => <Card className='my-2' key={'schedule-' + x[1][0].dose.id}><Card.Header>Godz.{x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
-                )}
+                ))
+                    .sort((x, y) => x > y ? 1 : -1)
+                    .map(x =>
+                        <Card className='my-2' key={'schedule-' + x[1][0].dose.id}><Card.Header>{x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
+                    )}
             </Col>
         </Row>
     </>
