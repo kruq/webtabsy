@@ -323,7 +323,6 @@ export default function Medicine(props: IMedicineProps) {
         setCount(props.count);
         //setDescription(props.description);
         // setIsVisible(props.isVisible);
-        console.log(props.count);
     }, [props.count, props.description]);
 
     return (

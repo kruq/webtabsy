@@ -20,7 +20,6 @@ export default class Dose {
     }
 
     public static fromDTO(dtoObj: IDoseDTO) {
-        console.log(dtoObj.nextDoseDate);
         return new Dose(
             dtoObj.id,
             dtoObj.time,
