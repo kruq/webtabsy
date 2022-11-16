@@ -34,6 +34,8 @@ function App() {
 
   const [overdueDosesGroups, setOverdueDosesGroups] = useState<OverdueDoseGroup[]>([]);
 
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
   // if (Notification.permission !== 'granted') {
   //   Notification.requestPermission()
   //     .then(
@@ -211,11 +213,12 @@ function App() {
       }
     }).catch((error) => {
       if (error.code === "ERR_NETWORK") {
-        alert("Bład połączenia!")
+        setErrorMessage("Bład połączenia!")
       } else {
-        alert("Wystąpił nieznany błąd");
+        setErrorMessage("Wystąpił nieznany błąd");
       }
       console.error(error);
+      setTimeout(() => setErrorMessage(''), 3000);
     });
 
     const timer = setInterval(() => setLastCheckTime(new Date()), 60000);
@@ -251,13 +254,21 @@ function App() {
     setShowSpinner(true);
     const medicine = medicines.find(m => m.id === id);
     if (!medicine) { return }
-    await deleteMedicine(medicine);
-    const meds = medicines.filter(m => m.id !== medicine.id);
-    setMedicines(meds);
-    // const m = refreshOverdueDoses(meds);
-    // setNotTakenDoses(m);
-    refreshOverdueDoses(meds);
-    setShowSpinner(false);
+    try {
+      await deleteMedicine(medicine);
+      const meds = medicines.filter(m => m.id !== medicine.id);
+      setMedicines(meds);
+      // const m = refreshOverdueDoses(meds);
+      // setNotTakenDoses(m);
+      refreshOverdueDoses(meds);
+    }
+    catch (e: any) {
+      setErrorMessage("Błąd podczas usuwania leku");
+      setTimeout(() => setErrorMessage(''), 3000);
+    }
+    finally {
+      setShowSpinner(false);
+    }
   }
 
   const handleUpdateMedicine = async (id: string, params: any) => {
@@ -493,6 +504,10 @@ function App() {
           </Col>
         </Row>
       </Container >
+
+      <Alert variant='danger' className='position-fixed ms-auto me-auto start-0 end-0 top-0' hidden={errorMessage?.length === 0}>
+        {errorMessage}
+      </Alert>
     </>
   );
 }

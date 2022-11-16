@@ -45,9 +45,13 @@ export const updateMedicine = async (medicine: IMedicine) => {
 }
 
 export const deleteMedicine = async (medicine: IMedicine) => {
-    await fetch(API_URL, {
+    var response = await fetch(API_URL, {
         method: "DELETE",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(medicine)
     })
+
+    if (response.status !== 200) {
+        throw Error('Cannot delete medicine');
+    }
 }
