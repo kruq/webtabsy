@@ -183,32 +183,34 @@ export default function Medicine(props: IMedicineProps) {
         }
         let amount: number = parseFloat(event.target.value);
         if (isNaN(amount)) {
-            return; 
+            return;
         }
         const dose = { ...newDose, amount };
         setNewDose(dose);
     }
 
     const handleNextDosegDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.value === undefined) {
-            const dose = { ...newDose, takingDate: new Date() };
+        const dateNumber: number = Date.parse(event.target.value);
+        if (!isNaN(dateNumber)) {
+            let value: Date = new Date(dateNumber);
+            value.setHours(0, 0, 0, 0);
+            const dose = { ...newDose, nextDoseDate: value };
             setNewDose(dose);
-        }
-
-        let value: Date | undefined = new Date(event.target.value);
-        value.setHours(0, 0, 0, 0);
-        const dose = { ...newDose, takingDate: value };
-        setNewDose(dose);
+        }        
     }
 
     const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.value === undefined) {
-            const dose = { ...newDose, endDate: null };
-            setNewDose(dose);
-        }
+        // if (event.target.value === undefined) {
+        //     const dose = { ...newDose, endDate: null };
+        //     setNewDose(dose);
+        // }
 
-        let value: Date | undefined = new Date(event.target.value);
-        value.setHours(23, 59, 59, 100);
+        const dateNumber: number = Date.parse(event.target.value);
+        let value: Date | null = null;
+        if (!isNaN(dateNumber)) {
+            value = new Date(dateNumber);
+            value.setHours(23, 59, 59, 100);
+        }
         const dose = { ...newDose, endDate: value };
         setNewDose(dose);
     }
@@ -329,11 +331,11 @@ export default function Medicine(props: IMedicineProps) {
             <Card.Body>
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
-                        <small className={`text-${props.count < 8 ? "danger" : "success"}`}>{props.count} tab.</small> 
+                        <small className={`text-${props.count < 8 ? "danger" : "success"}`}>{props.count} tab.</small>
                         {/* <Badge bg="secondary" style={{ width: '70px' }} className="d-none d-md-inline" >{props.count} tab.</Badge> */}
                     </Col>
                     <Col xs="auto">
-                        <small className={`text-${countNumberOfDays() < 8 ? "danger" : "success"}`}>{countNumberOfDays()} dni</small> 
+                        <small className={`text-${countNumberOfDays() < 8 ? "danger" : "success"}`}>{countNumberOfDays()} dni</small>
                         {/* <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="d-none d-md-inline" hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </> */}
                     </Col>
                 </Row>

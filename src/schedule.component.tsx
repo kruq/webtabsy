@@ -23,7 +23,10 @@ export default function Schedule(props: IScheduleProps) {
                         .map(m => {
                             return m.doses
                                 .filter(d => (() => {
-                                    return (d.endDate === null || d.nextDoseDate <= d.endDate);
+                                    const today = new Date();
+                                    today.setDate(today.getDate() + 1)
+                                    today.setHours(23, 59, 59);
+                                    return (d.endDate === null || d.nextDoseDate <= d.endDate) && (d.nextDoseDate <= today);
                                 })())
                                 .map(d => { return { dose: d, name: m.name }; });
                         })

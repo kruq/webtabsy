@@ -330,7 +330,7 @@ function App() {
             </Col>
           </Row>
         </header>
-        <div>{medicines.length > 0 || (<span>Loading...</span>)}</div>
+        <div>{medicines.length > 0 || (<span>Wczytywanie danych...</span>)}</div>
         <Row hidden={medicines.length === 0}>
           <Col md='4'>
             <section className='my-3'>
@@ -348,14 +348,14 @@ function App() {
               <Row>
                 <Col>
                   {overdueDosesGroups.map(group => <div>
-                    <Card className='my-2' key={'schedule-' + group.date}>
+                    <Card className='my-2' key={'overdue-group-' + group.date}>
                       <Card.Header>{formatDate(group.date)}</Card.Header>
                       <Card.Body>
                         <Row>
                           <Col>
                           </Col>
                         </Row>
-                        {group.doses.map(dose => <div key={'schedule-dose-' + dose.id}>
+                        {group.doses.map(dose => <div key={'overdue-dose-' + dose.id}>
                           <Row>
                             <Col>
                               {dose.amount}{' x '}{dose.medicineName}

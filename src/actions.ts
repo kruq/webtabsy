@@ -31,14 +31,6 @@ export const takeMedicinesAction = async (doses: DoseDetails[]) => {
             }
         }
     };
-
-
-    // const newDateTaken = today;
-    // med.doses.forEach(d => d.takingDate = new Date(newDateTaken));
-    //newm.push(med);
-
-    // newm.forEach(async (x) => await updateMedicine(x));
-
 };
 
 export const refreshNotTakenDoses = async () => {
