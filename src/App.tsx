@@ -369,7 +369,7 @@ function App() {
                         {group.doses.map(dose => <div key={'overdue-dose-' + dose.id}>
                           <Row>
                             <Col>
-                              {dose.amount}{' x '}{dose.medicineName} ({medicines.find(m => m.name === dose.medicineName)?.count} tab.)
+                              {dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)</small>
                             </Col>
                             <Col xs='auto'>
                               <Button variant='link text-danger'
@@ -378,7 +378,7 @@ function App() {
                                 onClick={async () => {
                                   const meds = [...medicines];
                                   const medicine = meds.find(m => m.name === dose.medicineName);
-                                  if (medicine && medicine.count > 0) {
+                                  if (medicine) {
                                     const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
                                     if (d2 && d2.amount) {
                                       let newDate = d2.nextDoseDate;
@@ -401,6 +401,7 @@ function App() {
                               <Button variant='link'
                                 size='sm'
                                 // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                                disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0}
                                 onClick={async () => {
                                   const meds = [...medicines];
                                   const medicine = meds.find(m => m.name === dose.medicineName);
