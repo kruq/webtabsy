@@ -369,7 +369,7 @@ function App() {
                         {group.doses.map(dose => <div key={'overdue-dose-' + dose.id}>
                           <Row>
                             <Col>
-                              {dose.amount}{' x '}{dose.medicineName} ({medicines.find(m => m.name == dose.medicineName)?.count} tab.)
+                              {dose.amount}{' x '}{dose.medicineName} ({medicines.find(m => m.name === dose.medicineName)?.count} tab.)
                             </Col>
                             <Col xs='auto'>
                               <Button variant='link text-danger'
