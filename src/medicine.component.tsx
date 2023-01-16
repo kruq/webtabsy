@@ -13,7 +13,7 @@ import Table from 'react-bootstrap/Table';
 import FormGroup from 'react-bootstrap/FormGroup';
 import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
-import { CgPill, } from 'react-icons/cg';
+// import { CgPill, } from 'react-icons/cg';
 import { TfiPencil, TfiCheck } from 'react-icons/tfi';
 
 
