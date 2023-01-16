@@ -343,7 +343,7 @@ export default function Medicine(props: IMedicineProps) {
                         <h6>{props.name}</h6>
                     </Col>
                     <Col xs="auto">
-                        <Button variant='outline-primary' size='sm' onClick={async (e) => await takeOneHandler(e)} aria-label='Take one pill'><CgPill /> Weź lek</Button>
+                        <Button variant='link' size='sm' onClick={async (e) => await takeOneHandler(e)} aria-label='Take one pill'>Weź lek</Button>
                     </Col>
                 </Row>
                 <div hidden={props.id !== props.idOfMedicineDetails}>
