@@ -359,18 +359,11 @@ function App() {
               <Row>
                 <Col>
                   {overdueDosesGroups.map(group => <div>
+                    <small>{formatDate(group.date)}</small>
                     <Card className='my-2' key={'overdue-group-' + group.date}>
-                      <Card.Header>{formatDate(group.date)}</Card.Header>
                       <Card.Body>
-                        <Row>
-                          <Col>
-                          </Col>
-                        </Row>
                         {group.doses.map(dose => <div key={'overdue-dose-' + dose.id}>
                           <Row>
-                            <Col>
-                              {dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)</small>
-                            </Col>
                             <Col xs='auto'>
                               <Button variant='link text-danger'
                                 size='sm'
@@ -386,6 +379,7 @@ function App() {
                                       newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
                                       // TODO:
                                       // nie zawsze dodanie 1 do aktualnie ustawionej daty jest ok
+                                      // tylko nie pamiętam dlaczego :/
                                       newDate.setDate(newDate.getDate() + 1);
                                       d2.nextDoseDate = newDate;
                                       await updateMedicine(medicine);
@@ -394,8 +388,11 @@ function App() {
                                     }
                                   }
                                 }}>
-                                <TfiClose /> Pomiń
+                                <TfiClose />
                               </Button>
+                            </Col>
+                            <Col>
+                              {dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)</small>
                             </Col>
                             <Col xs='auto'>
                               <Button variant='link'
@@ -420,7 +417,7 @@ function App() {
                                     }
                                   }
                                 }}>
-                                <TfiCheck /> Potwierdź
+                                <TfiCheck />
                               </Button>
                             </Col>
                           </Row>
@@ -437,11 +434,6 @@ function App() {
                   <Button onClick={async () => await handleTakeMedicines()} variant='link' disabled><TfiCheck /> Potwierdź wszystkie</Button>
                 </Col>
               </Row>
-            </section>
-          </Col>
-          <Col md='3'>
-            <section className='my-3'>
-              <Schedule medicines={medicines} />
             </section>
           </Col>
           <Col md='5'>
@@ -501,6 +493,11 @@ function App() {
                   <Button variant='link' onClick={() => setAddMedicinceDialogVisible(true)} style={{ padding: '0px', border: '0px' }} className='mr-2'>Dodaj lek</Button>
                 </Col>
               </Row>
+            </section>
+          </Col>
+          <Col md='3'>
+            <section className='my-3'>
+              <Schedule medicines={medicines} />
             </section>
           </Col>
         </Row>
