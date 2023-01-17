@@ -13,7 +13,7 @@ export default function Schedule(props: IScheduleProps) {
     return <>
         <Row>
             <Col>
-                <strong>Grafik</strong>
+                {/* <strong>Grafik</strong> */}
             </Col>
         </Row><Row>
             <Col>

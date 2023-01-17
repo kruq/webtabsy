@@ -18,6 +18,8 @@ import { countDays } from './actions';
 import { TfiCheck, TfiClose } from 'react-icons/tfi';
 import OverdueDoseGroup from './models/OverdueDosesGroup';
 import Schedule from './schedule.component';
+import Tab from 'react-bootstrap/Tab';
+import Tabs from 'react-bootstrap/Tabs';
 
 function App() {
 
@@ -342,7 +344,169 @@ function App() {
           </Row>
         </header>
         <div>{medicines.length > 0 || (<span>Wczytywanie danych...</span>)}</div>
-        <Row hidden={medicines.length === 0}>
+        <Tabs
+          hidden={medicines.length === 0}
+          defaultActiveKey="missingDoses"
+        >
+          <Tab eventKey="missingDoses" title="Pominięte leki">
+            <section className='my-3'>
+              <Row>
+                <Col>
+                  {/* <strong>Pominięte leki</strong> */}
+                  <Card hidden={medicines.length === 0 || overdueDosesGroups.length !== 0} className='my-2'>
+                    <Card.Body className="text-center">
+                      <h4>Gratulacje!</h4>
+                      <h6>Wszystkie leki zostały wzięte</h6>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  {overdueDosesGroups.map(group => <div>
+                    <small>{formatDate(group.date)}</small>
+                    <Card className='my-2' key={'overdue-group-' + group.date}>
+                      <Card.Body>
+                        {group.doses.map(dose => <div key={'overdue-dose-' + dose.id}>
+                          <Row>
+                            <Col xs='auto'>
+                              <Button variant='link text-danger'
+                                size='sm'
+                                // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                                onClick={async () => {
+                                  const meds = [...medicines];
+                                  const medicine = meds.find(m => m.name === dose.medicineName);
+                                  if (medicine) {
+                                    const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                                    if (d2 && d2.amount) {
+                                      let newDate = d2.nextDoseDate;
+                                      const timeParts = d2.time.split(':');
+                                      newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                      // TODO:
+                                      // nie zawsze dodanie 1 do aktualnie ustawionej daty jest ok
+                                      // tylko nie pamiętam dlaczego :/
+                                      newDate.setDate(newDate.getDate() + 1);
+                                      d2.nextDoseDate = newDate;
+                                      await updateMedicine(medicine);
+                                      setMedicines(meds);
+                                      refreshOverdueDoses(meds);
+                                    }
+                                  }
+                                }}>
+                                <TfiClose />
+                              </Button>
+                            </Col>
+                            <Col>
+                              {dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)</small>
+                            </Col>
+                            <Col xs='auto'>
+                              <Button variant='link'
+                                size='sm'
+                                // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                                disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0}
+                                onClick={async () => {
+                                  const meds = [...medicines];
+                                  const medicine = meds.find(m => m.name === dose.medicineName);
+                                  if (medicine && medicine.count > 0) {
+                                    const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                                    if (d2 && d2.amount) {
+                                      let newDate = d2.nextDoseDate;
+                                      const timeParts = d2.time.split(':');
+                                      newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                      newDate.setDate(newDate.getDate() + 1);
+                                      d2.nextDoseDate = newDate;
+                                      medicine.count -= d2.amount;
+                                      await updateMedicine(medicine);
+                                      setMedicines(meds);
+                                      refreshOverdueDoses(meds);
+                                    }
+                                  }
+                                }}>
+                                <TfiCheck />
+                              </Button>
+                            </Col>
+                          </Row>
+                        </div>)}
+                      </Card.Body>
+                    </Card>
+                  </div>
+                  )}
+                </Col>
+              </Row>
+              <Row hidden={overdueDosesGroups.length === 0}>
+                <Col></Col>
+                <Col xs="auto" className="mt-2">
+                  <Button onClick={async () => await handleTakeMedicines()} variant='link' disabled><TfiCheck /> Potwierdź wszystkie</Button>
+                </Col>
+              </Row>
+            </section>
+          </Tab>
+          <Tab eventKey="medicines" title="Lista leków">
+            <section className='my-3'>
+              <Row>
+                <Col>
+                  {/* <strong>Lista leków</strong> */}
+                </Col>
+                <Col xs="auto">
+                  <Form.Switch
+                    checked={!showAll}
+                    label='Filtrowanie'
+                    onChange={(e) => { setShowAll(!e.target.checked); localStorage.setItem('showAll', (!e.target.checked).toString()); setIdOfMedicineDetails(''); }}
+                  />
+                </Col>
+              </Row>
+              <Row>
+                <Col>{medicines
+                  .sort((a, b) => (a.name > b.name ? 1 : -1))
+                  .filter(m => showAll || m.isVisible)
+                  .map((x: IMedicine) =>
+                    <Medicine
+                      key={'medicine-' + x.id}
+                      {...x}
+                      idOfMedicineDetails={idOfMedicineDetails}
+                      medicineClick={handleMedicineClick}
+                      updateMedicine={handleUpdateMedicine}
+                      deleteMedicine={handleDeleteMedicine}
+                    />
+                  )}
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <dialog open={addMedicineDialogVisible} style={{ zIndex: '1000', position: 'absolute', margin: 'auto', bottom: '0' }}>
+                    <strong>Nowy lek</strong>
+                    <Form>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Nazwa leku</Form.Label>
+                        <Form.Control type="text"
+                          value={newMedicineName}
+                          onChange={handleNewMedicineNameChange}>
+                        </Form.Control>
+                      </Form.Group>
+                      <Row className='text-end'>
+                        <Col>
+                          <Button type="submit" onClick={(e) => { handleAddMedicineClick(e); setAddMedicinceDialogVisible(false); }} variant="primary">Dodaj</Button>
+                          <Button className='ms-2' variant='secondary' onClick={() => setAddMedicinceDialogVisible(false)}>Anuluj</Button>
+                        </Col>
+                      </Row>
+                    </Form>
+                  </dialog>
+                </Col>
+              </Row>
+              <Row>
+                <Col className='text-end pr-2'>
+                  <Button variant='link' onClick={() => setAddMedicinceDialogVisible(true)} style={{ padding: '0px', border: '0px' }} className='mr-2'>Dodaj lek</Button>
+                </Col>
+              </Row>
+            </section>
+          </Tab>
+          <Tab eventKey="schedule" title="Grafik">
+            <section className='my-3'>
+              <Schedule medicines={medicines} />
+            </section>
+          </Tab>
+        </Tabs>
+        {/* <Row hidden={medicines.length === 0}>
           <Col md='4'>
             <section className='my-3'>
               <Row>
@@ -499,8 +663,8 @@ function App() {
             <section className='my-3'>
               <Schedule medicines={medicines} />
             </section>
-          </Col>
-        </Row>
+          </Col> 
+        </Row>*/}
       </Container >
 
       <Alert variant='danger' className='position-fixed ms-auto me-auto start-0 end-0 top-0' hidden={errorMessage?.length === 0}>
