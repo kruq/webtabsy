@@ -34,7 +34,7 @@ interface INewPurchase {
 export default function Medicine(props: IMedicineProps) {
     const lastPurchase: IPurchase | undefined = props.purchases?.[(props.purchases?.length ?? 0) - 1];
 
-    const defaultDose: Dose = { id: Uuid(), time: "", amount: 1, nextDoseDate: new Date(), endDate: null }
+    const defaultDose: Dose = { id: Uuid(), time: "", amount: 1, numberOfDays: 1, nextDoseDate: new Date(), endDate: null }
     const defaultPurchase: INewPurchase = {
         numberOfPackages: 1,
         numberOfTabletsInPackage: lastPurchase?.numberOfTablets,
@@ -189,6 +189,19 @@ export default function Medicine(props: IMedicineProps) {
         setNewDose(dose);
     }
 
+
+    const handleDoseNumberOfDaysChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.value === undefined) {
+            return;
+        }
+        let numberOfDays: number = parseFloat(event.target.value);
+        if (isNaN(numberOfDays)) {
+            return;
+        }
+        const dose = { ...newDose, numberOfDays };
+        setNewDose(dose);
+    }
+
     const handleNextDosegDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const dateNumber: number = Date.parse(event.target.value);
         if (!isNaN(dateNumber)) {
@@ -196,7 +209,7 @@ export default function Medicine(props: IMedicineProps) {
             value.setHours(0, 0, 0, 0);
             const dose = { ...newDose, nextDoseDate: value };
             setNewDose(dose);
-        }        
+        }
     }
 
     const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,6 +338,7 @@ export default function Medicine(props: IMedicineProps) {
         // setIsVisible(props.isVisible);
     }, [props.count, props.description]);
 
+
     return (
         <Card className="my-2">
             <Card.Body>
@@ -438,6 +452,10 @@ export default function Medicine(props: IMedicineProps) {
                                     <Form.Label>Ilość tabletek:</Form.Label>
                                     <Form.Control type="number" value={newDose?.amount} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseAmountChange(e)}></Form.Control>
                                 </FormGroup>
+                                <FormGroup as={Col}>
+                                    <Form.Label>Co ile dni:</Form.Label>
+                                    <Form.Control type='number' value={newDose?.numberOfDays} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDoseNumberOfDaysChange(e)} />
+                                </FormGroup>
                             </Row>
                             <Row>
                                 <FormGroup as={Col}>
@@ -449,6 +467,21 @@ export default function Medicine(props: IMedicineProps) {
                                     <Form.Control type="date" value={formatDate(newDose?.endDate)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleEndDateChange(e)}></Form.Control>
                                 </FormGroup>
                             </Row>
+                            {/* TODO: Dodać obsługe dni tygodnia */}
+                            {/* <Row>
+                                <FormGroup as={Col}>
+                                    <Form.Label>Dni tygodnia:</Form.Label>
+                                    <InputGroup>
+                                        <Form.Check type='checkbox' label='Pn.' className='me-2' checked/>
+                                        <Form.Check type='checkbox' label='Wt.' className='me-2' checked/>
+                                        <Form.Check type='checkbox' label='Śr.' className='me-2' checked/>
+                                        <Form.Check type='checkbox' label='Cz.' className='me-2' checked/>
+                                        <Form.Check type='checkbox' label='Pt.' className='me-2' checked/>
+                                        <Form.Check type='checkbox' label='Sb.' className='me-2' checked/>
+                                        <Form.Check type='checkbox' label='Nd.' className='me-2' checked/>
+                                    </InputGroup>
+                                </FormGroup>
+                            </Row> */}
                             <Row className='text-end'>
                                 <Col>
                                     <Button onClick={handleAddDose} variant="primary" type="submit" className='mt-3' disabled={!newDoseValid}>Dodaj dawkę</Button>
@@ -465,6 +498,7 @@ export default function Medicine(props: IMedicineProps) {
                                         <tr key={'medicine-dose-' + dose.id}>
                                             <td width="20%">{dose.time}</td>
                                             <td width="20%">{dose.amount} tab.</td>
+                                            <td width="20%">{dose.numberOfDays ?? 1} dzień/dni</td>
                                             <td>
                                                 {dose.nextDoseDate.toLocaleString('pl-PL')}
                                             </td>

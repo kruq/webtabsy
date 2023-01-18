@@ -400,7 +400,7 @@ function App() {
                                 </Button>
                               </Col>
                               <Col>
-                                <strong>{dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)</small></strong>
+                                <strong>{dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)(co {(dose.numberOfDays ?? 1)} dzień/dni)</small></strong>
                               </Col>
                               <Col xs='auto'>
                                 <Button
@@ -416,7 +416,7 @@ function App() {
                                         let newDate = d2.nextDoseDate;
                                         const timeParts = d2.time.split(':');
                                         newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                                        newDate.setDate(newDate.getDate() + 1);
+                                        newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                         d2.nextDoseDate = newDate;
                                         medicine.count -= d2.amount;
                                         await updateMedicine(medicine);

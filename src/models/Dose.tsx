@@ -6,15 +6,18 @@ export default class Dose {
     amount: number;
     nextDoseDate: Date;
     endDate: Date | null;
+    numberOfDays: number;
 
     constructor(id: string,
         time: string,
         amount: number,
+        numberOfDays: number,
         nextDoseDate: Date,
         endDate: Date | null = null) {
         this.id = id;
         this.time = time;
         this.amount = amount;
+        this.numberOfDays = numberOfDays;
         this.nextDoseDate = nextDoseDate;
         this.endDate = endDate;
     }
@@ -24,6 +27,7 @@ export default class Dose {
             dtoObj.id,
             dtoObj.time,
             dtoObj.amount,
+            dtoObj.numberOfDays,
             new Date(dtoObj.nextDoseDate.toString()),
             (dtoObj.endDate && new Date(dtoObj.endDate?.toString())) || null
         )
