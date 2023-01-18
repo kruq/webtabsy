@@ -12,7 +12,7 @@ interface IScheduleProps {
 export default function Schedule(props: IScheduleProps) {
     return <>
         <Row>
-            <Col  className="d-flex flex-column align-items-center">
+            <Col className="d-flex flex-column align-items-center">
                 {Object.entries(_.groupBy(
                     props.medicines
                         .filter(m => m.doses.length > 0)
@@ -31,7 +31,7 @@ export default function Schedule(props: IScheduleProps) {
                 ))
                     .sort((x, y) => x > y ? 1 : -1)
                     .map(x =>
-                        <Row className="w-50">
+                        <Row className="w-75">
                             <Col xs="auto" className="d-flex align-items-center">
                                 <strong className="text-secondary">{x[0]}</strong>
                             </Col>

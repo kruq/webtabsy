@@ -20,6 +20,7 @@ import OverdueDoseGroup from './models/OverdueDosesGroup';
 import Schedule from './schedule.component';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
+import moment from 'moment';
 
 function App() {
 
@@ -68,7 +69,7 @@ function App() {
     if (date.getDate() === (new Date()).getDate()) {
       d = "dziś";
     }
-    return d + " o " + date.toLocaleTimeString('pl-PL');
+    return d + " o " + (moment(date).format("HH:mm"));
   }
 
 
@@ -350,7 +351,7 @@ function App() {
           fill
           justify
         >
-          <Tab eventKey="missingDoses" title="Pominięte leki" className='bg-white h-100'>
+          <Tab eventKey="missingDoses" title="Pominięte leki" className='bg-white h-100 p-3 justify-content-center'>
             <Row hidden={medicines.length === 0 || overdueDosesGroups.length !== 0} className="mt-5">
               <Col>
                 <Card.Body className="text-center">
@@ -361,73 +362,78 @@ function App() {
             </Row>
             <Row>
               <Col>
-                {overdueDosesGroups.map(group => <div>
-                  <small>{formatDate(group.date)}</small>
-                  <Card key={'overdue-group-' + group.date}>
-                    <Card.Body>
-                      {group.doses.map(dose => <div key={'overdue-dose-' + dose.id}>
-                        <Row>
-                          <Col xs='auto'>
-                            <Button variant='link text-danger'
-                              size='sm'
-                              // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                              onClick={async () => {
-                                const meds = [...medicines];
-                                const medicine = meds.find(m => m.name === dose.medicineName);
-                                if (medicine) {
-                                  const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
-                                  if (d2 && d2.amount) {
-                                    let newDate = d2.nextDoseDate;
-                                    const timeParts = d2.time.split(':');
-                                    newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                                    // TODO:
-                                    // nie zawsze dodanie 1 do aktualnie ustawionej daty jest ok
-                                    // tylko nie pamiętam dlaczego :/
-                                    newDate.setDate(newDate.getDate() + 1);
-                                    d2.nextDoseDate = newDate;
-                                    await updateMedicine(medicine);
-                                    setMedicines(meds);
-                                    refreshOverdueDoses(meds);
-                                  }
-                                }
-                              }}>
-                              <TfiClose />
-                            </Button>
-                          </Col>
-                          <Col>
-                            {dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)</small>
-                          </Col>
-                          <Col xs='auto'>
-                            <Button variant='link'
-                              size='sm'
-                              // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                              disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0}
-                              onClick={async () => {
-                                const meds = [...medicines];
-                                const medicine = meds.find(m => m.name === dose.medicineName);
-                                if (medicine && medicine.count > 0) {
-                                  const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
-                                  if (d2 && d2.amount) {
-                                    let newDate = d2.nextDoseDate;
-                                    const timeParts = d2.time.split(':');
-                                    newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                                    newDate.setDate(newDate.getDate() + 1);
-                                    d2.nextDoseDate = newDate;
-                                    medicine.count -= d2.amount;
-                                    await updateMedicine(medicine);
-                                    setMedicines(meds);
-                                    refreshOverdueDoses(meds);
-                                  }
-                                }
-                              }}>
-                              <TfiCheck />
-                            </Button>
-                          </Col>
-                        </Row>
-                      </div>)}
-                    </Card.Body>
-                  </Card>
-                </div>
+                {overdueDosesGroups.map(group =>
+                  <Row>
+                    <Col xs="auto" className="d-flex align-items-center">
+                      <strong className='text-secondary'><small>{formatDate(group.date)}</small></strong>
+                    </Col>
+                    <Col>
+                      {group.doses.map(dose =>
+                        <Card key={'overdue-dose-' + dose.id}>
+                          <Card.Body>
+                            <Row className='d-flex align-items-center'>
+                              <Col xs='auto'>
+                                <Button variant='danger'
+                                  size='sm'
+                                  // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                                  onClick={async () => {
+                                    const meds = [...medicines];
+                                    const medicine = meds.find(m => m.name === dose.medicineName);
+                                    if (medicine) {
+                                      const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                                      if (d2 && d2.amount) {
+                                        let newDate = d2.nextDoseDate;
+                                        const timeParts = d2.time.split(':');
+                                        newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                        // TODO:
+                                        // nie zawsze dodanie 1 do aktualnie ustawionej daty jest ok
+                                        // tylko nie pamiętam dlaczego :/
+                                        newDate.setDate(newDate.getDate() + 1);
+                                        d2.nextDoseDate = newDate;
+                                        await updateMedicine(medicine);
+                                        setMedicines(meds);
+                                        refreshOverdueDoses(meds);
+                                      }
+                                    }
+                                  }}>
+                                  <TfiClose />
+                                </Button>
+                              </Col>
+                              <Col>
+                                <strong>{dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)</small></strong>
+                              </Col>
+                              <Col xs='auto'>
+                                <Button
+                                  size='sm'
+                                  // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
+                                  disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0}
+                                  onClick={async () => {
+                                    const meds = [...medicines];
+                                    const medicine = meds.find(m => m.name === dose.medicineName);
+                                    if (medicine && medicine.count > 0) {
+                                      const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                                      if (d2 && d2.amount) {
+                                        let newDate = d2.nextDoseDate;
+                                        const timeParts = d2.time.split(':');
+                                        newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                        newDate.setDate(newDate.getDate() + 1);
+                                        d2.nextDoseDate = newDate;
+                                        medicine.count -= d2.amount;
+                                        await updateMedicine(medicine);
+                                        setMedicines(meds);
+                                        refreshOverdueDoses(meds);
+                                      }
+                                    }
+                                  }}>
+                                  <TfiCheck />
+                                </Button>
+                              </Col>
+                            </Row>
+                          </Card.Body>
+                        </Card>
+                      )}
+                    </Col>
+                  </Row>
                 )}
               </Col>
             </Row>
@@ -497,10 +503,8 @@ function App() {
               </Row>
             </section>
           </Tab>
-          <Tab eventKey="schedule" title="Grafik">
-            <section className='my-3'>
-              <Schedule medicines={medicines} />
-            </section>
+          <Tab eventKey="schedule" title="Grafik" className='p-3'>
+            <Schedule medicines={medicines} />
           </Tab>
         </Tabs>
         {/* <Row hidden={medicines.length === 0}>
