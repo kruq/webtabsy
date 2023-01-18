@@ -1,3 +1,7 @@
+body {
+  color: red;
+}
+
 button.btn-link {
   text-decoration: none;
   padding: 0px; 

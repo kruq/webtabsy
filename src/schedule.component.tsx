@@ -12,11 +12,7 @@ interface IScheduleProps {
 export default function Schedule(props: IScheduleProps) {
     return <>
         <Row>
-            <Col>
-                {/* <strong>Grafik</strong> */}
-            </Col>
-        </Row><Row>
-            <Col>
+            <Col  className="d-flex flex-column align-items-center">
                 {Object.entries(_.groupBy(
                     props.medicines
                         .filter(m => m.doses.length > 0)
@@ -35,7 +31,17 @@ export default function Schedule(props: IScheduleProps) {
                 ))
                     .sort((x, y) => x > y ? 1 : -1)
                     .map(x =>
-                        <Card className='my-2' key={'schedule-' + x[1][0].dose.id}><Card.Header>{x[0]}</Card.Header><Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}</Card.Body></Card>
+                        <Row className="w-50">
+                            <Col xs="auto" className="d-flex align-items-center">
+                                <strong className="text-secondary">{x[0]}</strong>
+                            </Col>
+                            <Col>
+                                <Card className='my-2' key={'schedule-' + x[1][0].dose.id}>
+                                    <Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        </Row>
                     )}
             </Col>
         </Row>
