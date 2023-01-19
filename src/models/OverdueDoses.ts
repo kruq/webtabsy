@@ -17,7 +17,7 @@ export default class OverdueDose {
 
         this.id = dose.id;
         this.amount = dose.amount;
-        this.numberOfDays = dose.numberOfDays;
+        this.numberOfDays = dose.numberOfDays > 0 ? dose.numberOfDays : 1;
         this.nextDoseDate = dose.nextDoseDate;
         this.endDate = dose.endDate;
         this.medicineName = dose.medicineName;

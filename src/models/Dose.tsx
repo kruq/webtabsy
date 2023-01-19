@@ -17,7 +17,7 @@ export default class Dose {
         this.id = id;
         this.time = time;
         this.amount = amount;
-        this.numberOfDays = numberOfDays;
+        this.numberOfDays = numberOfDays > 0 ? numberOfDays : 1;
         this.nextDoseDate = nextDoseDate;
         this.endDate = endDate;
     }
