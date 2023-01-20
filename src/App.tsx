@@ -336,7 +336,7 @@ function App() {
           </Col>
         </Row>
       </Container>
-      <Container className="vh-100 position-relative pt-4" >
+      <Container className="position-relative pt-4" >
         <div>{medicines.length > 0 || (<span>Wczytywanie danych...</span>)}</div>
         <Tab.Container
           defaultActiveKey="missingDoses"
