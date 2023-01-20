@@ -23,6 +23,7 @@ import Tab from 'react-bootstrap/Tab';
 import moment from 'moment';
 import { Nav } from 'react-bootstrap';
 import { BsCardList, BsFillPersonCheckFill, BsFillCalendarWeekFill } from 'react-icons/bs'
+import { weekDays } from './text.helpers';
 
 function App() {
 
@@ -54,16 +55,6 @@ function App() {
   //     ).catch(x => alert(x));
   // }
 
-
-  const weekDays = [
-    'Nd',
-    'Pn',
-    'Wt',
-    'Śr',
-    'Czw',
-    'Pt',
-    'Sb'
-  ]
 
   const formatDate = (date: Date) => {
     let d = weekDays[date.getDay()];

@@ -4,6 +4,7 @@ import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import IMedicine from "./models/IMedicine";
 import _ from 'lodash';
+import { getDateText, getDaysText } from './text.helpers';
 
 interface IScheduleProps {
     medicines: IMedicine[];
@@ -20,9 +21,9 @@ export default function Schedule(props: IScheduleProps) {
                             return m.doses
                                 .filter(d => (() => {
                                     const today = new Date();
-                                    today.setDate(today.getDate() + 1)
-                                    today.setHours(23, 59, 59);
-                                    return (d.endDate === null || d.nextDoseDate <= d.endDate) && (d.nextDoseDate <= today);
+                                    today.setHours(0, 0, 0);
+                                    // console.log(d.endDate, d.nextDoseDate, today);
+                                    return (d.endDate === null || new Date() <= d.endDate) && (d.nextDoseDate >= today);
                                 })())
                                 .map(d => { return { dose: d, name: m.name }; });
                         })
@@ -37,7 +38,7 @@ export default function Schedule(props: IScheduleProps) {
                             </Col>
                             <Col>
                                 <Card className='my-2' key={'schedule-' + x[1][0].dose.id}>
-                                    <Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}>{y.dose.amount}{' x '}{y.name}</div>)}
+                                    <Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}><div><strong>{y.dose.amount}{' x '}{y.name}</strong></div><div><small>co {getDaysText(y.dose.numberOfDays)} - następny {getDateText(y.dose.nextDoseDate)}</small></div></div>)}
                                     </Card.Body>
                                 </Card>
                             </Col>
