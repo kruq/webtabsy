@@ -8,6 +8,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import Badge from 'react-bootstrap/Badge';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
@@ -375,7 +376,7 @@ function App() {
                                   <Card.Body>
                                     <Row className='d-flex align-items-center'>
                                       <Col xs='auto'>
-                                        <Button variant='danger'
+                                        <Button variant='outline-secondary'
                                           size='sm'
                                           // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
                                           onClick={async () => {
@@ -398,11 +399,11 @@ function App() {
                                               }
                                             }
                                           }}>
-                                          <TfiClose />
+                                          <TfiClose /> <span className="d-none d-md-inline">Pomiń</span>
                                         </Button>
                                       </Col>
                                       <Col>
-                                        <strong>{dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.) (co {(dose.numberOfDays ?? 1)} d.)</small></strong>
+                                        <strong>{dose.amount}{' x '}{dose.medicineName} </strong><small><Badge bg="secondary" pill>{medicines.find(m => m.name === dose.medicineName)?.count}</Badge></small>
                                       </Col>
                                       <Col xs='auto'>
                                         <Button
@@ -427,7 +428,7 @@ function App() {
                                               }
                                             }
                                           }}>
-                                          <TfiCheck />
+                                          <TfiCheck /> <span className="d-none d-md-inline">Potwierdź</span>
                                         </Button>
                                       </Col>
                                     </Row>
