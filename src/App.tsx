@@ -328,7 +328,7 @@ function App() {
       <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
         <h3><Spinner animation="border" variant='primary' /> Ładowanie...</h3>
       </div>
-      <header className='position-fixed bg-white w-100 p-2' style={{ zIndex: "1035" }}>
+      <Container className="position-sticky bg-white pt-3" style={{ zIndex: "1030" }}>
         <Row>
           <Col>
             <Alert onClose={() => setShowPermissionAlert(false)} variant='warning' dismissible hidden={!showPermissionAlert}>Brak uprawniń do wyświetlania powiadomień</Alert>
@@ -343,13 +343,13 @@ function App() {
             <small className='text-secondary'>{lastCheckTime.toLocaleString('pl-PL')}</small>
           </Col>
         </Row>
-      </header>
+      </Container>
       <Container className="vh-100 position-relative pt-4" >
         <div>{medicines.length > 0 || (<span>Wczytywanie danych...</span>)}</div>
         <Tab.Container
           defaultActiveKey="missingDoses"
         >
-          <Row hidden={medicines.length === 0} style={{ paddingBottom: "50px", paddingTop: "30px" }}>
+          <Row hidden={medicines.length === 0} style={{ paddingBottom: "50px"}}>
             <Col>
               <Tab.Content>
                 <Tab.Pane eventKey="missingDoses" className='bg-white justify-content-center'>
@@ -448,7 +448,6 @@ function App() {
                   </Row>
                 </Tab.Pane>
                 <Tab.Pane eventKey="medicines">
-
                   <Row>
                     <Col>
                       {/* <strong>Lista leków</strong> */}
@@ -500,7 +499,6 @@ function App() {
                       </dialog>
                     </Col>
                   </Row>
-
                 </Tab.Pane>
                 <Tab.Pane eventKey="schedule">
                   <Schedule medicines={medicines} />
@@ -508,21 +506,23 @@ function App() {
               </Tab.Content>
             </Col>
           </Row>
-          <Row style={{ position: "fixed", bottom: 0, width: "100%" }}>
-            <Col>
-              <Nav variant="pills" className="bg-white p-2 nav-fill  nav-justified">
-                <Nav.Item>
-                  <Nav.Link eventKey="missingDoses"><BsFillPersonCheckFill /></Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="medicines"><BsCardList /></Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="schedule"><BsFillCalendarWeekFill /></Nav.Link>
-                </Nav.Item>
-              </Nav>
-            </Col>
-          </Row>
+          <Container style={{ position: "fixed", bottom: 0, padding: "0" }}>
+              <Row>
+                <Col>
+                  <Nav variant="pills" className="bg-white p-2 nav-fill  nav-justified">
+                    <Nav.Item>
+                      <Nav.Link eventKey="missingDoses"><BsFillPersonCheckFill /> <span className="d-none d-md-inline">Status</span></Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                      <Nav.Link eventKey="medicines"><BsCardList /> <span className="d-none d-md-inline">Lista leków</span></Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                      <Nav.Link eventKey="schedule"><BsFillCalendarWeekFill /> <span className="d-none d-md-inline">Grafik</span></Nav.Link>
+                    </Nav.Item>
+                  </Nav>
+                </Col>
+              </Row>
+          </Container>
         </Tab.Container>
         {/* <Row hidden={medicines.length === 0}>
           <Col md='4'>
