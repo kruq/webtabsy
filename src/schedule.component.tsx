@@ -38,14 +38,25 @@ export default function Schedule(props: IScheduleProps) {
                             </Col>
                             <Col>
                                 <Card className='my-2' key={'schedule-' + x[1][0].dose.id}>
-                                    <Card.Body>{x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <div key={'schedule-dose-' + y.dose.id}><div><strong>{y.dose.amount}{' x '}{y.name}</strong></div><div><small>co {getDaysText(y.dose.numberOfDays)} - następny {getDateText(y.dose.nextDoseDate)}</small></div></div>)}
+                                    <Card.Body>
+                                        {x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <Row key={'schedule-dose-' + y.dose.id}>
+                                            <Col md={4} xs={12}>
+                                                <strong>{y.dose.amount}{' x '}{y.name}</strong>
+                                            </Col>
+                                            <Col md={4} xs={12}>
+                                                <small>co {getDaysText(y.dose.numberOfDays)}</small>
+                                            </Col>
+                                            <Col md={4} xs={12}>
+                                                <small>następny {getDateText(y.dose.nextDoseDate)}</small>
+                                            </Col>
+                                        </Row>)}
                                     </Card.Body>
                                 </Card>
                             </Col>
                         </Row>
                     )}
             </Col>
-        </Row>
+        </Row >
     </>
 
 }
