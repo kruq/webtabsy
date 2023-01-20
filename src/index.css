@@ -22,5 +22,5 @@ code {
 html, body {
   height: calc(100% - 2rem);
   margin: 0;
-  background-color: rgb(228, 228, 228);
+  background-color: #eceff1;
 }
