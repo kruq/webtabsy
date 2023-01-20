@@ -25,5 +25,5 @@ export const weekDays = [
 ]
 
 export const getDaysText = (numberOfDays: number) => {
-    if (numberOfDays == 1) { return "1 dzień"; } else { return numberOfDays + " dni" };
+    if (numberOfDays === 1) { return "1 dzień"; } else { return numberOfDays + " dni" };
 }

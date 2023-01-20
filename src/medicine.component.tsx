@@ -15,6 +15,7 @@ import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
 // import { CgPill, } from 'react-icons/cg';
 import { TfiPencil, TfiCheck } from 'react-icons/tfi';
+import { getDaysText } from './text.helpers';
 
 
 
@@ -498,7 +499,7 @@ export default function Medicine(props: IMedicineProps) {
                                         <tr key={'medicine-dose-' + dose.id}>
                                             <td width="20%">{dose.time}</td>
                                             <td width="20%">{dose.amount} tab.</td>
-                                            <td width="20%">{dose.numberOfDays ?? 1} dzień/dni</td>
+                                            <td width="20%">{getDaysText(dose.numberOfDays ?? 1)}</td>
                                             <td>
                                                 {dose.nextDoseDate.toLocaleString('pl-PL')}
                                             </td>
