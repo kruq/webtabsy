@@ -2,7 +2,7 @@ import moment from "moment";
 
 export const getDateText = (inputDate: Date) => {
     const date = moment(inputDate).startOf('day');
-    var diff = moment().startOf('day').diff(date, "days");
+    let diff = moment().startOf('day').diff(date, "days");
     switch (diff) {
         case -2: return "pojutrze"
         case -1: return "jutro"
