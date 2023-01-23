@@ -437,7 +437,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Button onClick={() => { setAddDoseDialogVisible(true); setAddPurchaseDialogVisible(false); }} variant='link'>Dodaj</Button>
                         </Col>
                     </Row>
-                    <dialog open={addDoseDialogVisible} style={{ zIndex: '1000' }}>
+                    <dialog open={addDoseDialogVisible}>
                         <Row>
                             <Col>
                                 <strong>Nowa dawka</strong>
@@ -522,7 +522,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Button onClick={() => { setAddPurchaseDialogVisible(true); setAddDoseDialogVisible(false); }} variant='link'>Dodaj</Button>
                         </Col>
                     </Row>
-                    <dialog open={addPurchaseDialogVisible} style={{ zIndex: '1000' }}>
+                    <dialog open={addPurchaseDialogVisible}>
                         <Row className='mt-2'>
                             <Col><strong>Zakupy leków</strong></Col>
                         </Row>

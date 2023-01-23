@@ -457,6 +457,24 @@ function App() {
                       />
                     </Col>
                   </Row>
+                  <dialog open={addMedicineDialogVisible}>
+                    <strong>Nowy lek</strong>
+                    <Form>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Nazwa leku</Form.Label>
+                        <Form.Control type="text"
+                          value={newMedicineName}
+                          onChange={handleNewMedicineNameChange}>
+                        </Form.Control>
+                      </Form.Group>
+                      <Row className='text-end'>
+                        <Col>
+                          <Button type="submit" onClick={(e) => { handleAddMedicineClick(e); setAddMedicinceDialogVisible(false); }} variant="primary">Dodaj</Button>
+                          <Button className='ms-2' variant='secondary' onClick={() => setAddMedicinceDialogVisible(false)}>Anuluj</Button>
+                        </Col>
+                      </Row>
+                    </Form>
+                  </dialog>
                   <Row>
                     <Col>{medicines
                       .sort((a, b) => (a.name > b.name ? 1 : -1))
@@ -471,28 +489,6 @@ function App() {
                           deleteMedicine={handleDeleteMedicine}
                         />
                       )}
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col>
-                      <dialog open={addMedicineDialogVisible} style={{ zIndex: '1000', position: 'absolute', margin: 'auto', bottom: '0' }}>
-                        <strong>Nowy lek</strong>
-                        <Form>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Nazwa leku</Form.Label>
-                            <Form.Control type="text"
-                              value={newMedicineName}
-                              onChange={handleNewMedicineNameChange}>
-                            </Form.Control>
-                          </Form.Group>
-                          <Row className='text-end'>
-                            <Col>
-                              <Button type="submit" onClick={(e) => { handleAddMedicineClick(e); setAddMedicinceDialogVisible(false); }} variant="primary">Dodaj</Button>
-                              <Button className='ms-2' variant='secondary' onClick={() => setAddMedicinceDialogVisible(false)}>Anuluj</Button>
-                            </Col>
-                          </Row>
-                        </Form>
-                      </dialog>
                     </Col>
                   </Row>
                 </Tab.Pane>

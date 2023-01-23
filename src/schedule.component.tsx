@@ -39,17 +39,19 @@ export default function Schedule(props: IScheduleProps) {
                             <Col>
                                 <Card className='my-2' key={'schedule-' + x[1][0].dose.id}>
                                     <Card.Body>
-                                        {x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y => <Row key={'schedule-dose-' + y.dose.id}>
-                                            <Col md={4} xs={6}>
-                                                <strong>{y.dose.amount}{' x '}{y.name}</strong>
-                                            </Col>
-                                            <Col md={4} xs={6}>
-                                                <small>co {getDaysText(y.dose.numberOfDays)}</small>
-                                            </Col>
-                                            <Col md={4} xs={12}>
-                                                <small>następny {getDateText(y.dose.nextDoseDate)}</small>
-                                            </Col>
-                                        </Row>)}
+                                        {x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y =>
+                                            <Row key={'schedule-dose-' + y.dose.id}>
+                                                <Col md={4} sm={8} xs={12}>
+                                                    <strong>{y.dose.amount}{' x '}{y.name}</strong>
+                                                </Col>
+                                                <Col md={4} sm={4} xs={6} className="text-start text-sm-end">
+                                                    <small>co {getDaysText(y.dose.numberOfDays)}</small>
+                                                </Col>
+                                                <Col md={4} sm={12} xs={6} className="text-end">
+                                                    <small>następny {getDateText(y.dose.nextDoseDate)}</small>
+                                                </Col>
+                                            </Row>
+                                        )}
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -58,5 +60,4 @@ export default function Schedule(props: IScheduleProps) {
             </Col>
         </Row >
     </>
-
 }
