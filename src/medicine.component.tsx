@@ -13,7 +13,6 @@ import Table from 'react-bootstrap/Table';
 import FormGroup from 'react-bootstrap/FormGroup';
 import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
-// import { CgPill, } from 'react-icons/cg';
 import { TfiPencil, TfiCheck } from 'react-icons/tfi';
 import { getDaysText } from './text.helpers';
 
@@ -346,7 +345,8 @@ export default function Medicine(props: IMedicineProps) {
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
                         <small className={`text-${props.count < 8 ? "danger" : "success"}`}>{props.count} tab.</small>
-                        {/* <Badge bg="secondary" style={{ width: '70px' }} className="d-none d-md-inline" >{props.count} tab.</Badge> */}
+                        <small> ({props.count % (props.purchases.at(-1)?.numberOfTablets ?? 1)} tab. w aktualnie otwartym opakowaniu)</small>
+                        {/* <Badge bg="secondar(y" style={{ width: '70px' }} className="d-none d-md-inline" >{props.count} tab.</Badge> */}
                     </Col>
                     <Col xs="auto">
                         <small className={`text-${countNumberOfDays() < 8 ? "danger" : "success"}`}>{countNumberOfDays()} dni</small>

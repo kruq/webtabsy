@@ -398,7 +398,13 @@ function App() {
                                         </Button>
                                       </Col>
                                       <Col>
-                                        <strong>{dose.amount}{' x '}{dose.medicineName} </strong><small><Badge bg="secondary" pill>{medicines.find(m => m.name === dose.medicineName)?.count}</Badge></small>
+                                        <strong>{dose.amount}{' x '}{dose.medicineName} </strong>
+                                        <small>
+                                          <Badge bg="secondary" pill>
+                                            {medicines.find(m => m.name === dose.medicineName)?.count}{' '}
+                                            ({(medicines.find(m => m.name === dose.medicineName)?.count ?? -1) % (medicines.find(m => m.name === dose.medicineName)?.purchases.at(-1)?.numberOfTablets ?? 1)})
+                                          </Badge>
+                                        </small>
                                       </Col>
                                       <Col xs='auto'>
                                         <Button
