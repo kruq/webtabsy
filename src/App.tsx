@@ -358,7 +358,7 @@ function App() {
                   <Row>
                     <Col>
                       {overdueDosesGroups.map(group =>
-                        <>
+                        <div key={'overdue-group-' + group.date}>
                           <Row>
                             <Col xs="auto" className="d-flex align-items-center">
                               <strong className='text-secondary'><small>{formatDate(group.date)}</small></strong>
@@ -375,10 +375,11 @@ function App() {
                                           size='sm'
                                           // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
                                           onClick={async () => {
+                                            debugger;
                                             const meds = [...medicines];
                                             const medicine = meds.find(m => m.name === dose.medicineName);
                                             if (medicine) {
-                                              const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                                              const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.id === dose.id);
                                               if (d2 && d2.amount) {
                                                 let newDate = d2.nextDoseDate;
                                                 const timeParts = d2.time.split(':');
@@ -386,7 +387,7 @@ function App() {
                                                 // TODO:
                                                 // nie zawsze dodanie 1 do aktualnie ustawionej daty jest ok
                                                 // tylko nie pamiętam dlaczego :/
-                                                newDate.setDate(newDate.getDate() + 1);
+                                                newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
                                                 await updateMedicine(medicine);
                                                 setMedicines(meds);
@@ -415,7 +416,7 @@ function App() {
                                             const meds = [...medicines];
                                             const medicine = meds.find(m => m.name === dose.medicineName);
                                             if (medicine && medicine.count > 0) {
-                                              const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
+                                              const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.id === dose.id);
                                               if (d2 && d2.amount) {
                                                 let newDate = d2.nextDoseDate;
                                                 const timeParts = d2.time.split(':');
@@ -438,7 +439,7 @@ function App() {
                               )}
                             </Col>
                           </Row>
-                        </>
+                        </div>
                       )}
                     </Col>
                   </Row>

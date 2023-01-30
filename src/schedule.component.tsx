@@ -32,12 +32,12 @@ export default function Schedule(props: IScheduleProps) {
                 ))
                     .sort((x, y) => x > y ? 1 : -1)
                     .map(x =>
-                        <Row className="w-100">
+                        <Row className="w-100" key={'schedule-' + x[1][0].dose.id}>
                             <Col xs="auto" className="d-flex align-items-center">
                                 <strong className="text-secondary">{x[0]}</strong>
                             </Col>
                             <Col>
-                                <Card className='my-2' key={'schedule-' + x[1][0].dose.id}>
+                                <Card className='my-2'>
                                     <Card.Body>
                                         {x[1].sort((y, z) => y.name > z.name ? 1 : -1).map(y =>
                                             <Row key={'schedule-dose-' + y.dose.id}>
