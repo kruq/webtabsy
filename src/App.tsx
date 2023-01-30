@@ -24,7 +24,7 @@ import moment from 'moment';
 import { Nav } from 'react-bootstrap';
 import { BsCardList, BsFillPersonCheckFill, BsFillCalendarWeekFill } from 'react-icons/bs'
 import { weekDays } from './text.helpers';
-import { over } from 'lodash';
+// import { over } from 'lodash';
 
 function App() {
 
