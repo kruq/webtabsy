@@ -24,6 +24,7 @@ import moment from 'moment';
 import { Nav } from 'react-bootstrap';
 import { BsCardList, BsFillPersonCheckFill, BsFillCalendarWeekFill } from 'react-icons/bs'
 import { weekDays } from './text.helpers';
+import { over } from 'lodash';
 
 function App() {
 
@@ -184,27 +185,24 @@ function App() {
       if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
         // dev code
       } else {
-        // navigator.serviceWorker.ready.then((registration) => {
-        //   registration.getNotifications().then((notifications) => {
-        //     // notifications.forEach(n => { console.log('closing notification'); n.close(); });
-        //     if (notTakenDoses.length > 0) {
-        //       registration.showNotification(`Weź ${notTakenDoses.length} ${getCorrectFormOfWordMedicine(notTakenDoses.length)} `, {
-        //         icon: './logo192maskable.png',
-        //         body: notTakenDoses
-        //           .map(ntd => ntd.time)
-        //           .filter((value, index, self) => self.indexOf(value) === index)
-        //           .reduce((prev, curr) => prev.concat(curr + ';\r\n'), ''),
-        //         actions: [
-        //           {
-        //             action: 'all-taken',
-        //             title: 'Oznacz jako wzięte'
-        //           }
-        //         ],
-        //         data: notTakenDoses
-        //       });
-        //     }
-        //   });
-        // });
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.getNotifications().then((notifications) => {
+            //     // notifications.forEach(n => { console.log('closing notification'); n.close(); });
+            if (overdueDosesGroups.length > 0) {
+              registration.showNotification(`Weź leki`, {
+                icon: './logo192maskable.png',
+                body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r'),
+                actions: [
+                  {
+                    action: 'all-taken',
+                    title: 'Oznacz jako wzięte'
+                  }
+                ],
+                data: overdueDosesGroups
+              });
+            }
+          });
+        });
         // production code
       }
     }).catch((error) => {
