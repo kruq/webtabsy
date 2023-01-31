@@ -14,7 +14,6 @@ import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import Alert from 'react-bootstrap/Alert';
 import logo from './assets/logo192.png';
-// import { DoseDetails } from './types';
 import { countDays } from './actions';
 import { TfiCheck, TfiClose } from 'react-icons/tfi';
 import OverdueDoseGroup from './models/OverdueDosesGroup';
@@ -24,7 +23,6 @@ import moment from 'moment';
 import { Nav } from 'react-bootstrap';
 import { BsCardList, BsFillPersonCheckFill, BsFillCalendarWeekFill } from 'react-icons/bs'
 import { weekDays } from './text.helpers';
-import { over } from 'lodash';
 
 function App() {
 
@@ -180,31 +178,6 @@ function App() {
       // const notTakenDoses = refreshOverdueDoses(meds)
       // setNotTakenDoses(notTakenDoses);
       // refreshOverdueDoses(meds);
-
-
-      if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-        // dev code
-      } else {
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.getNotifications().then((notifications) => {
-            //     // notifications.forEach(n => { console.log('closing notification'); n.close(); });
-            if (overdueDosesGroups.length > 0) {
-              registration.showNotification(`Weź leki`, {
-                icon: './logo192maskable.png',
-                body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r'),
-                actions: [
-                  {
-                    action: 'all-taken',
-                    title: 'Oznacz jako wzięte'
-                  }
-                ],
-                data: overdueDosesGroups
-              });
-            }
-          });
-        });
-        // production code
-      }
     }).catch((error) => {
       if (error.code === "ERR_NETWORK") {
         setErrorMessage("Bład połączenia!")
@@ -221,6 +194,32 @@ function App() {
     }
 
   }, [refreshOverdueDoses, lastCheckTime]);
+
+  useEffect(() => {
+    // if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+    // dev code
+    // } else {
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.getNotifications().then((notifications) => {
+        //     // notifications.forEach(n => { console.log('closing notification'); n.close(); });
+        if (overdueDosesGroups.length > 0) {
+          registration.showNotification(`Weź leki`, {
+            icon: './logo192maskable.png',
+            body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r'),
+            actions: [
+              {
+                action: 'all-taken',
+                title: 'Oznacz jako wzięte'
+              }
+            ],
+            data: overdueDosesGroups
+          });
+        }
+      });
+    });
+    // production code
+    //}
+  }, [overdueDosesGroups]);
 
   const handleAddMedicineClick = async (e: MouseEvent) => {
     e.preventDefault();
