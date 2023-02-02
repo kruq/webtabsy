@@ -345,7 +345,7 @@ export default function Medicine(props: IMedicineProps) {
                 <Row>
                     <Col onClick={() => handleMedicineTitleClick()} className="medicine-title">
                         <small className={`text-${props.count < 8 ? "danger" : "success"}`}>{props.count} tab.</small>
-                        <small> ({props.count % (props.purchases.at(-1)?.numberOfTablets ?? 1)} tab. w aktualnie otwartym opakowaniu)</small>
+                        <small> ({props.count % (props.purchases.at(-1)?.numberOfTablets ?? 1)} tab. w akt. opak.)</small>
                         {/* <Badge bg="secondar(y" style={{ width: '70px' }} className="d-none d-md-inline" >{props.count} tab.</Badge> */}
                     </Col>
                     <Col xs="auto">

@@ -201,7 +201,7 @@ function App() {
     // } else {
     navigator.serviceWorker.ready.then((registration) => {
       registration.getNotifications().then((notifications) => {
-        //     // notifications.forEach(n => { console.log('closing notification'); n.close(); });
+        notifications.forEach(n => { console.log('closing notification'); n.close(); });
         if (overdueDosesGroups.length > 0) {
           registration.showNotification(`Weź leki`, {
             icon: './logo192maskable.png',
