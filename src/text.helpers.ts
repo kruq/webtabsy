@@ -14,7 +14,7 @@ export const getDateText = (inputDate: Date) => {
     }
 }
 
-export const weekDays = [,
+export const weekDays = [
     'niedziela',
     'poniedziałek',
     'wtorek',
