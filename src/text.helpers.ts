@@ -14,14 +14,14 @@ export const getDateText = (inputDate: Date) => {
     }
 }
 
-export const weekDays = [
-    'Nd',
-    'Pn',
-    'Wt',
-    'Śr',
-    'Czw',
-    'Pt',
-    'Sb'
+export const weekDays = [,
+    'niedziela',
+    'poniedziałek',
+    'wtorek',
+    'środa',
+    'czwartek',
+    'piątek',
+    'sobota,'
 ]
 
 export const getDaysText = (numberOfDays: number) => {

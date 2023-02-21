@@ -195,30 +195,51 @@ function App() {
 
   }, [refreshOverdueDoses, lastCheckTime]);
 
+  // useEffect(() => {
+  //   // if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+  //   // dev code
+  //   // } else {
+  //   navigator.serviceWorker.ready.then((registration) => {
+  //     registration.getNotifications().then((notifications) => {
+  //       notifications.forEach(n => { console.log('closing notification'); n.close(); });
+  //       if (overdueDosesGroups.length > 0) {
+  //         registration.showNotification(`Weź leki`, {
+  //           icon: './logo192maskable.png',
+  //           body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r'),
+  //           // actions: [
+  //           //   {
+  //           //     action: 'all-taken',
+  //           //     title: 'Oznacz jako wzięte'
+  //           //   }
+  //           // ],
+  //           data: overdueDosesGroups
+  //         });
+  //       }
+  //     });
+  //   });
+  //   // production code
+  //   //}
+  // }, [overdueDosesGroups]);
+
   useEffect(() => {
-    // if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    // dev code
-    // } else {
     navigator.serviceWorker.ready.then((registration) => {
       registration.getNotifications().then((notifications) => {
         notifications.forEach(n => { console.log('closing notification'); n.close(); });
-        if (overdueDosesGroups.length > 0) {
-          registration.showNotification(`Weź leki`, {
-            icon: './logo192maskable.png',
-            body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r'),
-            actions: [
-              {
-                action: 'all-taken',
-                title: 'Oznacz jako wzięte'
-              }
-            ],
-            data: overdueDosesGroups
-          });
-        }
-      });
+      })
+    })
+
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        const notification = new Notification('Weź leki', {
+          icon: './logo192maskable.png',
+          body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n'),
+        });
+
+        notification.addEventListener('click', () => {
+          window.location.href = '/';
+        })
+      }
     });
-    // production code
-    //}
   }, [overdueDosesGroups]);
 
   const handleAddMedicineClick = async (e: MouseEvent) => {
