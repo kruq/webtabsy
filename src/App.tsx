@@ -222,17 +222,20 @@ function App() {
   // }, [overdueDosesGroups]);
 
   useEffect(() => {
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.getNotifications().then((notifications) => {
-        notifications.forEach(n => { console.log('closing notification'); n.close(); });
-      })
-    })
+    // const newNotificationBody = overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n');
+
+    // navigator.serviceWorker.ready.then((registration) => {
+    //   registration.getNotifications().then((notifications) => {
+    //     notifications.forEach(n => { console.log('closing notification'); n.close(); });
+    //   })
+    // })
 
     Notification.requestPermission().then((permission) => {
       if (permission === 'granted') {
         const notification = new Notification('Weź leki', {
           icon: './logo192maskable.png',
           body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n'),
+          tag: 'take-medicine'
         });
 
         notification.addEventListener('click', () => {
