@@ -336,6 +336,29 @@ function App() {
   //   navigator.serviceWorker.ready.then((r) => r.showNotification('teest'));
   // }
 
+  const countAmountInCurrentPackage = (medicine: IMedicine | undefined) => {
+    if (!medicine) {
+      return '';
+    }
+    const lastPackageSize = medicine.purchases.at(-1)?.numberOfTablets;
+    if (lastPackageSize) {
+      let value = medicine.count % lastPackageSize
+      if (value === 0) {
+        if (medicine.count !== 0) {
+            value = medicine.count;
+        }
+        else {
+            return '';
+        }
+    }
+
+      return `(${value})`;
+    } else {
+      return '';
+    }
+  }
+
+
   return (
     <>
       <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
@@ -423,8 +446,7 @@ function App() {
                                         <strong>{dose.amount}{' x '}{dose.medicineName} </strong>
                                         <small>
                                           <Badge bg="secondary" pill>
-                                            {medicines.find(m => m.name === dose.medicineName)?.count}{' '}
-                                            ({(medicines.find(m => m.name === dose.medicineName)?.count ?? -1) % (medicines.find(m => m.name === dose.medicineName)?.purchases.at(-1)?.numberOfTablets ?? 1)})
+                                            {medicines.find(m => m.name === dose.medicineName)?.count}{' '}{countAmountInCurrentPackage(medicines.find(m => m.name === dose.medicineName))}
                                           </Badge>
                                         </small>
                                       </Col>
