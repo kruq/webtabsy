@@ -433,7 +433,7 @@ function App() {
                                                 // tylko nie pamiętam dlaczego :/
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                await updateMedicine(medicine);
+                                                updateMedicine(medicine);
                                                 setMedicines(meds);
                                                 refreshOverdueDoses(meds);
                                               }
@@ -467,7 +467,7 @@ function App() {
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
                                                 medicine.count -= d2.amount;
-                                                await updateMedicine(medicine);
+                                                updateMedicine(medicine);
                                                 setMedicines(meds);
                                                 refreshOverdueDoses(meds);
                                               }

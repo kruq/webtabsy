@@ -45,7 +45,7 @@ export const updateMedicine = async (medicine: IMedicine) => {
 }
 
 export const deleteMedicine = async (medicine: IMedicine) => {
-    var response = await fetch(API_URL, {
+    const response = await fetch(API_URL, {
         method: "DELETE",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(medicine)

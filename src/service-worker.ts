@@ -89,30 +89,24 @@ self.addEventListener('activate', _ => {
           alert('Notification status ' + status);
         });
 
-        if (result) {
-          // self.registration.getNotifications().then(notifications => {
-          //   notifications.forEach(n => {
-          //     console.log('closing notification');
-          //     n.close();
-          //   })
-          // });
-
-          self.registration.showNotification(`Weź leki`, {
-            icon: './logo192maskable.png',
-            body: result.reduce((target, value) => { return target + value + '\r\n' }, ''),
-            // actions: [
-            //   {
-            //     action: 'open',
-            //     title: 'Otwórz'
-            //   },
-            //   {
-            //     action: 'all-taken',
-            //     title: 'Oznacz jako wzięte'
-            //   },
-            // ],
-            data: result
-          });
-        }
+        // if (result) {
+          
+        //   self.registration.showNotification(`Weź leki`, {
+        //     icon: './logo192maskable.png',
+        //     body: result.reduce((target, value) => { return target + value + '\r\n' }, ''),
+        //     // actions: [
+        //     //   {
+        //     //     action: 'open',
+        //     //     title: 'Otwórz'
+        //     //   },
+        //     //   {
+        //     //     action: 'all-taken',
+        //     //     title: 'Oznacz jako wzięte'
+        //     //   },
+        //     // ],
+        //     data: result
+        //   });
+        // }
       })
       .catch(error => console.error(error));
   }, 30000);
