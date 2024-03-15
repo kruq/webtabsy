@@ -8,6 +8,6 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
     API_URL = 'https://webtabsyapi.azurewebsites.net';
 }
 
-API_URL = 'https://localhost:7078';
+API_URL = 'https://webtabsyapi.azurewebsites.net';
 
 export default API_URL;
