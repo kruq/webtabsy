@@ -433,9 +433,9 @@ function App() {
                                                 // tylko nie pamiętam dlaczego :/
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                updateMedicine(medicine);
-                                                setMedicines(meds);
+                                                await updateMedicine(medicine);
                                                 refreshOverdueDoses(meds);
+                                                setMedicines(meds);
                                               }
                                             }
                                           }}>
@@ -454,8 +454,9 @@ function App() {
                                         <Button
                                           size='sm'
                                           // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                                          disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0}
+                                          disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0 || dose.disabled}
                                           onClick={async () => {
+                                            dose.disabled = true;
                                             const meds = [...medicines];
                                             const medicine = meds.find(m => m.name === dose.medicineName);
                                             if (medicine && medicine.count > 0) {
@@ -467,7 +468,7 @@ function App() {
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
                                                 medicine.count -= d2.amount;
-                                                updateMedicine(medicine);
+                                                await updateMedicine(medicine);
                                                 setMedicines(meds);
                                                 refreshOverdueDoses(meds);
                                               }

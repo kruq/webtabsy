@@ -6,6 +6,7 @@ export default class OverdueDose {
     endDate: Date | null;
     medicineName: string;
     time: string;
+    disabled: boolean;
 
     constructor(dose: {id: string,
         amount: number,
@@ -22,5 +23,6 @@ export default class OverdueDose {
         this.endDate = dose.endDate;
         this.medicineName = dose.medicineName;
         this.time = dose.time;
+        this.disabled = false;
     }
 }

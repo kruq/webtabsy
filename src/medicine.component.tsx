@@ -54,6 +54,7 @@ export default function Medicine(props: IMedicineProps) {
     const [addDoseDialogVisible, setAddDoseDialogVisible] = useState(false);
     const [addPurchaseDialogVisible, setAddPurchaseDialogVisible] = useState(false);
 
+    const [editMedicineName, setEditMedicineName] = useState(false);
     const [editNumberOfTabletes, setEditNumberOfTabletes] = useState(false);
     const [editDescription, setEditDescription] = useState(false);
 
@@ -68,6 +69,7 @@ export default function Medicine(props: IMedicineProps) {
         clearTimeout(fnDebounce);
         setFnDebounce(setTimeout(() => {
             props.updateMedicine(props.id, { name: newValue });
+            setEditMedicineName(false);
         }, 2000));
         setName(newValue);
     }
@@ -387,16 +389,25 @@ export default function Medicine(props: IMedicineProps) {
                     </Row>
                     <Row>
                         <Col>
-                            <Row>
-                                <Col xs="auto">
-                                    <Form.Check.Label>Nazwa leku:</Form.Check.Label>
-                                </Col>
-                                <Col>
-                                    <Form.Group>
-                                        <Form.Control type="text" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineNameChange(e)} ></Form.Control>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
+                            <Form.Group>
+                                <Row>
+                                    <Col xs="auto">
+                                        <Form.Label>Nazwa leku:</Form.Label>
+                                    </Col>
+                                    <Col hidden={editMedicineName}>
+                                        {name}
+                                    </Col>
+                                    <Col>
+                                        <Form.Group hidden={!editMedicineName}>
+                                            <Form.Control type="text" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineNameChange(e)} ></Form.Control>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs="auto">
+                                            <Button onClick={() => setEditMedicineName(true)} variant='link' hidden={editMedicineName}><TfiPencil /></Button>
+                                            <Button onClick={() => setEditMedicineName(false)} variant='link' hidden={!editMedicineName}><TfiCheck /></Button>
+                                        </Col>
+                                </Row>
+                            </Form.Group>
                         </Col>
                     </Row>
                     <Row>
@@ -404,7 +415,7 @@ export default function Medicine(props: IMedicineProps) {
                             <Form.Group>
                                 <Row>
                                     <Col xs='auto'>
-                                        <p><Form.Label>Ilość tabletek:</Form.Label></p>
+                                        <Form.Label>Ilość tabletek:</Form.Label>
                                     </Col>
                                     <Col hidden={editNumberOfTabletes}>
                                         {count}
@@ -422,29 +433,23 @@ export default function Medicine(props: IMedicineProps) {
                     </Row>
                     <Row>
                         <Col>
-                            <Form>
+                            <Form.Group>
                                 <Row>
-                                    <Col>
-                                        <p><Form.Label>Opis:</Form.Label></p>
+                                    <Col xs='auto'>
+                                        <Form.Label>Opis:</Form.Label>
                                     </Col>
-                                    <Col xs='auto' hidden={editDescription}>
-                                        <Button onClick={() => setEditDescription(true)} variant='link'><TfiPencil /></Button>
+                                    <Col hidden={editDescription || !description}>
+                                        {description}
                                     </Col>
-                                </Row>
-                                <Row hidden={editDescription || !description}>
-                                    <Col>
-                                        {description.split('\n').map((x, index) => <span key={'medicine-' + props.id + 'description-' + index}>{x}<br /></span>)}{' '}
-                                    </Col>
-                                </Row>
-                                <Row hidden={!editDescription}>
-                                    <Col>
-                                        <Form.Control as="textarea" value={description} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
+                                    <Col hidden={!editDescription}>
+                                        <Form.Control type="text" value={description} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
                                     </Col>
                                     <Col xs='auto'>
-                                        <Button onClick={() => setEditDescription(false)} variant='link'><TfiCheck /></Button>
+                                        <Button onClick={() => setEditDescription(true)} variant='link' hidden={editDescription}><TfiPencil /></Button>
+                                        <Button onClick={() => setEditDescription(false)} variant='link' hidden={!editDescription}><TfiCheck /></Button>
                                     </Col>
                                 </Row>
-                            </Form>
+                            </Form.Group>
                         </Col>
                     </Row>
                     <Row className="mt-4">
