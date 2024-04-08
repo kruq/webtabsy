@@ -417,9 +417,7 @@ function App() {
                                       <Col xs='auto'>
                                         <Button variant='outline-secondary'
                                           size='sm'
-                                          // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
                                           onClick={async () => {
-                                            debugger;
                                             const meds = [...medicines];
                                             const medicine = meds.find(m => m.name === dose.medicineName);
                                             if (medicine) {
@@ -433,9 +431,15 @@ function App() {
                                                 // tylko nie pamiętam dlaczego :/
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                await updateMedicine(medicine);
-                                                refreshOverdueDoses(meds);
+                                                updateMedicine(medicine);
+                                                //refreshOverdueDoses(meds);
                                                 setMedicines(meds);
+                                                const indexOfDose= group.doses.indexOf(dose);
+                                                group.doses.splice(indexOfDose,1);
+                                                if (group.doses.length === 0){
+                                                  const indexOfGroup = overdueDosesGroups.indexOf(group);
+                                                  overdueDosesGroups.splice(indexOfGroup, 1);
+                                                }
                                               }
                                             }
                                           }}>
@@ -453,7 +457,6 @@ function App() {
                                       <Col xs='auto'>
                                         <Button
                                           size='sm'
-                                          // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
                                           disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0 || dose.disabled}
                                           onClick={async () => {
                                             dose.disabled = true;
@@ -468,9 +471,15 @@ function App() {
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
                                                 medicine.count -= d2.amount;
-                                                await updateMedicine(medicine);
+                                                updateMedicine(medicine);
                                                 setMedicines(meds);
-                                                refreshOverdueDoses(meds);
+                                                // refreshOverdueDoses(meds);
+                                                const indexOfDose= group.doses.indexOf(dose);
+                                                group.doses.splice(indexOfDose,1);
+                                                if (group.doses.length === 0){
+                                                  const indexOfGroup = overdueDosesGroups.indexOf(group);
+                                                  overdueDosesGroups.splice(indexOfGroup, 1);
+                                                }
                                               }
                                             }
                                           }}>
