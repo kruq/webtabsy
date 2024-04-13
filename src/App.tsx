@@ -345,12 +345,12 @@ function App() {
       let value = medicine.count % lastPackageSize
       if (value === 0) {
         if (medicine.count !== 0) {
-            value = medicine.count;
+          value = medicine.count;
         }
         else {
-            return '';
+          return '';
         }
-    }
+      }
 
       return `(${value})`;
     } else {
@@ -378,7 +378,7 @@ function App() {
                 {/* <Button onClick={async () => test()}>Test</Button> */}
               </Col>
               <Col xs="auto" className="text-end">
-                <small className='text-secondary'>{lastCheckTime.toLocaleString('pl-PL')}</small>
+                <small className='text-secondary'>{lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</small>
               </Col>
             </Row>
           </Card.Body>
@@ -434,9 +434,9 @@ function App() {
                                                 updateMedicine(medicine);
                                                 //refreshOverdueDoses(meds);
                                                 setMedicines(meds);
-                                                const indexOfDose= group.doses.indexOf(dose);
-                                                group.doses.splice(indexOfDose,1);
-                                                if (group.doses.length === 0){
+                                                const indexOfDose = group.doses.indexOf(dose);
+                                                group.doses.splice(indexOfDose, 1);
+                                                if (group.doses.length === 0) {
                                                   const indexOfGroup = overdueDosesGroups.indexOf(group);
                                                   overdueDosesGroups.splice(indexOfGroup, 1);
                                                 }
@@ -474,9 +474,9 @@ function App() {
                                                 updateMedicine(medicine);
                                                 setMedicines(meds);
                                                 // refreshOverdueDoses(meds);
-                                                const indexOfDose= group.doses.indexOf(dose);
-                                                group.doses.splice(indexOfDose,1);
-                                                if (group.doses.length === 0){
+                                                const indexOfDose = group.doses.indexOf(dose);
+                                                group.doses.splice(indexOfDose, 1);
+                                                if (group.doses.length === 0) {
                                                   const indexOfGroup = overdueDosesGroups.indexOf(group);
                                                   overdueDosesGroups.splice(indexOfGroup, 1);
                                                 }

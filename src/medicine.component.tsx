@@ -136,9 +136,9 @@ export default function Medicine(props: IMedicineProps) {
                 const timeParts = x.time.split(':');
                 date.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
                 // TODO: przemyśleć jak jest lepiej
-                if (date < new Date()) {
-                    date.setDate(date.getDate() + 1);
-                }
+                // if (date < new Date()) {
+                //     date.setDate(date.getDate() + 1);
+                // }
                 return date;
             })();
             return x;
@@ -387,71 +387,65 @@ export default function Medicine(props: IMedicineProps) {
                             Ustawienia
                         </Col>
                     </Row>
-                    <Row>
-                        <Col>
-                            <Form.Group>
-                                <Row>
-                                    <Col xs="auto">
-                                        <Form.Label>Nazwa leku:</Form.Label>
-                                    </Col>
-                                    <Col hidden={editMedicineName}>
-                                        {name}
-                                    </Col>
-                                    <Col>
-                                        <Form.Group hidden={!editMedicineName}>
-                                            <Form.Control type="text" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineNameChange(e)} ></Form.Control>
-                                        </Form.Group>
-                                    </Col>
-                                    <Col xs="auto">
-                                            <Button onClick={() => setEditMedicineName(true)} variant='link' hidden={editMedicineName}><TfiPencil /></Button>
-                                            <Button onClick={() => setEditMedicineName(false)} variant='link' hidden={!editMedicineName}><TfiCheck /></Button>
-                                        </Col>
-                                </Row>
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <Form.Group>
-                                <Row>
-                                    <Col xs='auto'>
-                                        <Form.Label>Ilość tabletek:</Form.Label>
-                                    </Col>
-                                    <Col hidden={editNumberOfTabletes}>
-                                        {count}
-                                    </Col>
-                                    <Col hidden={!editNumberOfTabletes}>
-                                        <Form.Control type="number" value={count?.toString()} hidden={!editNumberOfTabletes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
-                                    </Col>
-                                    <Col xs="auto">
-                                        <Button onClick={() => setEditNumberOfTabletes(true)} variant='link' hidden={editNumberOfTabletes}><TfiPencil /></Button>
-                                        <Button onClick={() => setEditNumberOfTabletes(false)} variant='link' hidden={!editNumberOfTabletes}><TfiCheck /></Button>
-                                    </Col>
-                                </Row>
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <Form.Group>
-                                <Row>
-                                    <Col xs='auto'>
-                                        <Form.Label>Opis:</Form.Label>
-                                    </Col>
-                                    <Col hidden={editDescription || !description}>
-                                        {description}
-                                    </Col>
-                                    <Col hidden={!editDescription}>
-                                        <Form.Control type="text" value={description} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
-                                    </Col>
-                                    <Col xs='auto'>
-                                        <Button onClick={() => setEditDescription(true)} variant='link' hidden={editDescription}><TfiPencil /></Button>
-                                        <Button onClick={() => setEditDescription(false)} variant='link' hidden={!editDescription}><TfiCheck /></Button>
-                                    </Col>
-                                </Row>
-                            </Form.Group>
-                        </Col>
-                    </Row>
+                    <Form.Group>
+                        <Row>
+                            <Col>
+                                <Form.Label><small>Nazwa leku:</small></Form.Label>
+                            </Col>
+                            <Col xs="auto">
+                                <Button onClick={() => setEditMedicineName(true)} variant='link' hidden={editMedicineName}><TfiPencil /></Button>
+                                <Button onClick={() => setEditMedicineName(false)} variant='link' hidden={!editMedicineName}><TfiCheck /></Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col hidden={editMedicineName}>
+                                {name}
+                            </Col>
+                            <Col>
+                                <Form.Group hidden={!editMedicineName}>
+                                    <Form.Control type="text" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineNameChange(e)} ></Form.Control>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </Form.Group>
+                    <Form.Group>
+                        <Row>
+                            <Col>
+                                <Form.Label><small>Ilość tabletek:</small></Form.Label>
+                            </Col>
+                            <Col xs="auto">
+                                <Button onClick={() => setEditNumberOfTabletes(true)} variant='link' hidden={editNumberOfTabletes}><TfiPencil /></Button>
+                                <Button onClick={() => setEditNumberOfTabletes(false)} variant='link' hidden={!editNumberOfTabletes}><TfiCheck /></Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col hidden={editNumberOfTabletes}>
+                                {count}
+                            </Col>
+                            <Col hidden={!editNumberOfTabletes}>
+                                <Form.Control type="number" value={count?.toString()} hidden={!editNumberOfTabletes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
+                            </Col>
+                        </Row>
+                    </Form.Group>
+                    <Form.Group>
+                        <Row>
+                            <Col>
+                                <Form.Label><small>Opis:</small></Form.Label>
+                            </Col>
+                            <Col xs='auto'>
+                                <Button onClick={() => setEditDescription(true)} variant='link' hidden={editDescription}><TfiPencil /></Button>
+                                <Button onClick={() => setEditDescription(false)} variant='link' hidden={!editDescription}><TfiCheck /></Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col hidden={editDescription}>
+                                {description}
+                            </Col>
+                            <Col hidden={!editDescription}>
+                                <Form.Control type="text" value={description} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
+                            </Col>
+                        </Row>
+                    </Form.Group>
                     <Row className="mt-4">
                         <Col className='text-primary' xs='auto'>
                             Dawkowanie
@@ -519,20 +513,22 @@ export default function Medicine(props: IMedicineProps) {
                             <Table size='sm'>
                                 <tbody>
                                     {props.doses?.map(dose =>
-                                        <tr key={'medicine-dose-' + dose.id}>
-                                            <td width="20%">{dose.time}</td>
-                                            <td width="20%">{dose.amount} tab.</td>
-                                            <td width="20%">{getDaysText(dose.numberOfDays ?? 1)}</td>
-                                            <td>
-                                                {dose.nextDoseDate.toLocaleString('pl-PL')}
-                                            </td>
-                                            <td>
-                                                {(dose?.endDate !== null ? dose.endDate.toLocaleString('pl') : <i className='text-secondary'>bez końca</i>)}
-                                            </td>
-                                            <td className='text-end'>
-                                                <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>
-                                            </td>
-                                        </tr>
+                                        <>
+                                            <tr key={'medicine-dose-' + dose.id}>
+                                                <td width="auto">{dose.time}</td>
+                                                <td width="auto" className='text-end'>{dose.amount} tab.</td>
+                                                <td width="20%">{getDaysText(dose.numberOfDays ?? 1)}</td>
+                                                <td style={{ textAlign: 'right', paddingRight: '5px' }}>
+                                                    {dose.nextDoseDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' })}
+                                                </td>
+                                                <td style={{ textAlign: 'right' }}>
+                                                    {(dose?.endDate !== null ? dose.endDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' }) : <i className='text-secondary'>-</i>)}
+                                                </td>
+                                                <td className='text-end'>
+                                                    <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>
+                                                </td>
+                                            </tr>
+                                        </>
                                     )}
                                 </tbody>
                             </Table>
