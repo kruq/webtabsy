@@ -517,7 +517,7 @@ export default function Medicine(props: IMedicineProps) {
                                             <tr key={'medicine-dose-' + dose.id}>
                                                 <td width="auto">{dose.time}</td>
                                                 <td width="auto" className='text-end'>{dose.amount} tab.</td>
-                                                <td width="20%">{getDaysText(dose.numberOfDays ?? 1)}</td>
+                                                <td width="auto">{getDaysText(dose.numberOfDays ?? 1)}</td>
                                                 <td style={{ textAlign: 'right', paddingRight: '5px' }}>
                                                     {dose.nextDoseDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' })}
                                                 </td>
