@@ -382,15 +382,15 @@ export default function Medicine(props: IMedicineProps) {
                     </Col>
                 </Row>
                 <div hidden={props.id !== props.idOfMedicineDetails}>
-                    <Row className="mt-4 mb-3">
+                    <Row className="mt-3 mb-1">
                         <Col className='text-primary' xs='auto'>
                             Ustawienia
                         </Col>
                     </Row>
-                    <Form.Group>
+                    <Form.Group className="mb-3">
                         <Row>
                             <Col>
-                                <Form.Label><small>Nazwa leku:</small></Form.Label>
+                                <small className="text-secondary">Nazwa leku:</small>
                             </Col>
                             <Col xs="auto">
                                 <Button onClick={() => setEditMedicineName(true)} variant='link' hidden={editMedicineName}><TfiPencil /></Button>
@@ -408,10 +408,10 @@ export default function Medicine(props: IMedicineProps) {
                             </Col>
                         </Row>
                     </Form.Group>
-                    <Form.Group>
+                    <Form.Group className="mb-3">
                         <Row>
                             <Col>
-                                <Form.Label><small>Ilość tabletek:</small></Form.Label>
+                                <small className="text-secondary">Ilość tabletek:</small>
                             </Col>
                             <Col xs="auto">
                                 <Button onClick={() => setEditNumberOfTabletes(true)} variant='link' hidden={editNumberOfTabletes}><TfiPencil /></Button>
@@ -427,10 +427,10 @@ export default function Medicine(props: IMedicineProps) {
                             </Col>
                         </Row>
                     </Form.Group>
-                    <Form.Group>
+                    <Form.Group className="mb-3">
                         <Row>
                             <Col>
-                                <Form.Label><small>Opis:</small></Form.Label>
+                                <small className="text-secondary">Opis:</small>
                             </Col>
                             <Col xs='auto'>
                                 <Button onClick={() => setEditDescription(true)} variant='link' hidden={editDescription}><TfiPencil /></Button>
@@ -522,7 +522,7 @@ export default function Medicine(props: IMedicineProps) {
                                                     {dose.nextDoseDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' })}
                                                 </td>
                                                 <td style={{ textAlign: 'right' }}>
-                                                    {(dose?.endDate !== null ? dose.endDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' }) : <i className='text-secondary'>-</i>)}
+                                                    {(dose?.endDate !== null ? dose.endDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' }) : <small className='text-secondary'>bez końca</small>)}
                                                 </td>
                                                 <td className='text-end'>
                                                     <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>
