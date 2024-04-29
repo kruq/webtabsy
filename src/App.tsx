@@ -381,8 +381,8 @@ function App() {
                 <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
                 {/* <Button onClick={async () => test()}>Test</Button> */}
               </Col>
-              <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.8rem' }}>
-                {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+              <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.7rem' }}>
+                Sync: {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
               </Col>
             </Row>
           </Card.Body>
@@ -415,7 +415,7 @@ function App() {
                           <Row>
                             <Col>
                               {group.doses.map(dose =>
-                                <Card key={'overdue-dose-' + dose.id} className="my-2">
+                                <Card key={'overdue-dose-' + dose.id} className="my-2" style={{backgroundColor: dose.todaysDate > new Date() ? '#eceff1' : 'white'}}>
                                   <Card.Body>
                                     <Row className='d-flex align-items-center'>
                                       <Col xs='auto'>

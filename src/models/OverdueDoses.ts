@@ -8,6 +8,21 @@ export default class OverdueDose {
     time: string;
     disabled: boolean;
 
+        public get hour() : number {
+        return parseInt(this.time.substring(0,2));
+    }
+
+    public get minute() : number {
+        return parseInt(this.time.substring(3,5));
+    }
+
+    public get todaysDate(): Date {
+        var date = new Date();
+        date.setHours(this.hour);
+        date.setMinutes(this.minute);
+        return date;
+    }
+
     constructor(dose: {id: string,
         amount: number,
         numberOfDays: number,
