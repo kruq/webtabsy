@@ -332,9 +332,13 @@ function App() {
   // }, [medicines]);
 
 
-  // const test = async () => {
-  //   navigator.serviceWorker.ready.then((r) => r.showNotification('teest'));
-  // }
+  const showNotification = async (date: Date, title: string) => {
+    const now = new Date();
+    const timeout = date.getTime() - now.getTime();
+    setTimeout(() =>
+      navigator.serviceWorker.ready.then((r) => r.showNotification(title))
+      , timeout);
+  }
 
   const countAmountInCurrentPackage = (medicine: IMedicine | undefined) => {
     if (!medicine) {
@@ -377,8 +381,8 @@ function App() {
                 <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
                 {/* <Button onClick={async () => test()}>Test</Button> */}
               </Col>
-              <Col xs="auto" className="text-end">
-                <small className='text-secondary'>{lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</small>
+              <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.8rem' }}>
+                {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
               </Col>
             </Row>
           </Card.Body>
@@ -431,6 +435,7 @@ function App() {
                                                 // tylko nie pamiętam dlaczego :/
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
+                                                showNotification(newDate, medicine.name);
                                                 updateMedicine(medicine);
                                                 //refreshOverdueDoses(meds);
                                                 setMedicines(meds);
@@ -470,6 +475,7 @@ function App() {
                                                 newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
+                                                showNotification(newDate, medicine.name);
                                                 medicine.count -= d2.amount;
                                                 updateMedicine(medicine);
                                                 setMedicines(meds);
