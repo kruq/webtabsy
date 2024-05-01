@@ -334,7 +334,8 @@ function App() {
 
   const showNotification = async (date: Date, title: string) => {
     const now = new Date();
-    const timeout = date.getTime() - now.getTime();
+    //const timeout = date.getTime() - now.getTime();
+    const timeout = 900000;
     setTimeout(() =>
       navigator.serviceWorker.ready.then((r) => r.showNotification(title))
       , timeout);
@@ -381,8 +382,8 @@ function App() {
                 <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
                 {/* <Button onClick={async () => test()}>Test</Button> */}
               </Col>
-              <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.7rem' }}>
-                Sync: {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+              <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.6rem' }}>
+                Sync: {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}, v. 1
               </Col>
             </Row>
           </Card.Body>
