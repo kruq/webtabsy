@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 2;
+  const version = 3;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -66,11 +66,9 @@ function App() {
     return d + " o " + (moment(date).format("HH:mm"));
   }
 
-
   const handleNewMedicineNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMedicineName(event.target.value);
   }
-
 
   const handleTakeMedicines = async () => {
     setShowSpinner(true);
@@ -350,9 +348,13 @@ function App() {
     if (firstDoseGroup) {
       let timeout = firstDoseGroup.date.getTime() - now.getTime();
       console.log(firstDoseGroup.date);
-      setTimeout(() =>
-        navigator.serviceWorker.ready.then((r) => r.showNotification('Weź leki'))
-        , timeout);
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          setTimeout(() =>
+            navigator.serviceWorker.ready.then((r) => r.showNotification('Weź leki'))
+            , timeout);
+        }
+      })
     }
   };
 
