@@ -26,6 +26,8 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
+  const version = 2;
+
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
@@ -221,29 +223,31 @@ function App() {
   //   //}
   // }, [overdueDosesGroups]);
 
-  useEffect(() => {
-    // const newNotificationBody = overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n');
 
-    // navigator.serviceWorker.ready.then((registration) => {
-    //   registration.getNotifications().then((notifications) => {
-    //     notifications.forEach(n => { console.log('closing notification'); n.close(); });
-    //   })
-    // })
+  // POWIADOMIENIA
+  // useEffect(() => {
+  //   // const newNotificationBody = overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n');
 
-    Notification.requestPermission().then((permission) => {
-      if (permission === 'granted') {
-        const notification = new Notification('Weź leki', {
-          icon: './logo192maskable.png',
-          body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n'),
-          tag: 'take-medicine'
-        });
+  //   // navigator.serviceWorker.ready.then((registration) => {
+  //   //   registration.getNotifications().then((notifications) => {
+  //   //     notifications.forEach(n => { console.log('closing notification'); n.close(); });
+  //   //   })
+  //   // })
 
-        notification.addEventListener('click', () => {
-          window.location.href = '/';
-        })
-      }
-    });
-  }, [overdueDosesGroups]);
+  //   Notification.requestPermission().then((permission) => {
+  //     if (permission === 'granted') {
+  //       const notification = new Notification('Weź leki', {
+  //         icon: './logo192maskable.png',
+  //         body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n'),
+  //         tag: 'take-medicine'
+  //       });
+
+  //       notification.addEventListener('click', () => {
+  //         window.location.href = '/';
+  //       })
+  //     }
+  //   });
+  // }, [overdueDosesGroups]);
 
   const handleAddMedicineClick = async (e: MouseEvent) => {
     e.preventDefault();
@@ -332,14 +336,25 @@ function App() {
   // }, [medicines]);
 
 
-  const showNotification = async (date: Date, title: string) => {
+  const showNotification = () => {
+    //const timeout = 900000;
     const now = new Date();
-    //const timeout = date.getTime() - now.getTime();
-    const timeout = 900000;
-    setTimeout(() =>
-      navigator.serviceWorker.ready.then((r) => r.showNotification(title))
-      , timeout);
-  }
+    let firstDoseGroup = null;
+    for (let index = 0; index < overdueDosesGroups.length; index++) {
+      const element = overdueDosesGroups[index];
+      if (element.date > now) {
+        firstDoseGroup = element;
+        break;
+      }
+    }
+    if (firstDoseGroup) {
+      let timeout = firstDoseGroup.date.getTime() - now.getTime();
+      console.log(firstDoseGroup.date);
+      setTimeout(() =>
+        navigator.serviceWorker.ready.then((r) => r.showNotification('Weź leki'))
+        , timeout);
+    }
+  };
 
   const countAmountInCurrentPackage = (medicine: IMedicine | undefined) => {
     if (!medicine) {
@@ -363,7 +378,6 @@ function App() {
     }
   }
 
-
   return (
     <>
       <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
@@ -383,7 +397,7 @@ function App() {
                 {/* <Button onClick={async () => test()}>Test</Button> */}
               </Col>
               <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.6rem' }}>
-                Sync: {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}, v. 1
+                Sync: {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}, v. {version}
               </Col>
             </Row>
           </Card.Body>
@@ -416,7 +430,7 @@ function App() {
                           <Row>
                             <Col>
                               {group.doses.map(dose =>
-                                <Card key={'overdue-dose-' + dose.id} className="my-2" style={{backgroundColor: dose.todaysDate > new Date() ? '#eceff1' : 'white'}}>
+                                <Card key={'overdue-dose-' + dose.id} className="my-2" style={{ backgroundColor: dose.todaysDate > new Date() ? '#eceff1' : 'white' }}>
                                   <Card.Body>
                                     <Row className='d-flex align-items-center'>
                                       <Col xs='auto'>
@@ -436,7 +450,7 @@ function App() {
                                                 // tylko nie pamiętam dlaczego :/
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                showNotification(newDate, medicine.name);
+                                                showNotification();
                                                 updateMedicine(medicine);
                                                 //refreshOverdueDoses(meds);
                                                 setMedicines(meds);
@@ -476,7 +490,7 @@ function App() {
                                                 newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                showNotification(newDate, medicine.name);
+                                                showNotification();
                                                 medicine.count -= d2.amount;
                                                 updateMedicine(medicine);
                                                 setMedicines(meds);
