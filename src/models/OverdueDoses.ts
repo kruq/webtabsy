@@ -17,7 +17,7 @@ export default class OverdueDose {
     }
 
     public get todaysDate(): Date {
-        var date = new Date();
+        var date = new Date(this.nextDoseDate.getTime());
         date.setHours(this.hour);
         date.setMinutes(this.minute);
         return date;

@@ -23,7 +23,7 @@ export default function Schedule(props: IScheduleProps) {
                                     const today = new Date();
                                     today.setHours(0, 0, 0);
                                     // console.log(d.endDate, d.nextDoseDate, today);
-                                    return (d.endDate === null || new Date() <= d.endDate) && (d.nextDoseDate >= today);
+                                    return (d.endDate === null || new Date() <= d.endDate) && (d.nextDoseDate >= today) && (d.nextDoseDate <= new Date(today.getTime() + (1000*60*60*24*6)));
                                 })())
                                 .map(d => { return { dose: d, name: m.name }; });
                         })
