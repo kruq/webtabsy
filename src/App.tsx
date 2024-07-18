@@ -452,7 +452,7 @@ function App() {
                                                 // tylko nie pamiętam dlaczego :/
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                showNotification();
+                                                //showNotification();
                                                 updateMedicine(medicine);
                                                 //refreshOverdueDoses(meds);
                                                 setMedicines(meds);
@@ -492,7 +492,7 @@ function App() {
                                                 newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                showNotification();
+                                                //showNotification();
                                                 medicine.count -= d2.amount;
                                                 updateMedicine(medicine);
                                                 setMedicines(meds);
