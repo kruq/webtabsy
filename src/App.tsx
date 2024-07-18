@@ -334,29 +334,29 @@ function App() {
   // }, [medicines]);
 
 
-  const showNotification = () => {
-    //const timeout = 900000;
-    const now = new Date();
-    let firstDoseGroup = null;
-    for (let index = 0; index < overdueDosesGroups.length; index++) {
-      const element = overdueDosesGroups[index];
-      if (element.date > now) {
-        firstDoseGroup = element;
-        break;
-      }
-    }
-    if (firstDoseGroup) {
-      let timeout = firstDoseGroup.date.getTime() - now.getTime();
-      console.log(firstDoseGroup.date);
-      Notification.requestPermission().then((permission) => {
-        if (permission === 'granted') {
-          setTimeout(() =>
-            navigator.serviceWorker.ready.then((r) => r.showNotification('Weź leki'))
-            , timeout);
-        }
-      })
-    }
-  };
+  // const showNotification = () => {
+  //   //const timeout = 900000;
+  //   const now = new Date();
+  //   let firstDoseGroup = null;
+  //   for (let index = 0; index < overdueDosesGroups.length; index++) {
+  //     const element = overdueDosesGroups[index];
+  //     if (element.date > now) {
+  //       firstDoseGroup = element;
+  //       break;
+  //     }
+  //   }
+  //   if (firstDoseGroup) {
+  //     let timeout = firstDoseGroup.date.getTime() - now.getTime();
+  //     console.log(firstDoseGroup.date);
+  //     Notification.requestPermission().then((permission) => {
+  //       if (permission === 'granted') {
+  //         setTimeout(() =>
+  //           navigator.serviceWorker.ready.then((r) => r.showNotification('Weź leki'))
+  //           , timeout);
+  //       }
+  //     })
+  //   }
+  // };
 
   const countAmountInCurrentPackage = (medicine: IMedicine | undefined) => {
     if (!medicine) {
