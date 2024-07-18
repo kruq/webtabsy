@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 4;
+  const version = 5;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
