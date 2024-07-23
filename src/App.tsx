@@ -431,7 +431,7 @@ function App() {
                           </Row>
                           <Row>
                             <Col>
-                              {group.doses.map(dose =>
+                              {group.doses.filter(dose => dose.amount > 0).map(dose =>
                                 <Card key={'overdue-dose-' + dose.id} className="my-2" style={{ backgroundColor: dose.todaysDate > new Date() ? '#eceff1' : 'white' }}>
                                   <Card.Body>
                                     <Row className='d-flex align-items-center'>
