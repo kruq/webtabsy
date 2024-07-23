@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 6;
+  const version = 5;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -431,7 +431,7 @@ function App() {
                           </Row>
                           <Row>
                             <Col>
-                              {group.doses.filter(dose => dose.amount > 0).map(dose =>
+                              {group.doses.map(dose =>
                                 <Card key={'overdue-dose-' + dose.id} className="my-2" style={{ backgroundColor: dose.todaysDate > new Date() ? '#eceff1' : 'white' }}>
                                   <Card.Body>
                                     <Row className='d-flex align-items-center'>
