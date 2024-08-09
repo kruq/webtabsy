@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 5;
+  const version = 6.1;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -388,7 +388,7 @@ function App() {
       <Container className="sticky-top">
         <Row>
           <Col>
-            <Alert onClose={() => setShowPermissionAlert(false)} variant='warning' dismissible hidden={!showPermissionAlert}>Brak uprawniń do wyświetlania powiadomień</Alert>
+            <Alert onClose={() => setShowPermissionAlert(false)} variant='warning' dismissible hidden={!showPermissionAlert}>Brak uprawnień do wyświetlania powiadomień</Alert>
           </Col>
         </Row>
         <Card>
@@ -583,7 +583,7 @@ function App() {
           </Row>
           <Container className="fixed-bottom">
             <Card>
-              <Card.Body className="p-2">
+              <Card.Body className="p-3">
                 <Nav variant="pills" className="nav-justified">
                   <Nav.Item>
                     <Nav.Link eventKey="missingDoses"><BsFillPersonCheckFill /> <span className="d-none d-md-inline">Status</span></Nav.Link>

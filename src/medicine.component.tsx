@@ -307,7 +307,8 @@ export default function Medicine(props: IMedicineProps) {
             return 0;
         }
         const { doses } = { ...props };
-        const sumDaily = doses.reduce((prev, current) => prev += current?.amount ?? 0, 0);
+        const today = new Date();
+        const sumDaily = doses.filter(d => !d.endDate || d.endDate < today).reduce((prev, current) => prev += current?.amount ?? 0, 0);
         if (!sumDaily) { return 0 }
         return Math.floor(count / sumDaily);
     }
