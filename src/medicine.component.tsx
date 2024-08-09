@@ -308,7 +308,10 @@ export default function Medicine(props: IMedicineProps) {
         }
         const { doses } = { ...props };
         const today = new Date();
-        const sumDaily = doses.filter(d => !d.endDate || d.endDate < today).reduce((prev, current) => prev += current?.amount ?? 0, 0);
+        const filteredDoses = doses.filter(d => !d.endDate || d.endDate > today);
+        if (filteredDoses.length === 0) { return -1; }
+        const sumDaily = filteredDoses.reduce((prev, current) => prev += current?.amount ?? 0, 0);
+
         if (!sumDaily) { return 0 }
         return Math.floor(count / sumDaily);
     }
@@ -369,7 +372,7 @@ export default function Medicine(props: IMedicineProps) {
                         <small> {countAmountInCurrentPackage()}</small>
                         {/* <Badge bg="secondar(y" style={{ width: '70px' }} className="d-none d-md-inline" >{props.count} tab.</Badge> */}
                     </Col>
-                    <Col xs="auto">
+                    <Col xs="auto" hidden={countNumberOfDays() === -1}>
                         <small className={`text-${countNumberOfDays() < 8 ? "danger" : "success"}`}>{countNumberOfDays()} dni</small>
                         {/* <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="d-none d-md-inline" hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </> */}
                     </Col>
@@ -514,22 +517,20 @@ export default function Medicine(props: IMedicineProps) {
                             <Table size='sm'>
                                 <tbody>
                                     {props.doses?.map(dose =>
-                                        <>
-                                            <tr key={'medicine-dose-' + dose.id}>
-                                                <td width="auto">{dose.time}</td>
-                                                <td width="auto" className='text-end'>{dose.amount} tab.</td>
-                                                <td width="auto">{getDaysText(dose.numberOfDays ?? 1)}</td>
-                                                <td style={{ textAlign: 'right', paddingRight: '5px' }}>
-                                                    {dose.nextDoseDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' })}
-                                                </td>
-                                                <td style={{ textAlign: 'right' }}>
-                                                    {(dose?.endDate !== null ? dose.endDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' }) : <small className='text-secondary'>bez końca</small>)}
-                                                </td>
-                                                <td className='text-end'>
-                                                    <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>
-                                                </td>
-                                            </tr>
-                                        </>
+                                        <tr key={'medicine-dose-' + dose.id}>
+                                            <td width="auto">{dose.time}</td>
+                                            <td width="auto" className='text-end'>{dose.amount} tab.</td>
+                                            <td width="auto">{getDaysText(dose.numberOfDays ?? 1)}</td>
+                                            <td style={{ textAlign: 'right', paddingRight: '5px' }}>
+                                                {dose.nextDoseDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' })}
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                {(dose?.endDate !== null ? dose.endDate.toLocaleDateString('pl-PL', { year: '2-digit', month: '2-digit', day: 'numeric' }) : <small className='text-secondary'>bez końca</small>)}
+                                            </td>
+                                            <td className='text-end'>
+                                                <Button onClick={() => handleRemoveDose(dose)} variant="link" className='text-danger'>Usuń</Button>
+                                            </td>
+                                        </tr>
                                     )}
                                 </tbody>
                             </Table>
