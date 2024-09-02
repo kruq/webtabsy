@@ -37,3 +37,8 @@ dialog {
   box-shadow: 0 0 12px rgba(0,0,0,0.175);
   min-width: 50vw;
 }
+
+input.form-control {
+  font-size: 16px;
+  border-width: 0 0 1px 0;
+}

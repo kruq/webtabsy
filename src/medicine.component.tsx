@@ -14,7 +14,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import IPurchase from './models/IPurchase';
 import { v4 as Uuid } from 'uuid';
 import { TfiPencil, TfiCheck } from 'react-icons/tfi';
-import { getDaysText } from './text.helpers';
+import { getDateText, getDaysText } from './text.helpers';
 
 
 
@@ -316,6 +316,13 @@ export default function Medicine(props: IMedicineProps) {
         return Math.floor(count / sumDaily);
     }
 
+    const countLastDay = () => {
+        const date = new Date();
+        const diff = countNumberOfDays();
+        date.setDate(date.getDate() + diff);
+        return diff < 7 ? getDateText(date) : date.toLocaleDateString('pl-PL');
+    }
+
     const takeOneHandler = async (e: React.MouseEvent<HTMLButtonElement>) => {
         if (!count) {
             return;
@@ -372,8 +379,9 @@ export default function Medicine(props: IMedicineProps) {
                         <small> {countAmountInCurrentPackage()}</small>
                         {/* <Badge bg="secondar(y" style={{ width: '70px' }} className="d-none d-md-inline" >{props.count} tab.</Badge> */}
                     </Col>
-                    <Col xs="auto" hidden={countNumberOfDays() === -1}>
-                        <small className={`text-${countNumberOfDays() < 8 ? "danger" : "success"}`}>{countNumberOfDays()} dni</small>
+                    <Col xs="auto" hidden={countNumberOfDays() < 0}>
+                        {props.count > 0 ?
+                            <small className={`text-${countNumberOfDays() < 8 ? "danger" : "success"}`}>{countLastDay()} ({countNumberOfDays()} dni)</small> : <span></span>}
                         {/* <Badge bg={countNumberOfDays() < 8 ? "danger" : "primary"} style={{ width: '70px' }} className="d-none d-md-inline" hidden={countNumberOfDays() === 0}> {countNumberOfDays()} dni</Badge><> </> */}
                     </Col>
                 </Row>

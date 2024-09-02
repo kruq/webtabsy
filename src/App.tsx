@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 7;
+  const version = 8;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -55,6 +55,12 @@ function App() {
   //       }
   //     ).catch(x => alert(x));
   // }
+
+  // useEffect(() => {
+  document.addEventListener('scroll', (event) => {
+    console.log(window.scrollY);
+  });
+  // }, []);
 
 
   const formatDate = (date: Date) => {
@@ -382,28 +388,24 @@ function App() {
 
   return (
     <>
-      <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#ffffffcc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
+      <div style={{ position: 'absolute', top: '0', left: '0', bottom: '0', right: '0', backgroundColor: '#fafafc', zIndex: '1000', display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: '40vh' }} hidden={!showSpinner}  >
         <h3><Spinner animation="border" variant='primary' /> Ładowanie...</h3>
       </div>
-      <Container className="sticky-top">
-        <Row>
+      <Container className="sticky-top p-3" style={{ backgroundColor: '#fafafc' }}>
+        <Row >
           <Col>
             <Alert onClose={() => setShowPermissionAlert(false)} variant='warning' dismissible hidden={!showPermissionAlert}>Brak uprawnień do wyświetlania powiadomień</Alert>
           </Col>
         </Row>
-        <Card>
-          <Card.Body>
-            <Row>
-              <Col>
-                <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
-                {/* <Button onClick={async () => test()}>Test</Button> */}
-              </Col>
-              <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.6rem' }}>
-                Sync: {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}, v. {version}
-              </Col>
-            </Row>
-          </Card.Body>
-        </Card>
+        <Row>
+          <Col>
+            <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
+            {/* <Button onClick={async () => test()}>Test</Button> */}
+          </Col>
+          <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.6rem' }}>
+            Sync: {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}, v. {version}
+          </Col>
+        </Row>
       </Container>
       <Container className="position-relative pt-3">
         <div>{medicines.length > 0 || (<span>Wczytywanie danych...</span>)}</div>
@@ -581,22 +583,18 @@ function App() {
               </Tab.Content>
             </Col>
           </Row>
-          <Container className="fixed-bottom">
-            <Card>
-              <Card.Body className="p-3">
-                <Nav variant="pills" className="nav-justified">
-                  <Nav.Item>
-                    <Nav.Link eventKey="missingDoses"><BsFillPersonCheckFill /> <span className="d-none d-md-inline">Status</span></Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="medicines"><BsCardList /> <span className="d-none d-md-inline">Lista leków</span></Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="schedule"><BsFillCalendarWeekFill /> <span className="d-none d-md-inline">Grafik</span></Nav.Link>
-                  </Nav.Item>
-                </Nav>
-              </Card.Body>
-            </Card>
+          <Container className="fixed-bottom p-3" style={{ backgroundColor: '#fafafc' }}>
+            <Nav variant="pills" className="nav-justified">
+              <Nav.Item>
+                <Nav.Link eventKey="missingDoses"><BsFillPersonCheckFill /> <span className="d-none d-md-inline">Status</span></Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="medicines"><BsCardList /> <span className="d-none d-md-inline">Lista leków</span></Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="schedule"><BsFillCalendarWeekFill /> <span className="d-none d-md-inline">Grafik</span></Nav.Link>
+              </Nav.Item>
+            </Nav>
           </Container>
         </Tab.Container>
         {/* <Row hidden={medicines.length === 0}>
