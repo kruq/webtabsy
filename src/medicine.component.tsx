@@ -46,6 +46,7 @@ export default function Medicine(props: IMedicineProps) {
     const [description, setDescription] = useState(props.description);
     const [fnDebounce, setFnDebounce] = useState<NodeJS.Timer>();
     const [isVisible, setIsVisible] = useState(props.isVisible);
+    const [hideWhenEmpty, setHideWhenEmpty] = useState(props.hideWhenEmpty);
 
     const [newDose, setNewDose] = useState<Dose>(defaultDose);
     const [newDoseValid, setNewDoseValid] = useState<boolean>(true);
@@ -103,6 +104,12 @@ export default function Medicine(props: IMedicineProps) {
         const isChecked = event.target.checked;
         setIsVisible(isChecked);
         props.updateMedicine(props.id, { isVisible: isChecked })
+    }
+
+    const handleHideWhenEmptyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = event.target.checked;
+        setHideWhenEmpty(isChecked);
+        props.updateMedicine(props.id, { hideWhenEmpty: isChecked })
     }
 
     const handleRemoveMedicine = () => {
@@ -456,6 +463,20 @@ export default function Medicine(props: IMedicineProps) {
                             <Col hidden={!editDescription}>
                                 <Form.Control type="text" value={description} placeholder='Opis' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineDescriptionChange(e)}></Form.Control>
                             </Col>
+                        </Row>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Row>
+                            <Col>
+                                <FormCheck
+                                    // className='mt-1'
+                                    // style={{fontSize:'medium'}}
+                                    type="switch"
+                                    id="dose-hidden-when-empty"
+                                    label="Ukryj jeśli brakuje leku"
+                                    checked={hideWhenEmpty}
+                                    onChange={(e) => handleHideWhenEmptyChange(e)}
+                                /></Col>
                         </Row>
                     </Form.Group>
                     <Row className="mt-4">

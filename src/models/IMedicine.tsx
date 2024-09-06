@@ -7,6 +7,7 @@ export default interface IMedicine {
   description: string;
   count: number;
   isVisible: boolean;
+  hideWhenEmpty: boolean;
   doses: Dose[];
   purchases: IPurchase[];
 }

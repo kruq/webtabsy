@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 8;
+  const version = 9;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -194,7 +194,7 @@ function App() {
       setTimeout(() => setErrorMessage(''), 3000);
     });
 
-    const timer = setInterval(() => setLastCheckTime(new Date()), 60000);
+    const timer = setInterval(() => setLastCheckTime(new Date()), 30000);
     return () => {
       clearInterval(timer);
     }
@@ -267,7 +267,8 @@ function App() {
       count: 0,
       isVisible: true,
       doses: [],
-      purchases: []
+      purchases: [],
+      hideWhenEmpty: false
     };
     await addMedicine(newMedicine);
     setMedicines(await fetchMedicines());
