@@ -364,7 +364,7 @@ export default function Medicine(props: IMedicineProps) {
             let value = props.count % lastPackageSize
             if (value === 0) {
                 if (props.count !== 0) {
-                    value = props.count;
+                    value = lastPackageSize;
                 }
                 else {
                     return '';
