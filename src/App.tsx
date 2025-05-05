@@ -27,6 +27,7 @@ import { weekDays } from './text.helpers';
 function App() {
 
   const version = 1.10;
+  const syncIntervalInSeconds = 120;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -35,6 +36,8 @@ function App() {
   const [showSpinner, setShowSpinner] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<Date>(new Date());
   const [showAll, setShowAll] = useState<boolean>(localStorage.getItem('showAll') === 'true');
+  
+  const [syncTimestamp, setSyncTimestamp] = useState(0);
 
   const [addMedicineDialogVisible, setAddMedicinceDialogVisible] = useState(false);
   const [showPermissionAlert, setShowPermissionAlert] = useState(false);
@@ -176,6 +179,7 @@ function App() {
   }
 
   useEffect(() => {
+    setMedicines([]);
     findOverdueDoses().then(groups => {
       setOverdueDosesGroups(groups);
     });
@@ -194,12 +198,24 @@ function App() {
       setTimeout(() => setErrorMessage(''), 3000);
     });
 
-    const timer = setInterval(() => setLastCheckTime(new Date()), 30000);
+    const timer = setInterval(() => setLastCheckTime(new Date()), syncIntervalInSeconds * 1000);
     return () => {
       clearInterval(timer);
     }
 
   }, [refreshOverdueDoses, lastCheckTime]);
+
+  const refreshSyncTimestamp = () => {
+    const timestamp = syncIntervalInSeconds - Math.round(((new Date()).getTime() - lastCheckTime.getTime()) / 1000);
+    setSyncTimestamp(timestamp);    
+  };
+
+  useEffect(() => {
+    const timer = setInterval(refreshSyncTimestamp, 1000);
+    return () => {
+      clearInterval(timer);
+    }
+  },[lastCheckTime]);
 
   // useEffect(() => {
   //   // if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
@@ -404,12 +420,12 @@ function App() {
             {/* <Button onClick={async () => test()}>Test</Button> */}
           </Col>
           <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.6rem' }}>
-            Sync: {lastCheckTime.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit' })}, v. {version}
+            Synch. za : {syncTimestamp/*.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })*/} sek., v. {version}
           </Col>
         </Row>
       </Container>
       <Container className="position-relative pt-3">
-        <div>{medicines.length > 0 || (<span>Wczytywanie danych...</span>)}</div>
+        <div>{medicines.length > 0 || (<span>Synchronizacja danych...</span>)}</div>
         <Tab.Container
           defaultActiveKey="missingDoses"
         >
