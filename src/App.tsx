@@ -26,8 +26,8 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.10;
-  const syncIntervalInSeconds = 120;
+  const version = 1.2;
+  const syncIntervalInSeconds = 301;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -36,7 +36,7 @@ function App() {
   const [showSpinner, setShowSpinner] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<Date>(new Date());
   const [showAll, setShowAll] = useState<boolean>(localStorage.getItem('showAll') === 'true');
-  
+
   const [syncTimestamp, setSyncTimestamp] = useState(0);
 
   const [addMedicineDialogVisible, setAddMedicinceDialogVisible] = useState(false);
@@ -205,17 +205,17 @@ function App() {
 
   }, [refreshOverdueDoses, lastCheckTime]);
 
-  const refreshSyncTimestamp = () => {
+  const refreshSyncTimestamp = useCallback(() => {
     const timestamp = syncIntervalInSeconds - Math.round(((new Date()).getTime() - lastCheckTime.getTime()) / 1000);
-    setSyncTimestamp(timestamp);    
-  };
+    setSyncTimestamp(timestamp);
+  }, [lastCheckTime]);
 
   useEffect(() => {
     const timer = setInterval(refreshSyncTimestamp, 1000);
     return () => {
       clearInterval(timer);
     }
-  },[lastCheckTime]);
+  }, [refreshSyncTimestamp]);
 
   // useEffect(() => {
   //   // if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
@@ -420,7 +420,8 @@ function App() {
             {/* <Button onClick={async () => test()}>Test</Button> */}
           </Col>
           <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.6rem' }}>
-            Synch. za : {syncTimestamp/*.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })*/} sek., v. {version}
+            {syncTimestamp < 20 ? "Synch. za : " + syncTimestamp/*.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })*/ + " sek., " : ""}
+            {"v. " + version}
           </Col>
         </Row>
       </Container>
