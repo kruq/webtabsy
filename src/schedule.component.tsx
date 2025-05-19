@@ -16,7 +16,7 @@ export default function Schedule(props: IScheduleProps) {
             <Col className="d-flex flex-column align-items-center">
                 {Object.entries(_.groupBy(
                     props.medicines
-                        .filter(m => m.doses.length > 0)
+                        .filter(m => m.doses.length > 0 && (m.count > 0 || !m.hideWhenEmpty))
                         .map(m => {
                             return m.doses
                                 .filter(d => (() => {

@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.2;
+  const version = 1.3;
   const syncIntervalInSeconds = 301;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
@@ -581,7 +581,7 @@ function App() {
                   <Row>
                     <Col>{medicines
                       .sort((a, b) => (a.name > b.name ? 1 : -1))
-                      .filter(m => showAll || m.isVisible)
+                      .filter(m => showAll || m.isVisible || m.id === idOfMedicineDetails)
                       .map((x: IMedicine) =>
                         <Medicine
                           key={'medicine-' + x.id}

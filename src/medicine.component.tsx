@@ -134,7 +134,15 @@ export default function Medicine(props: IMedicineProps) {
         if (value.nextDoseDate < new Date()) {
             value.nextDoseDate = new Date();
         }
-        doses.push(value);
+        debugger;
+        const existindDose = doses.find(x => x.id === value.id);
+        if (existindDose) {
+            const index = doses.indexOf(existindDose);
+            doses.splice(index, 1);
+            doses.push(value);
+        } else {
+            doses.push(value);
+        }
         doses = doses.map(x => {
             x.id = !x.id ? Uuid() : x.id;
             x.time = x.time.length === 4 ? '0' + x.time : x.time;
@@ -490,7 +498,7 @@ export default function Medicine(props: IMedicineProps) {
                     <dialog open={addDoseDialogVisible}>
                         <Row>
                             <Col>
-                                <strong>Nowa dawka</strong>
+                                <strong>{props.doses.find(x => x.id === newDose.id) ? "Edycja dawki": "Nowa dawka"} </strong>
                             </Col>
                         </Row>
                         <Form>
@@ -547,7 +555,10 @@ export default function Medicine(props: IMedicineProps) {
                                 <tbody>
                                     {props.doses?.map(dose =>
                                         <tr key={'medicine-dose-' + dose.id}>
-                                            <td width="auto">{dose.time}</td>
+                                            <td width="auto"><Button variant="link" onClick={() => {
+                                                setNewDose(dose);
+                                                setAddDoseDialogVisible(true);
+                                            }}>{dose.time}</Button></td>
                                             <td width="auto" className='text-end'>{dose.amount} tab.</td>
                                             <td width="auto">{getDaysText(dose.numberOfDays ?? 1)}</td>
                                             <td style={{ textAlign: 'right', paddingRight: '5px' }}>
