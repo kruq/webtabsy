@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.3;
+  const version = 1.4;
   const syncIntervalInSeconds = 301;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
@@ -420,7 +420,7 @@ function App() {
             {/* <Button onClick={async () => test()}>Test</Button> */}
           </Col>
           <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.6rem' }}>
-            {syncTimestamp < 20 ? "Synch. za : " + syncTimestamp/*.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })*/ + " sek., " : ""}
+            {syncTimestamp < 1000 ? "Synch. za : " + syncTimestamp/*.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })*/ + " sek., " : ""}
             {"v. " + version}
           </Col>
         </Row>
@@ -491,7 +491,7 @@ function App() {
                                       <Col>
                                         <strong>{dose.amount}{' x '}{dose.medicineName} </strong>
                                         <small>
-                                          <Badge bg="secondary" pill>
+                                          <Badge bg={(medicines?.find(m => m.name === dose.medicineName)?.count || 0) < dose.amount ? "danger" : "secondary"} pill>
                                             {medicines.find(m => m.name === dose.medicineName)?.count}{' '}{countAmountInCurrentPackage(medicines.find(m => m.name === dose.medicineName))}
                                           </Badge>
                                         </small>
@@ -499,7 +499,7 @@ function App() {
                                       <Col xs='auto'>
                                         <Button
                                           size='sm'
-                                          disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0 || dose.disabled}
+                                          disabled={(medicines?.find(m => m.name === dose.medicineName)?.count || 0) < dose.amount || dose.disabled}
                                           onClick={async () => {
                                             dose.disabled = true;
                                             const meds = [...medicines];
