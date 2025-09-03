@@ -490,7 +490,7 @@ function App() {
                                       </Col>
                                       <Col>
                                         <strong>{dose.amount}{' x '}{dose.medicineName} </strong>
-                                        <small>
+                                        <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
                                           <Badge bg={(medicines?.find(m => m.name === dose.medicineName)?.count || 0) < dose.amount ? "danger" : "secondary"} pill>
                                             {medicines.find(m => m.name === dose.medicineName)?.count}{' '}{countAmountInCurrentPackage(medicines.find(m => m.name === dose.medicineName))}
                                           </Badge>
