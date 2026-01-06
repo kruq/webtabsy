@@ -71,7 +71,7 @@ export default function Medicine(props: IMedicineProps) {
         setFnDebounce(setTimeout(() => {
             props.updateMedicine(props.id, { name: newValue });
             setEditMedicineName(false);
-        }, 2000));
+        }, 3000));
         setName(newValue);
     }
 
@@ -85,7 +85,7 @@ export default function Medicine(props: IMedicineProps) {
             setFnDebounce(setTimeout(() => {
                 props.updateMedicine(props.id, { count: newValue });
                 setEditNumberOfTabletes(false);
-            }, 2000));
+            }, 3000));
         }
         setCount(newValue);
     }
@@ -96,7 +96,7 @@ export default function Medicine(props: IMedicineProps) {
         setFnDebounce(setTimeout(() => {
             props.updateMedicine(props.id, { description: newValue });
             setEditDescription(false);
-        }, 2000));
+        }, 3000));
         setDescription(newValue);
     }
 
@@ -293,13 +293,19 @@ export default function Medicine(props: IMedicineProps) {
         if (!purchases) {
             purchases = []
         }
+        let newDoses = props.doses;
+        if ((!count || count === 0) && window.confirm('Czy chcesz zresetować następny dzień dawkowania?')) {
+            newDoses = props.doses.map(d => ({ ...d, nextDoseDate: new Date() }));
+        }
+
         let c = count ?? 0;
         for (let i = 0; i < newPurchase.numberOfPackages; i++) {
             purchases.push({ id: Uuid(), date: new Date(), numberOfTablets: newPurchase.numberOfTabletsInPackage, price: newPurchase.pricePerPackage })
             c += newPurchase.numberOfTabletsInPackage;
         }
-        setCount(c)
-        await props.updateMedicine(props.id, { purchases, count: c });
+
+        setCount(c);
+        await props.updateMedicine(props.id, { purchases, count: c, doses: newDoses });
         setNewPurchase(defaultPurchase);
         setAddPurchaseDialogVisible(false);
     }
@@ -498,7 +504,7 @@ export default function Medicine(props: IMedicineProps) {
                     <dialog open={addDoseDialogVisible}>
                         <Row>
                             <Col>
-                                <strong>{props.doses.find(x => x.id === newDose.id) ? "Edycja dawki": "Nowa dawka"} </strong>
+                                <strong>{props.doses.find(x => x.id === newDose.id) ? "Edycja dawki" : "Nowa dawka"} </strong>
                             </Col>
                         </Row>
                         <Form>
