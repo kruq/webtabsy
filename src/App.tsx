@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.4;
+  const version = 1.5;
   const syncIntervalInSeconds = 301;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
