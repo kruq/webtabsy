@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.5;
+  const version = 1.6;
   const syncIntervalInSeconds = 301;
 
   // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
@@ -179,7 +179,7 @@ function App() {
   }
 
   useEffect(() => {
-    setMedicines([]);
+    //setMedicines([]);
     findOverdueDoses().then(groups => {
       setOverdueDosesGroups(groups);
     });
