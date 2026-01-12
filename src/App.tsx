@@ -179,7 +179,7 @@ function App() {
   }
 
   useEffect(() => {
-    setMedicines([]);
+    //setMedicines([]);
     findOverdueDoses().then(groups => {
       setOverdueDosesGroups(groups);
     });
