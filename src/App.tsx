@@ -26,10 +26,9 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.6;
-  const syncIntervalInSeconds = 301;
+  const version = 1.7;
+  const SYNC_INTERVAL_IN_SECONDS = 60;
 
-  // const [notTakenDoses, setNotTakenDoses] = useState<DoseDetails[]>([])
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
   const [idOfMedicineDetails, setIdOfMedicineDetails] = useState('');
@@ -37,7 +36,7 @@ function App() {
   const [lastCheckTime, setLastCheckTime] = useState<Date>(new Date());
   const [showAll, setShowAll] = useState<boolean>(localStorage.getItem('showAll') === 'true');
 
-  const [syncTimestamp, setSyncTimestamp] = useState(0);
+  const [syncTimestamp, setSyncTimestamp] = useState(SYNC_INTERVAL_IN_SECONDS);
 
   const [addMedicineDialogVisible, setAddMedicinceDialogVisible] = useState(false);
   const [showPermissionAlert, setShowPermissionAlert] = useState(false);
@@ -46,25 +45,9 @@ function App() {
 
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // if (Notification.permission !== 'granted') {
-  //   Notification.requestPermission()
-  //     .then(
-  //       (value) => {
-  //         if (value === 'granted') {
-  //           setShowPermissionAlert(false);
-  //         } else {
-  //           setShowPermissionAlert(true);
-  //         }
-  //       }
-  //     ).catch(x => alert(x));
-  // }
-
-  // useEffect(() => {
   document.addEventListener('scroll', (event) => {
     console.log(window.scrollY);
   });
-  // }, []);
-
 
   const formatDate = (date: Date) => {
     let d = weekDays[date.getDay()];
@@ -117,57 +100,15 @@ function App() {
     newm.forEach(x => updateMedicine(x));
 
     setMedicines([...newm]);
-    //    setNotTakenDoses(refreshOverdueDoses(newm));
     refreshOverdueDoses(newm);
     setShowSpinner(false);
   };
 
 
   const refreshOverdueDoses = useCallback((meds: IMedicine[]) => {
-
-
-    // const today = new Date();
-
     findOverdueDoses().then(groups => {
       setOverdueDosesGroups(groups);
     });
-
-    // const elements = meds.reduce((collection: DoseDetails[], x) => {
-    //   let dosesArray: DoseDetails[] = [];
-
-    //   const newDosesArray = x.doses.filter(d => (d.endDate === null || today <= d.endDate) && today >= d.nextDoseDate).flatMap(dose => {
-    //     console.log(dose.time);
-
-    //     let noOfDays = countDays(today, dose.nextDoseDate);
-    //     if (noOfDays > 100) {
-    //       noOfDays = 0;
-    //     }
-
-    //     // Create array of numbers in sequence starting from 0
-    //     const days = [...Array.from(Array(noOfDays + 1).keys())];
-
-    //     return days.reverse().reduce((foundDoses, dayNo) => {
-    //       const date = new Date(today);
-    //       date.setDate(date.getDate() - dayNo);
-
-    //       const hourAndMinute = dose.time.split(":");
-    //       date.setHours(parseInt(hourAndMinute[0]), parseInt(hourAndMinute[1]), 0, 0);
-    //       if ((date > dose.nextDoseDate) && (date < today)) {
-    //         foundDoses.push({ ...dose, date });
-    //       }
-    //       return foundDoses;
-    //     }, new Array<IDoseWithDate>());
-    //   }).map(dose => { return { doseAmount: dose.amount ?? 0, time: `${formatDate(dose.date)}, ${dose.time}`, dose } });
-    //   dosesArray = dosesArray.concat(newDosesArray);
-    //   return collection.concat(dosesArray.map(y => { y.medicine = x; return y }));
-    // }, []);
-
-
-
-    // return elements
-    //   .sort((a, b) => { return a.time > b.time ? 1 : -1 });
-
-    // // useCallback
   }, []);
 
   const handleMedicineClick = (medicineId: string) => {
@@ -179,15 +120,11 @@ function App() {
   }
 
   useEffect(() => {
-    //setMedicines([]);
     findOverdueDoses().then(groups => {
       setOverdueDosesGroups(groups);
     });
     fetchMedicines().then(meds => {
       setMedicines(meds);
-      // const notTakenDoses = refreshOverdueDoses(meds)
-      // setNotTakenDoses(notTakenDoses);
-      // refreshOverdueDoses(meds);
     }).catch((error) => {
       if (error.code === "ERR_NETWORK") {
         setErrorMessage("Bład połączenia!")
@@ -198,76 +135,20 @@ function App() {
       setTimeout(() => setErrorMessage(''), 3000);
     });
 
-    const timer = setInterval(() => setLastCheckTime(new Date()), syncIntervalInSeconds * 1000);
-    return () => {
-      clearInterval(timer);
-    }
-
   }, [refreshOverdueDoses, lastCheckTime]);
 
-  const refreshSyncTimestamp = useCallback(() => {
-    const timestamp = syncIntervalInSeconds - Math.round(((new Date()).getTime() - lastCheckTime.getTime()) / 1000);
-    setSyncTimestamp(timestamp);
-  }, [lastCheckTime]);
-
   useEffect(() => {
-    const timer = setInterval(refreshSyncTimestamp, 1000);
+    const timer = setInterval(() => {
+      setSyncTimestamp(prev => prev - 1)
+      if (syncTimestamp <= 1) {
+        setSyncTimestamp(SYNC_INTERVAL_IN_SECONDS);
+        setLastCheckTime(new Date());
+      }
+    }, 1000);
     return () => {
       clearInterval(timer);
     }
-  }, [refreshSyncTimestamp]);
-
-  // useEffect(() => {
-  //   // if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-  //   // dev code
-  //   // } else {
-  //   navigator.serviceWorker.ready.then((registration) => {
-  //     registration.getNotifications().then((notifications) => {
-  //       notifications.forEach(n => { console.log('closing notification'); n.close(); });
-  //       if (overdueDosesGroups.length > 0) {
-  //         registration.showNotification(`Weź leki`, {
-  //           icon: './logo192maskable.png',
-  //           body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r'),
-  //           // actions: [
-  //           //   {
-  //           //     action: 'all-taken',
-  //           //     title: 'Oznacz jako wzięte'
-  //           //   }
-  //           // ],
-  //           data: overdueDosesGroups
-  //         });
-  //       }
-  //     });
-  //   });
-  //   // production code
-  //   //}
-  // }, [overdueDosesGroups]);
-
-
-  // POWIADOMIENIA
-  // useEffect(() => {
-  //   // const newNotificationBody = overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n');
-
-  //   // navigator.serviceWorker.ready.then((registration) => {
-  //   //   registration.getNotifications().then((notifications) => {
-  //   //     notifications.forEach(n => { console.log('closing notification'); n.close(); });
-  //   //   })
-  //   // })
-
-  //   Notification.requestPermission().then((permission) => {
-  //     if (permission === 'granted') {
-  //       const notification = new Notification('Weź leki', {
-  //         icon: './logo192maskable.png',
-  //         body: overdueDosesGroups.flatMap(x => x.doses).map(x => x.amount + " x " + x.medicineName + " o " + x.time).join('\r\n'),
-  //         tag: 'take-medicine'
-  //       });
-
-  //       notification.addEventListener('click', () => {
-  //         window.location.href = '/';
-  //       })
-  //     }
-  //   });
-  // }, [overdueDosesGroups]);
+  }, [syncTimestamp]);
 
   const handleAddMedicineClick = async (e: MouseEvent) => {
     e.preventDefault();
@@ -300,8 +181,6 @@ function App() {
       await deleteMedicine(medicine);
       const meds = medicines.filter(m => m.id !== medicine.id);
       setMedicines(meds);
-      // const m = refreshOverdueDoses(meds);
-      // setNotTakenDoses(m);
       refreshOverdueDoses(meds);
     }
     catch (e: any) {
@@ -314,7 +193,6 @@ function App() {
   }
 
   const handleUpdateMedicine = async (id: string, params: any) => {
-    // setShowSpinner(true);
     let newMedicine = null;
     const meds = medicines.map(m => {
       if (m.id === id) {
@@ -326,60 +204,8 @@ function App() {
     setMedicines(meds);
     if (!newMedicine) { return }
     await updateMedicine(newMedicine);
-    // const m = refreshOverdueDoses(meds);
-    // setNotTakenDoses(m);
-    // setShowSpinner(false);
     refreshOverdueDoses(meds);
   }
-
-
-
-  // const getDateWhenMedicinesTaken = useCallback(() => {
-  //   // return medicines?.length > 0 && new Date(medicines[0]?.lastDateTaken?.toString()).toLocaleDateString('pl-PL')
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-  //   const date = new Date(medicines[0]?.lastDateTaken?.toString());
-  //   const diff = countDays(today, date);
-  //   if (isNaN(diff)) {
-  //     return "-";
-  //   }
-  //   const h = date.getHours().toString();
-  //   let m = date.getMinutes().toString();
-  //   if (m.length === 1) {
-  //     m = "0" + m;
-  //   }
-  //   switch (diff) {
-  //     case -1: return `jutro ????`
-  //     case 0: return `dzisiaj o ${h}:${m}`
-  //     case 1: return `wczoraj o ${h}:${m}`
-  //     default: return diff + ` dni temu - ${date.toLocaleDateString('pl-PL')} o ${h}:${m}`;
-  //   }
-  // }, [medicines]);
-
-
-  // const showNotification = () => {
-  //   //const timeout = 900000;
-  //   const now = new Date();
-  //   let firstDoseGroup = null;
-  //   for (let index = 0; index < overdueDosesGroups.length; index++) {
-  //     const element = overdueDosesGroups[index];
-  //     if (element.date > now) {
-  //       firstDoseGroup = element;
-  //       break;
-  //     }
-  //   }
-  //   if (firstDoseGroup) {
-  //     let timeout = firstDoseGroup.date.getTime() - now.getTime();
-  //     console.log(firstDoseGroup.date);
-  //     Notification.requestPermission().then((permission) => {
-  //       if (permission === 'granted') {
-  //         setTimeout(() =>
-  //           navigator.serviceWorker.ready.then((r) => r.showNotification('Weź leki'))
-  //           , timeout);
-  //       }
-  //     })
-  //   }
-  // };
 
   const countAmountInCurrentPackage = (medicine: IMedicine | undefined) => {
     if (!medicine) {
@@ -467,14 +293,9 @@ function App() {
                                                 let newDate = d2.nextDoseDate;
                                                 const timeParts = d2.time.split(':');
                                                 newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                                                // TODO:
-                                                // nie zawsze dodanie 1 do aktualnie ustawionej daty jest ok
-                                                // tylko nie pamiętam dlaczego :/
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                //showNotification();
                                                 updateMedicine(medicine);
-                                                //refreshOverdueDoses(meds);
                                                 setMedicines(meds);
                                                 const indexOfDose = group.doses.indexOf(dose);
                                                 group.doses.splice(indexOfDose, 1);
@@ -512,11 +333,9 @@ function App() {
                                                 newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
                                                 newDate.setDate(newDate.getDate() + (dose.numberOfDays ?? 1));
                                                 d2.nextDoseDate = newDate;
-                                                //showNotification();
                                                 medicine.count -= d2.amount;
                                                 updateMedicine(medicine);
                                                 setMedicines(meds);
-                                                // refreshOverdueDoses(meds);
                                                 const indexOfDose = group.doses.indexOf(dose);
                                                 group.doses.splice(indexOfDose, 1);
                                                 if (group.doses.length === 0) {
@@ -615,165 +434,6 @@ function App() {
             </Nav>
           </Container>
         </Tab.Container>
-        {/* <Row hidden={medicines.length === 0}>
-          <Col md='4'>
-            <section className='my-3'>
-              <Row>
-                <Col>
-                  <strong>Pominięte leki</strong>
-                  <Card hidden={medicines.length === 0 || overdueDosesGroups.length !== 0} className='my-2'>
-                    <Card.Body className="text-center">
-                      <h4>Gratulacje!</h4>
-                      <h6>Wszystkie leki zostały wzięte</h6>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  {overdueDosesGroups.map(group => <div>
-                    <small>{formatDate(group.date)}</small>
-                    <Card className='my-2' key={'overdue-group-' + group.date}>
-                      <Card.Body>
-                        {group.doses.map(dose => <div key={'overdue-dose-' + dose.id}>
-                          <Row>
-                            <Col xs='auto'>
-                              <Button variant='link text-danger'
-                                size='sm'
-                                // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                                onClick={async () => {
-                                  const meds = [...medicines];
-                                  const medicine = meds.find(m => m.name === dose.medicineName);
-                                  if (medicine) {
-                                    const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
-                                    if (d2 && d2.amount) {
-                                      let newDate = d2.nextDoseDate;
-                                      const timeParts = d2.time.split(':');
-                                      newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                                      // TODO:
-                                      // nie zawsze dodanie 1 do aktualnie ustawionej daty jest ok
-                                      // tylko nie pamiętam dlaczego :/
-                                      newDate.setDate(newDate.getDate() + 1);
-                                      d2.nextDoseDate = newDate;
-                                      await updateMedicine(medicine);
-                                      setMedicines(meds);
-                                      refreshOverdueDoses(meds);
-                                    }
-                                  }
-                                }}>
-                                <TfiClose />
-                              </Button>
-                            </Col>
-                            <Col>
-                              {dose.amount}{' x '}{dose.medicineName} <small>({medicines.find(m => m.name === dose.medicineName)?.count} tab.)</small>
-                            </Col>
-                            <Col xs='auto'>
-                              <Button variant='link'
-                                size='sm'
-                                // disabled={x.medicine?.count === 0 || notTakenDoses.some(y => y.medicine?.id === x.medicine?.id && y.dose.date < x.dose.date)}
-                                disabled={medicines.find(m => m.name === dose.medicineName)?.count === 0}
-                                onClick={async () => {
-                                  const meds = [...medicines];
-                                  const medicine = meds.find(m => m.name === dose.medicineName);
-                                  if (medicine && medicine.count > 0) {
-                                    const d2 = medicines.find(m => m.name === dose.medicineName)?.doses?.find(d => d.time === dose.time);
-                                    if (d2 && d2.amount) {
-                                      let newDate = d2.nextDoseDate;
-                                      const timeParts = d2.time.split(':');
-                                      newDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
-                                      newDate.setDate(newDate.getDate() + 1);
-                                      d2.nextDoseDate = newDate;
-                                      medicine.count -= d2.amount;
-                                      await updateMedicine(medicine);
-                                      setMedicines(meds);
-                                      refreshOverdueDoses(meds);
-                                    }
-                                  }
-                                }}>
-                                <TfiCheck />
-                              </Button>
-                            </Col>
-                          </Row>
-                        </div>)}
-                      </Card.Body>
-                    </Card>
-                  </div>
-                  )}
-                </Col>
-              </Row>
-              <Row hidden={overdueDosesGroups.length === 0}>
-                <Col></Col>
-                <Col xs="auto" className="mt-2">
-                  <Button onClick={async () => await handleTakeMedicines()} variant='link' disabled><TfiCheck /> Potwierdź wszystkie</Button>
-                </Col>
-              </Row>
-            </section>
-          </Col>
-          <Col md='5'>
-            <section className='my-3'>
-              <Row>
-                <Col>
-                  <strong>Lista leków</strong>
-                </Col>
-                <Col xs="auto">
-                  <Form.Switch
-                    checked={!showAll}
-                    label='Filtrowanie'
-                    onChange={(e) => { setShowAll(!e.target.checked); localStorage.setItem('showAll', (!e.target.checked).toString()); setIdOfMedicineDetails(''); }}
-                  />
-                </Col>
-              </Row>
-              <Row>
-                <Col>{medicines
-                  .sort((a, b) => (a.name > b.name ? 1 : -1))
-                  .filter(m => showAll || m.isVisible)
-                  .map((x: IMedicine) =>
-                    <Medicine
-                      key={'medicine-' + x.id}
-                      {...x}
-                      idOfMedicineDetails={idOfMedicineDetails}
-                      medicineClick={handleMedicineClick}
-                      updateMedicine={handleUpdateMedicine}
-                      deleteMedicine={handleDeleteMedicine}
-                    />
-                  )}
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <dialog open={addMedicineDialogVisible} style={{ zIndex: '1000', position: 'absolute', margin: 'auto', bottom: '0' }}>
-                    <strong>Nowy lek</strong>
-                    <Form>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Nazwa leku</Form.Label>
-                        <Form.Control type="text"
-                          value={newMedicineName}
-                          onChange={handleNewMedicineNameChange}>
-                        </Form.Control>
-                      </Form.Group>
-                      <Row className='text-end'>
-                        <Col>
-                          <Button type="submit" onClick={(e) => { handleAddMedicineClick(e); setAddMedicinceDialogVisible(false); }} variant="primary">Dodaj</Button>
-                          <Button className='ms-2' variant='secondary' onClick={() => setAddMedicinceDialogVisible(false)}>Anuluj</Button>
-                        </Col>
-                      </Row>
-                    </Form>
-                  </dialog>
-                </Col>
-              </Row>
-              <Row>
-                <Col className='text-end pr-2'>
-                  <Button variant='link' onClick={() => setAddMedicinceDialogVisible(true)} style={{ padding: '0px', border: '0px' }} className='mr-2'>Dodaj lek</Button>
-                </Col>
-              </Row>
-            </section>
-          </Col>
-          <Col md='3'>
-            <section className='my-3'>
-              <Schedule medicines={medicines} />
-            </section>
-          </Col> 
-        </Row>*/}
       </Container >
 
       <Alert variant='danger' className='position-fixed ms-auto me-auto start-0 end-0 top-0' hidden={errorMessage?.length === 0}>
