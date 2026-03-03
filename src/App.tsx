@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.8;
+  const version = 1.9;
   const SYNC_INTERVAL_IN_SECONDS = 60;
 
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -375,15 +375,15 @@ function App() {
                     </Col>
                     <Col>
                       <InputGroup>
-                        <InputGroup.Text>Szukaj:</InputGroup.Text>
+                        <InputGroup.Text className="d-none d-md-block">Szukaj:</InputGroup.Text>
                         <Form.Control size="sm" type="text" placeholder='Nazwa leku' onChange={(e) => setMedicineNameFilter(e.target.value)} value={medicineNameFilter} />
                         <Button variant="outline-secondary" onClick={() => setMedicineNameFilter('')}>X</Button>
                       </InputGroup>
                     </Col>
-                    <Col xs="auto">
+                    <Col xs="auto" className="pt-2">
                       <Form.Switch
                         checked={!showAll}
-                        label='Filtrowanie'
+                        label={showAll ? 'wszystkie' : 'aktywne'}
                         onChange={(e: { target: { checked: any; }; }) => { setShowAll(!e.target.checked); localStorage.setItem('showAll', (!e.target.checked).toString()); setIdOfMedicineDetails(''); }}
                       />
                     </Col>
