@@ -20,13 +20,13 @@ import OverdueDoseGroup from './models/OverdueDosesGroup';
 import Schedule from './schedule.component';
 import Tab from 'react-bootstrap/Tab';
 import moment from 'moment';
-import { Nav } from 'react-bootstrap';
+import { InputGroup, Nav } from 'react-bootstrap';
 import { BsCardList, BsFillPersonCheckFill, BsFillCalendarWeekFill } from 'react-icons/bs'
 import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.7;
+  const version = 1.8;
   const SYNC_INTERVAL_IN_SECONDS = 60;
 
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
@@ -44,6 +44,8 @@ function App() {
   const [overdueDosesGroups, setOverdueDosesGroups] = useState<OverdueDoseGroup[]>([]);
 
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const [medicineNameFilter, setMedicineNameFilter] = useState<string>('');
 
   document.addEventListener('scroll', (event) => {
     console.log(window.scrollY);
@@ -366,10 +368,17 @@ function App() {
                   </Row>
                 </Tab.Pane>
                 <Tab.Pane eventKey="medicines">
-                  <Row>
-                    <Col>
+                  <Row className="sticky-top bg-light pt-3 pb-4" style={{top: '45px'}}>
+                    <Col xs="auto">
                       {/* <strong>Lista leków</strong> */}
-                      <Button variant='link' onClick={() => setAddMedicinceDialogVisible(true)} style={{ padding: '0px', border: '0px' }} className='mr-2'>Dodaj lek</Button>
+                      <Button variant='primary' onClick={() => setAddMedicinceDialogVisible(true)} className='mr-2'>Dodaj lek</Button>
+                    </Col>
+                    <Col>
+                      <InputGroup>
+                        <InputGroup.Text>Szukaj:</InputGroup.Text>
+                        <Form.Control size="sm" type="text" placeholder='Nazwa leku' onChange={(e) => setMedicineNameFilter(e.target.value)} value={medicineNameFilter} />
+                        <Button variant="outline-secondary" onClick={() => setMedicineNameFilter('')}>X</Button>
+                      </InputGroup>
                     </Col>
                     <Col xs="auto">
                       <Form.Switch
@@ -399,8 +408,8 @@ function App() {
                   </dialog>
                   <Row>
                     <Col>{medicines
+                      .filter(m => (showAll || m.isVisible || m.id === idOfMedicineDetails || medicineNameFilter) && m.name.toLowerCase().includes(medicineNameFilter.toLowerCase()))
                       .sort((a, b) => (a.name > b.name ? 1 : -1))
-                      .filter(m => showAll || m.isVisible || m.id === idOfMedicineDetails)
                       .map((x: IMedicine) =>
                         <Medicine
                           key={'medicine-' + x.id}
