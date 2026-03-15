@@ -4,6 +4,7 @@ import IPurchaseDTO from "./IPurchaseDTO";
 export default interface IMedicineDTO {
   id: string;
   name: string;
+  meal: string;
   description: string;
   count: number;
   isVisible: boolean;

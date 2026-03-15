@@ -4,6 +4,7 @@ import IPurchase from "./IPurchase";
 export default interface IMedicine {
   id: string;
   name: string;
+  meal: string;
   description: string;
   count: number;
   isVisible: boolean;

@@ -5,5 +5,6 @@ export default interface IOverdueDose {
     nextDoseDate: string;
     endDate: string | null;
     medicineName: string;
+    meal: string;
     time: string;
 }

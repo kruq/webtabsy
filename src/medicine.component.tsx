@@ -40,9 +40,10 @@ export default function Medicine(props: IMedicineProps) {
         numberOfTabletsInPackage: lastPurchase?.numberOfTablets,
         pricePerPackage: lastPurchase?.price
     }
-
+    const DEBOUNCE_TIMEOUT = 3000;
     const [name, setName] = useState(props.name);
     const [count, setCount] = useState<number | undefined>(props.count);
+    const [meal, setMeal] = useState(props.meal);
     const [description, setDescription] = useState(props.description);
     const [fnDebounce, setFnDebounce] = useState<NodeJS.Timer>();
     const [isVisible, setIsVisible] = useState(props.isVisible);
@@ -58,6 +59,7 @@ export default function Medicine(props: IMedicineProps) {
     const [editMedicineName, setEditMedicineName] = useState(false);
     const [editNumberOfTabletes, setEditNumberOfTabletes] = useState(false);
     const [editDescription, setEditDescription] = useState(false);
+    const [editMeal, setEditMeal] = useState(false);
 
     const purchasesWithPrice = props.purchases.filter(x => x.price !== null);
 
@@ -71,7 +73,7 @@ export default function Medicine(props: IMedicineProps) {
         setFnDebounce(setTimeout(() => {
             props.updateMedicine(props.id, { name: newValue });
             setEditMedicineName(false);
-        }, 3000));
+        }, DEBOUNCE_TIMEOUT));
         setName(newValue);
     }
 
@@ -85,10 +87,20 @@ export default function Medicine(props: IMedicineProps) {
             setFnDebounce(setTimeout(() => {
                 props.updateMedicine(props.id, { count: newValue });
                 setEditNumberOfTabletes(false);
-            }, 3000));
+            }, DEBOUNCE_TIMEOUT));
         }
         setCount(newValue);
     }
+
+    const handleMedicineMealChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value;
+        clearTimeout(fnDebounce);
+        setFnDebounce(setTimeout(() => {
+            props.updateMedicine(props.id, { meal: newValue });
+            setEditMeal(false);
+        }, DEBOUNCE_TIMEOUT));
+        setMeal(newValue);
+    }   
 
     const handleMedicineDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.value;
@@ -96,7 +108,7 @@ export default function Medicine(props: IMedicineProps) {
         setFnDebounce(setTimeout(() => {
             props.updateMedicine(props.id, { description: newValue });
             setEditDescription(false);
-        }, 3000));
+        }, DEBOUNCE_TIMEOUT));
         setDescription(newValue);
     }
 
@@ -457,6 +469,25 @@ export default function Medicine(props: IMedicineProps) {
                             </Col>
                             <Col hidden={!editNumberOfTabletes}>
                                 <Form.Control type="number" value={count?.toString()} hidden={!editNumberOfTabletes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineCountChange(e)} ></Form.Control>
+                            </Col>
+                        </Row>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Row>
+                            <Col>
+                                <small className="text-secondary">Przyjmowanie z posiłkiem:</small>
+                            </Col>
+                            <Col xs='auto'>
+                                <Button onClick={() => setEditMeal(true)} variant='link' hidden={editMeal}><TfiPencil /></Button>
+                                <Button onClick={() => setEditMeal(false)} variant='link' hidden={!editMeal}><TfiCheck /></Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col hidden={editMeal}>
+                                {meal ? meal : <span className='text-secondary'>Brak informacji</span>}
+                            </Col>
+                            <Col hidden={!editMeal}>
+                                <Form.Control type="text" value={meal} placeholder='Przyjmowanie z posiłkiem' onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMedicineMealChange(e)}></Form.Control>
                             </Col>
                         </Row>
                     </Form.Group>

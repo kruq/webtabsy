@@ -162,6 +162,7 @@ function App() {
     const newMedicine: IMedicine = {
       id: '',
       name: newMedicineName,
+      meal: '',
       description: '',
       count: 0,
       isVisible: true,
@@ -240,6 +241,9 @@ function App() {
         <Row >
           <Col>
             <Alert onClose={() => setShowPermissionAlert(false)} variant='warning' dismissible hidden={!showPermissionAlert}>Brak uprawnień do wyświetlania powiadomień</Alert>
+            <Alert variant='danger' hidden={errorMessage?.length === 0}>
+              {errorMessage}
+            </Alert>
           </Col>
         </Row>
         <Row>
@@ -311,13 +315,18 @@ function App() {
                                           <TfiClose /> <span className="d-none d-md-inline">Pomiń</span>
                                         </Button>
                                       </Col>
-                                      <Col>
-                                        <strong>{dose.amount}{' x '}{dose.medicineName} </strong>
-                                        <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
-                                          <Badge bg={(medicines?.find(m => m.name === dose.medicineName)?.count || 0) < dose.amount ? "danger" : "secondary"} pill>
-                                            {medicines.find(m => m.name === dose.medicineName)?.count}{' '}{countAmountInCurrentPackage(medicines.find(m => m.name === dose.medicineName))}
-                                          </Badge>
-                                        </small>
+                                      <Col className="p-0">
+                                        <div>
+                                          <strong>{dose.amount}{' x '}{dose.medicineName} </strong>
+                                          <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
+                                            <Badge bg={(medicines?.find(m => m.name === dose.medicineName)?.count || 0) < dose.amount ? "danger" : "secondary"} pill>
+                                              {medicines.find(m => m.name === dose.medicineName)?.count}{' '}{countAmountInCurrentPackage(medicines.find(m => m.name === dose.medicineName))}
+                                            </Badge>
+                                          </small>
+                                        </div>
+                                        <div>
+                                          <small className='text-secondary'>{dose.meal}</small>
+                                        </div>
                                       </Col>
                                       <Col xs='auto'>
                                         <Button
@@ -368,7 +377,7 @@ function App() {
                   </Row>
                 </Tab.Pane>
                 <Tab.Pane eventKey="medicines">
-                  <Row className="sticky-top bg-light pt-3 pb-4" style={{top: '45px'}}>
+                  <Row className="sticky-top bg-light pt-3 pb-4" style={{ top: '45px' }}>
                     <Col xs="auto">
                       {/* <strong>Lista leków</strong> */}
                       <Button variant='primary' onClick={() => setAddMedicinceDialogVisible(true)} className='mr-2'>Dodaj lek</Button>
@@ -444,10 +453,6 @@ function App() {
           </Container>
         </Tab.Container>
       </Container >
-
-      <Alert variant='danger' className='position-fixed ms-auto me-auto start-0 end-0 top-0' hidden={errorMessage?.length === 0}>
-        {errorMessage}
-      </Alert>
     </>
   );
 }
