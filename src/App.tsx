@@ -26,7 +26,7 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = 1.9;
+  const version = 1.10;
   const SYNC_INTERVAL_IN_SECONDS = 60;
 
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
