@@ -26,8 +26,8 @@ import { weekDays } from './text.helpers';
 
 function App() {
 
-  const version = '1.10';
-  const SYNC_INTERVAL_IN_SECONDS = 60;
+  const version = '1.11';
+  const SYNC_INTERVAL_IN_SECONDS = 120;
 
   const [medicines, setMedicines] = useState<IMedicine[]>([]);
   const [newMedicineName, setNewMedicineName] = useState('');
@@ -251,9 +251,9 @@ function App() {
             <strong><img src={logo} alt='webtabsy logo' style={{ height: '16px' }} className='me-3' />WEBTABSY</strong>
             {/* <Button onClick={async () => test()}>Test</Button> */}
           </Col>
-          <Col xs="auto" className="text-end text-secondary" style={{ fontSize: '0.6rem' }}>
-            {syncTimestamp < 1000 ? "Synch. za : " + syncTimestamp/*.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })*/ + " sek., " : ""}
-            {"v. " + version}
+          <Col xs="auto" className="text-end text-secondary">
+            <span  style={{ fontSize: '1.2rem' }}>{syncTimestamp < 5 ? "⌛ "/* + syncTimestamp.toLocaleString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " sek., "*/ : ""}</span>
+            <span  style={{ fontSize: '0.5rem' }}>{"v. " + version}</span>
           </Col>
         </Row>
       </Container>
