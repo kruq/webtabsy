@@ -21,7 +21,7 @@ export const weekDays = [
     'środa',
     'czwartek',
     'piątek',
-    'sobota,'
+    'sobota'
 ]
 
 export const getDaysText = (numberOfDays: number) => {
