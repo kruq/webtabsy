@@ -4,7 +4,8 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import logo from '../assets/logo192.png';
-import { APP_VERSION } from '../constants';
+
+const APP_VERSION = process.env.REACT_APP_VERSION ?? 'dev';
 
 interface AppHeaderProps {
     syncTimestamp: number;

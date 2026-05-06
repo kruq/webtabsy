@@ -14,10 +14,22 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump minor version (working tree only)
+        id: bump
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          npm version minor --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "new_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -31,6 +43,15 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "build" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
+
+      - name: Commit version bump
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: bump minor version to v${{ steps.bump.outputs.new_version }} [skip ci]"
+          git push
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

@@ -1,5 +1,3 @@
-export const APP_VERSION = '1.11';
-
 export const SYNC_INTERVAL_IN_SECONDS = 120;
 
 export const ERROR_MESSAGE_TIMEOUT_MS = 3000;
