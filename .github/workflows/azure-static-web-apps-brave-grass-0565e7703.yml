@@ -48,6 +48,9 @@ jobs:
       - name: Commit version bump
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+          # Azure/static-web-apps-deploy runs as root inside a container and
+          # leaves the workspace owned by root, blocking subsequent git writes.
+          sudo chown -R "$(id -un):$(id -gn)" .
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json
