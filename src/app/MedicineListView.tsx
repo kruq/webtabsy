@@ -49,13 +49,12 @@ export default function MedicineListView(props: MedicineListViewProps) {
         <Tab.Pane eventKey="medicines">
             <Row className="sticky-top bg-light pt-3 pb-4" style={{ top: '45px' }}>
                 <Col xs="auto">
-                    <Button variant="primary" onClick={() => setAddDialogOpen(true)} className="mr-2">Dodaj lek</Button>
+                    <Button size="sm" variant="primary" onClick={() => setAddDialogOpen(true)} className="mr-2">Dodaj lek</Button>
                 </Col>
                 <Col>
-                    <InputGroup>
-                        <InputGroup.Text className="d-none d-md-block">Szukaj:</InputGroup.Text>
+                    <InputGroup size="sm">
+                        <InputGroup.Text className="d-none d-md-flex">Szukaj:</InputGroup.Text>
                         <Form.Control
-                            size="sm"
                             type="text"
                             placeholder="Nazwa leku"
                             onChange={e => setNameFilter(e.target.value)}
@@ -64,7 +63,7 @@ export default function MedicineListView(props: MedicineListViewProps) {
                         <Button variant="outline-secondary" onClick={() => setNameFilter('')}>X</Button>
                     </InputGroup>
                 </Col>
-                <Col xs="auto" className="pt-2">
+                <Col xs="auto" className="d-flex align-items-center">
                     <Form.Switch
                         checked={!showAll}
                         label={showAll ? 'wszystkie' : 'aktywne'}

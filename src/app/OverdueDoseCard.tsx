@@ -30,7 +30,7 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm }: 
             <Card.Body>
                 <Row className="d-flex align-items-center">
                     <Col xs="auto">
-                        <Button variant="outline-secondary" size="sm" onClick={onSkip}>
+                        <Button variant="outline-secondary" size="sm" className="py-0 px-2" onClick={onSkip}>
                             <TfiClose /> <span className="d-none d-md-inline">Pomiń</span>
                         </Button>
                     </Col>
@@ -50,6 +50,7 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm }: 
                     <Col xs="auto">
                         <Button
                             size="sm"
+                            className="py-0 px-2"
                             disabled={stockLow || dose.disabled}
                             onClick={onConfirm}
                         >

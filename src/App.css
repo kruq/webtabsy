@@ -1,11 +1,20 @@
 button.btn-link {
   text-decoration: none;
-  padding: 0px; 
+  padding: 0px;
 }
 
 button.btn-link:hover {
   /* color: rgba(var(--bs-danger-rgb)); */
   font-weight: bold;
+}
+
+.input-group > .input-group-text.d-none + .form-control {
+  border-top-left-radius: var(--bs-border-radius-sm) !important;
+  border-bottom-left-radius: var(--bs-border-radius-sm) !important;
+}
+
+.input-group > .btn.btn-outline-secondary {
+  border-color: #ced4da;
 }
 
 /* input.form-control {
