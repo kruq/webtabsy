@@ -78,20 +78,17 @@ export function useMedicines(): UseMedicinesResult {
     }, [reportError]);
 
     const saveMedicine = useCallback(async (id: string, params: Partial<IMedicine>) => {
-        let next: IMedicine | null = null;
-        setMedicines(prev => prev.map(m => {
-            if (m.id !== id) return m;
-            next = { ...m, ...params };
-            return next;
-        }));
-        if (!next) return;
+        const current = medicines.find(m => m.id === id);
+        if (!current) return;
+        const next: IMedicine = { ...current, ...params };
+        setMedicines(prev => prev.map(m => (m.id === id ? next : m)));
         try {
             await updateMedicine(next);
             await refreshOverdue();
         } catch (e) {
             reportError(e);
         }
-    }, [refreshOverdue, reportError]);
+    }, [medicines, refreshOverdue, reportError]);
 
     const removeMedicine = useCallback(async (id: string) => {
         setShowSpinner(true);
