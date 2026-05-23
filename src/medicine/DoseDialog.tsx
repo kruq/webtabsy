@@ -48,7 +48,7 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
         const cursor = stripped.length - 2;
         const matches = TIME_PATTERN.test(raw);
         setValid(matches);
-        const newTime = matches ? raw : `${stripped.slice(0, cursor)}:${stripped.slice(cursor)}`;
+        const newTime = matches ? `${stripped.slice(0, cursor)}:${stripped.slice(cursor)}` : raw;
         updateDraft({ time: newTime });
     };
 
