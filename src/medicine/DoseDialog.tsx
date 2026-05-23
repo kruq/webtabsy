@@ -133,7 +133,7 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
                 <Row className="text-end">
                     <Col>
                         <Button onClick={handleSubmit} variant="primary" type="submit" className="mt-3" disabled={!valid}>
-                            Dodaj dawkę
+                            {isEdit ? 'Zapisz dawkę' : 'Dodaj dawkę'}
                         </Button>
                         <Button className="mt-3 ms-2" variant="secondary" onClick={onCancel}>Anuluj</Button>
                     </Col>
