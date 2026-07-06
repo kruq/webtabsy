@@ -3,6 +3,7 @@ import '../Medicine.css';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
+import Collapse from 'react-bootstrap/Collapse';
 import Form from 'react-bootstrap/Form';
 import FormCheck from 'react-bootstrap/FormCheck';
 import Row from 'react-bootstrap/Row';
@@ -53,6 +54,7 @@ export default function MedicineCard(props: IMedicineProps) {
     const [doseDialogOpen, setDoseDialogOpen] = useState(false);
     const [doseUnderEdit, setDoseUnderEdit] = useState<Dose>(newDoseTemplate());
     const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
+    const [purchasesExpanded, setPurchasesExpanded] = useState(false);
 
     useEffect(() => {
         setCount(props.count);
@@ -291,7 +293,14 @@ export default function MedicineCard(props: IMedicineProps) {
                         </Row>
 
                         <Row className="mt-4">
-                            <Col className="text-primary" xs="auto">Historia zakupów</Col>
+                            <Col
+                                className="text-primary"
+                                xs="auto"
+                                onClick={() => setPurchasesExpanded(!purchasesExpanded)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                Historia zakupów {purchasesExpanded ? '▲' : '▼'}
+                            </Col>
                             <Col className="text-end">
                                 <Button
                                     onClick={() => { setPurchaseDialogOpen(true); setDoseDialogOpen(false); }}
@@ -309,7 +318,11 @@ export default function MedicineCard(props: IMedicineProps) {
                             onCancel={() => setPurchaseDialogOpen(false)}
                         />
 
-                        <PurchaseList purchases={props.purchases ?? []} onRemove={handleRemovePurchase} />
+                        <Collapse in={purchasesExpanded}>
+                            <div>
+                                <PurchaseList purchases={props.purchases ?? []} onRemove={handleRemovePurchase} />
+                            </div>
+                        </Collapse>
                     </>
                 )}
             </Card.Body>

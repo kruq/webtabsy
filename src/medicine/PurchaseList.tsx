@@ -20,12 +20,14 @@ function averagePrice(purchases: IPurchase[]): number {
 export default function PurchaseList({ purchases, onRemove }: PurchaseListProps) {
     if (!purchases || purchases.length === 0) return null;
 
+    const sortedPurchases = [...purchases].sort((a, b) => b.date.getTime() - a.date.getTime());
+
     return (
         <Row>
             <Col>
                 <Table size="sm">
                     <tbody>
-                        {purchases.map(p => (
+                        {sortedPurchases.map(p => (
                             <tr key={`medicine-purchase-${p.id}`}>
                                 <td width="20%">{p.numberOfTablets} tab.</td>
                                 <td width="20%">
