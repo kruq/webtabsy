@@ -1,12 +1,15 @@
 import IMedicine from '../models/IMedicine';
+import { roundAmount } from './fraction';
+
+const ZERO_TOLERANCE = 1e-6;
 
 export function countAmountInCurrentPackage(medicine: IMedicine | undefined): number | undefined {
     if (!medicine) return undefined;
     const lastPackageSize = medicine.purchases.at(-1)?.numberOfTablets;
     if (!lastPackageSize) return undefined;
 
-    const remainder = medicine.count % lastPackageSize;
-    if (remainder !== 0) return remainder;
+    const remainder = roundAmount(medicine.count % lastPackageSize);
+    if (Math.abs(remainder) > ZERO_TOLERANCE) return remainder;
     if (medicine.count === 0) return undefined;
     return lastPackageSize;
 }

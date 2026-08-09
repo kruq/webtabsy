@@ -7,6 +7,7 @@ import Row from 'react-bootstrap/Row';
 import { TfiCheck, TfiClose } from 'react-icons/tfi';
 import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
+import { formatAmount } from '../utils/fraction';
 import { countAmountInCurrentPackage } from '../utils/medicineMath';
 
 interface OverdueDoseCardProps {
@@ -36,10 +37,10 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm }: 
                     </Col>
                     <Col className="p-0">
                         <div>
-                            <strong>{dose.amount} x {dose.medicineName} </strong>
+                            <strong>{formatAmount(dose.amount)} x {dose.medicineName} </strong>
                             <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
                                 <Badge bg={stockLow ? 'danger' : 'secondary'} pill>
-                                    {stock}{inPackage !== undefined ? ` (${inPackage})` : ''}
+                                    {formatAmount(stock)}{inPackage !== undefined ? ` (${formatAmount(inPackage)})` : ''}
                                 </Badge>
                             </small>
                         </div>

@@ -7,6 +7,7 @@ import Row from 'react-bootstrap/Row';
 import { v4 as Uuid } from 'uuid';
 import Dose from '../models/Dose';
 import { formatYmd } from '../utils/dateFormat';
+import { AMOUNT_HINT, formatAmount, parseAmount } from '../utils/fraction';
 
 interface DoseDialogProps {
     visible: boolean;
@@ -32,11 +33,15 @@ function applyTimeOfDay(date: Date, time: string): Date {
 export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCancel }: DoseDialogProps) {
     const [draft, setDraft] = useState<Dose>(initialDose);
     const [valid, setValid] = useState<boolean>(true);
+    const [amountText, setAmountText] = useState<string>(formatAmount(initialDose.amount));
+    const [amountValid, setAmountValid] = useState<boolean>(true);
 
     useEffect(() => {
         if (visible) {
             setDraft(initialDose);
             setValid(true);
+            setAmountText(formatAmount(initialDose.amount));
+            setAmountValid(true);
         }
     }, [visible, initialDose]);
 
@@ -53,8 +58,12 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
     };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const amount = parseFloat(e.target.value);
-        if (!isNaN(amount)) updateDraft({ amount });
+        const raw = e.target.value;
+        setAmountText(raw);
+        const amount = parseAmount(raw);
+        const isValid = amount !== undefined && amount > 0;
+        setAmountValid(isValid);
+        if (isValid) updateDraft({ amount });
     };
 
     const handleNumberOfDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,12 +91,14 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
 
     const handleSubmit = async (e: MouseEvent) => {
         e.preventDefault();
-        if (!draft.amount) {
-            alert('Nie można dodać dawki z pustą wartością ilości');
+        const amount = parseAmount(amountText);
+        if (amount === undefined || amount <= 0) {
+            alert(`Nieprawidłowa ilość tabletek (${AMOUNT_HINT})`);
             return;
         }
         const finalised: Dose = {
             ...draft,
+            amount,
             id: draft.id || Uuid(),
             time: normaliseTime(draft.time),
             nextDoseDate: applyTimeOfDay(
@@ -113,7 +124,14 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
                     </FormGroup>
                     <FormGroup as={Col}>
                         <Form.Label>Ilość tabletek:</Form.Label>
-                        <Form.Control type="number" value={draft.amount} onChange={handleAmountChange} />
+                        <Form.Control
+                            type="text"
+                            inputMode="text"
+                            value={amountText}
+                            isInvalid={!amountValid}
+                            onChange={handleAmountChange}
+                        />
+                        <Form.Text className="text-secondary">{AMOUNT_HINT}</Form.Text>
                     </FormGroup>
                     <FormGroup as={Col}>
                         <Form.Label>Co ile dni:</Form.Label>
@@ -132,7 +150,7 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
                 </Row>
                 <Row className="text-end">
                     <Col>
-                        <Button onClick={handleSubmit} variant="primary" type="submit" className="mt-3" disabled={!valid}>
+                        <Button onClick={handleSubmit} variant="primary" type="submit" className="mt-3" disabled={!valid || !amountValid}>
                             {isEdit ? 'Zapisz dawkę' : 'Dodaj dawkę'}
                         </Button>
                         <Button className="mt-3 ms-2" variant="secondary" onClick={onCancel}>Anuluj</Button>

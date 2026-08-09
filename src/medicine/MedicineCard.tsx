@@ -14,12 +14,14 @@ import Dose from '../models/Dose';
 import IMedicine from '../models/IMedicine';
 import IPurchase from '../models/IPurchase';
 import { getDateText } from '../text.helpers';
+import { AMOUNT_HINT, formatAmount, parseAmount, subtractAmount } from '../utils/fraction';
 import { countAmountInCurrentPackage, countDaysOfStock } from '../utils/medicineMath';
 import DoseDialog from './DoseDialog';
 import DoseList from './DoseList';
 import EditableField from './EditableField';
 import PurchaseDialog, { NewPurchase } from './PurchaseDialog';
 import PurchaseList from './PurchaseList';
+import TakeDoseDialog from './TakeDoseDialog';
 
 export interface IMedicineProps extends IMedicine {
     idOfMedicineDetails: string;
@@ -43,6 +45,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
     const [name, setName] = useState(props.name);
     const [count, setCount] = useState<number | undefined>(props.count);
+    const [countText, setCountText] = useState<string>(formatAmount(props.count));
     const [meal, setMeal] = useState(props.meal);
     const [description, setDescription] = useState(props.description);
 
@@ -54,10 +57,12 @@ export default function MedicineCard(props: IMedicineProps) {
     const [doseDialogOpen, setDoseDialogOpen] = useState(false);
     const [doseUnderEdit, setDoseUnderEdit] = useState<Dose>(newDoseTemplate());
     const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
+    const [takeDoseDialogOpen, setTakeDoseDialogOpen] = useState(false);
     const [purchasesExpanded, setPurchasesExpanded] = useState(false);
 
     useEffect(() => {
         setCount(props.count);
+        setCountText(formatAmount(props.count));
     }, [props.count]);
     useEffect(() => { setName(props.name); }, [props.name]);
     useEffect(() => { setMeal(props.meal); }, [props.meal]);
@@ -78,8 +83,9 @@ export default function MedicineCard(props: IMedicineProps) {
     };
 
     const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const parsed = parseFloat(e.target.value);
-        const value = isNaN(parsed) ? undefined : parsed;
+        const raw = e.target.value;
+        setCountText(raw);
+        const value = parseAmount(raw);
         setCount(value);
         if (value !== undefined) {
             debouncedUpdate({ count: value }, () => setEditingCount(false));
@@ -115,12 +121,14 @@ export default function MedicineCard(props: IMedicineProps) {
     const openDoseDialogForNew = () => {
         setDoseUnderEdit(newDoseTemplate());
         setPurchaseDialogOpen(false);
+        setTakeDoseDialogOpen(false);
         setDoseDialogOpen(true);
     };
 
     const openDoseDialogForEdit = (dose: Dose) => {
         setDoseUnderEdit(dose);
         setPurchaseDialogOpen(false);
+        setTakeDoseDialogOpen(false);
         setDoseDialogOpen(true);
     };
 
@@ -154,6 +162,7 @@ export default function MedicineCard(props: IMedicineProps) {
             newCount += purchase.numberOfTabletsInPackage as number;
         }
         setCount(newCount);
+        setCountText(formatAmount(newCount));
         await props.updateMedicine(props.id, { purchases: newPurchases, count: newCount, doses: newDoses });
         setPurchaseDialogOpen(false);
     };
@@ -165,10 +174,18 @@ export default function MedicineCard(props: IMedicineProps) {
         await props.updateMedicine(props.id, { purchases });
     };
 
-    const takeOne = async () => {
+    const openTakeDoseDialog = () => {
+        setDoseDialogOpen(false);
+        setPurchaseDialogOpen(false);
+        setTakeDoseDialogOpen(true);
+    };
+
+    const handleTakeDose = async (amount: number) => {
         if (!count) return;
-        const newValue = count - 1;
+        const newValue = subtractAmount(count, amount);
         setCount(newValue);
+        setCountText(formatAmount(newValue));
+        setTakeDoseDialogOpen(false);
         await props.updateMedicine(props.id, { count: newValue });
     };
 
@@ -185,9 +202,9 @@ export default function MedicineCard(props: IMedicineProps) {
             <Card.Body>
                 <Row>
                     <Col onClick={() => props.medicineClick(props.id)} className="medicine-title">
-                        <small className={`text-${props.count < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>{props.count} tab.</small>
+                        <small className={`text-${props.count < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>{formatAmount(props.count)} tab.</small>
                         {tabsInPackage !== undefined && (
-                            <small> ( {tabsInPackage} tab. w akt. opak. )</small>
+                            <small> ( {formatAmount(tabsInPackage)} tab. w akt. opak. )</small>
                         )}
                     </Col>
                     <Col xs="auto" hidden={daysOfStock < 0}>
@@ -203,9 +220,17 @@ export default function MedicineCard(props: IMedicineProps) {
                         <h6>{props.name}</h6>
                     </Col>
                     <Col xs="auto">
-                        <Button variant="link" size="sm" onClick={takeOne} aria-label="Take one pill">Weź lek</Button>
+                        <Button variant="link" size="sm" onClick={openTakeDoseDialog} aria-label="Take a dose">Weź lek</Button>
                     </Col>
                 </Row>
+
+                <TakeDoseDialog
+                    visible={takeDoseDialogOpen}
+                    medicineName={props.name}
+                    maxAmount={count ?? 0}
+                    onSubmit={handleTakeDose}
+                    onCancel={() => setTakeDoseDialogOpen(false)}
+                />
 
                 {isOpen && (
                     <>
@@ -228,9 +253,12 @@ export default function MedicineCard(props: IMedicineProps) {
                             isEditing={editingCount}
                             onStartEdit={() => setEditingCount(true)}
                             onStopEdit={() => setEditingCount(false)}
-                            display={count}
+                            display={formatAmount(count)}
                         >
-                            <Form.Control type="number" value={count?.toString()} onChange={handleCountChange} />
+                            <>
+                                <Form.Control type="text" inputMode="text" value={countText} onChange={handleCountChange} />
+                                <Form.Text className="text-secondary">{AMOUNT_HINT}</Form.Text>
+                            </>
                         </EditableField>
 
                         <EditableField

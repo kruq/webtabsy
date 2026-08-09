@@ -1,6 +1,7 @@
 import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
+import { subtractAmount } from '../utils/fraction';
 
 export type DoseAction = 'skip' | 'confirm';
 
@@ -29,7 +30,7 @@ export function applyDoseAction(
     if (!sourceMedicine) {
         return { medicines, overdueGroups, medicineToPersist: undefined };
     }
-    if (action === 'confirm' && sourceMedicine.count <= 0) {
+    if (action === 'confirm' && sourceMedicine.count < dose.amount) {
         return { medicines, overdueGroups, medicineToPersist: undefined };
     }
 
@@ -41,7 +42,7 @@ export function applyDoseAction(
     const decrement = action === 'confirm' ? dose.amount : 0;
     const updatedMedicine: IMedicine = {
         ...sourceMedicine,
-        count: sourceMedicine.count - decrement,
+        count: subtractAmount(sourceMedicine.count, decrement),
         doses: updatedDoses,
     };
 

@@ -7,6 +7,7 @@ import { MS_PER_DAY, SCHEDULE_WINDOW_DAYS } from './constants';
 import Dose from './models/Dose';
 import IMedicine from './models/IMedicine';
 import { getDateText, getDaysText } from './text.helpers';
+import { formatAmount } from './utils/fraction';
 
 interface IScheduleProps {
     medicines: IMedicine[];
@@ -55,7 +56,7 @@ export default function Schedule({ medicines }: IScheduleProps) {
                                         .map(entry => (
                                             <Row key={`schedule-dose-${entry.dose.id}`}>
                                                 <Col md={4} sm={8} xs={12}>
-                                                    <strong>{entry.dose.amount} x {entry.name}</strong>
+                                                    <strong>{formatAmount(entry.dose.amount)} x {entry.name}</strong>
                                                 </Col>
                                                 <Col md={4} sm={4} xs={6} className="text-start text-sm-end">
                                                     <small>co {getDaysText(entry.dose.numberOfDays)}</small>
