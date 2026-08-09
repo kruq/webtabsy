@@ -1,4 +1,4 @@
-import { formatAmount, parseAmount, roundAmount, subtractAmount } from './fraction';
+import { formatAmount, formatAmountForDisplay, parseAmount, roundAmount, subtractAmount } from './fraction';
 
 describe('parseAmount', () => {
     it('parses whole numbers', () => {
@@ -21,6 +21,13 @@ describe('parseAmount', () => {
     it('parses decimals with dot and comma', () => {
         expect(parseAmount('1.5')).toBe(1.5);
         expect(parseAmount('1,5')).toBe(1.5);
+    });
+
+    it('accepts fraction glyphs, so a displayed value can be pasted back in', () => {
+        expect(parseAmount('½')).toBe(0.5);
+        expect(parseAmount('1½')).toBe(1.5);
+        expect(parseAmount('8⅔')).toBeCloseTo(26 / 3, 10);
+        expect(parseAmount(formatAmountForDisplay(4 / 3))).toBeCloseTo(4 / 3, 10);
     });
 
     it('rejects invalid input', () => {
@@ -65,6 +72,37 @@ describe('formatAmount', () => {
         expect(formatAmount(-1.5)).toBe('-1 1/2');
         expect(formatAmount(undefined)).toBe('');
         expect(formatAmount(NaN)).toBe('');
+    });
+});
+
+describe('formatAmountForDisplay', () => {
+    it('uses fraction glyphs where they exist', () => {
+        expect(formatAmountForDisplay(0.5)).toBe('½');
+        expect(formatAmountForDisplay(1 / 3)).toBe('⅓');
+        expect(formatAmountForDisplay(0.75)).toBe('¾');
+        expect(formatAmountForDisplay(1 / 8)).toBe('⅛');
+    });
+
+    it('glues the glyph to the whole part', () => {
+        expect(formatAmountForDisplay(1.5)).toBe('1½');
+        expect(formatAmountForDisplay(4 / 3)).toBe('1⅓');
+        expect(formatAmountForDisplay(8.666667)).toBe('8⅔');
+    });
+
+    it('falls back to n/d when no glyph exists', () => {
+        expect(formatAmountForDisplay(1 / 12)).toBe('1/12');
+        expect(formatAmountForDisplay(1 + 1 / 12)).toBe('1 1/12');
+        expect(formatAmountForDisplay(0.3)).toBe('3/10');
+    });
+
+    it('behaves like formatAmount for whole numbers and empty values', () => {
+        expect(formatAmountForDisplay(10)).toBe('10');
+        expect(formatAmountForDisplay(0)).toBe('0');
+        expect(formatAmountForDisplay(undefined)).toBe('');
+    });
+
+    it('handles negatives', () => {
+        expect(formatAmountForDisplay(-1.5)).toBe('-1½');
     });
 });
 

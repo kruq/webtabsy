@@ -14,7 +14,7 @@ import Dose from '../models/Dose';
 import IMedicine from '../models/IMedicine';
 import IPurchase from '../models/IPurchase';
 import { getDateText } from '../text.helpers';
-import { AMOUNT_HINT, formatAmount, parseAmount, subtractAmount } from '../utils/fraction';
+import { AMOUNT_HINT, formatAmount, formatAmountForDisplay, parseAmount, subtractAmount } from '../utils/fraction';
 import { countAmountInCurrentPackage, countDaysOfStock } from '../utils/medicineMath';
 import DoseDialog from './DoseDialog';
 import DoseList from './DoseList';
@@ -46,6 +46,7 @@ export default function MedicineCard(props: IMedicineProps) {
     const [name, setName] = useState(props.name);
     const [count, setCount] = useState<number | undefined>(props.count);
     const [countText, setCountText] = useState<string>(formatAmount(props.count));
+    const [countValid, setCountValid] = useState<boolean>(true);
     const [meal, setMeal] = useState(props.meal);
     const [description, setDescription] = useState(props.description);
 
@@ -63,6 +64,7 @@ export default function MedicineCard(props: IMedicineProps) {
     useEffect(() => {
         setCount(props.count);
         setCountText(formatAmount(props.count));
+        setCountValid(true);
     }, [props.count]);
     useEffect(() => { setName(props.name); }, [props.name]);
     useEffect(() => { setMeal(props.meal); }, [props.meal]);
@@ -86,8 +88,10 @@ export default function MedicineCard(props: IMedicineProps) {
         const raw = e.target.value;
         setCountText(raw);
         const value = parseAmount(raw);
-        setCount(value);
+        setCountValid(value !== undefined);
+        // Przy niepoprawnym wpisie zachowujemy ostatnią prawidłową wartość zamiast jej czyścić.
         if (value !== undefined) {
+            setCount(value);
             debouncedUpdate({ count: value }, () => setEditingCount(false));
         }
     };
@@ -202,9 +206,9 @@ export default function MedicineCard(props: IMedicineProps) {
             <Card.Body>
                 <Row>
                     <Col onClick={() => props.medicineClick(props.id)} className="medicine-title">
-                        <small className={`text-${props.count < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>{formatAmount(props.count)} tab.</small>
+                        <small className={`text-${props.count < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>{formatAmountForDisplay(props.count)} tab.</small>
                         {tabsInPackage !== undefined && (
-                            <small> ( {formatAmount(tabsInPackage)} tab. w akt. opak. )</small>
+                            <small> ( {formatAmountForDisplay(tabsInPackage)} tab. w akt. opak. )</small>
                         )}
                     </Col>
                     <Col xs="auto" hidden={daysOfStock < 0}>
@@ -253,10 +257,16 @@ export default function MedicineCard(props: IMedicineProps) {
                             isEditing={editingCount}
                             onStartEdit={() => setEditingCount(true)}
                             onStopEdit={() => setEditingCount(false)}
-                            display={formatAmount(count)}
+                            display={formatAmountForDisplay(count)}
                         >
                             <>
-                                <Form.Control type="text" inputMode="text" value={countText} onChange={handleCountChange} />
+                                <Form.Control
+                                    type="text"
+                                    inputMode="text"
+                                    value={countText}
+                                    isInvalid={!countValid}
+                                    onChange={handleCountChange}
+                                />
                                 <Form.Text className="text-secondary">{AMOUNT_HINT}</Form.Text>
                             </>
                         </EditableField>

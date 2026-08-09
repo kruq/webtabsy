@@ -11,6 +11,30 @@ interface Fraction {
 
 export const AMOUNT_HINT = 'np. 1, 1/2, 1 1/3';
 
+// Znaki ułamków zwykłych - dostępne tylko dla części kombinacji, reszta wraca do zapisu n/d.
+const GLYPHS: Record<string, string> = {
+    '1/2': '½',
+    '1/3': '⅓',
+    '2/3': '⅔',
+    '1/4': '¼',
+    '3/4': '¾',
+    '1/5': '⅕',
+    '2/5': '⅖',
+    '3/5': '⅗',
+    '4/5': '⅘',
+    '1/6': '⅙',
+    '5/6': '⅚',
+    '1/8': '⅛',
+    '3/8': '⅜',
+    '5/8': '⅝',
+    '7/8': '⅞',
+    '1/10': '⅒',
+};
+
+const GLYPH_VALUES: Record<string, string> = Object.fromEntries(
+    Object.entries(GLYPHS).map(([fraction, glyph]) => [glyph, fraction]),
+);
+
 const AMOUNT_PATTERN = /^(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)$/;
 const DECIMAL_PATTERN = /^\d+(?:[.,]\d+)?$/;
 
@@ -37,8 +61,15 @@ export function toFraction(value: number): Fraction | undefined {
     return undefined;
 }
 
+function expandGlyphs(raw: string): string {
+    return Object.entries(GLYPH_VALUES).reduce(
+        (text, [glyph, fraction]) => text.split(glyph).join(` ${fraction}`),
+        raw,
+    );
+}
+
 export function parseAmount(raw: string): number | undefined {
-    const text = raw.trim().replace(/\s+/g, ' ');
+    const text = expandGlyphs(raw).trim().replace(/\s+/g, ' ');
     if (!text) return undefined;
 
     const fractionMatch = AMOUNT_PATTERN.exec(text);
@@ -62,7 +93,7 @@ function formatDecimal(value: number): string {
     return parseFloat(value.toFixed(2)).toString();
 }
 
-export function formatAmount(value: number | undefined | null): string {
+function format(value: number | undefined | null, useGlyphs: boolean): string {
     if (value === undefined || value === null || isNaN(value)) return '';
 
     const sign = value < 0 ? '-' : '';
@@ -73,8 +104,23 @@ export function formatAmount(value: number | undefined | null): string {
     const whole = Math.floor(fraction.n / fraction.d);
     const remainder = fraction.n - whole * fraction.d;
     if (remainder === 0) return `${sign}${whole}`;
-    if (whole === 0) return `${sign}${remainder}/${fraction.d}`;
-    return `${sign}${whole} ${remainder}/${fraction.d}`;
+
+    const asciiPart = `${remainder}/${fraction.d}`;
+    const glyph = useGlyphs ? GLYPHS[asciiPart] : undefined;
+    const fractionPart = glyph ?? asciiPart;
+    if (whole === 0) return `${sign}${fractionPart}`;
+    // Znak ułamka przykleja się do liczby całkowitej (1½), zapis n/d wymaga odstępu (1 1/12).
+    return `${sign}${whole}${glyph ? '' : ' '}${fractionPart}`;
+}
+
+/** Zapis edytowalny, zgodny z tym, co przyjmuje parseAmount (np. "1 1/3"). */
+export function formatAmount(value: number | undefined | null): string {
+    return format(value, false);
+}
+
+/** Zapis do wyświetlenia, ze znakami ułamków tam, gdzie istnieją (np. "1⅓"). */
+export function formatAmountForDisplay(value: number | undefined | null): string {
+    return format(value, true);
 }
 
 export function roundAmount(value: number): number {

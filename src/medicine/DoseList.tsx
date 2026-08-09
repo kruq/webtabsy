@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import Dose from '../models/Dose';
 import { getDaysText } from '../text.helpers';
-import { formatAmount } from '../utils/fraction';
+import { formatAmountForDisplay } from '../utils/fraction';
 
 interface DoseListProps {
     doses: Dose[];
@@ -36,7 +36,7 @@ export default function DoseList({ doses, onEdit, onRemove }: DoseListProps) {
                             <td width="auto">
                                 <Button variant="link" onClick={() => onEdit(dose)}>{dose.time}</Button>
                             </td>
-                            <td width="auto" className="text-end">{formatAmount(dose.amount)} tab.</td>
+                            <td width="auto" className="text-end">{formatAmountForDisplay(dose.amount)} tab.</td>
                             <td width="auto">{getDaysText(dose.numberOfDays ?? 1)}</td>
                             <td style={{ textAlign: 'right', paddingRight: '5px' }}>
                                 {dose.nextDoseDate.toLocaleDateString('pl-PL', DATE_OPTIONS)}

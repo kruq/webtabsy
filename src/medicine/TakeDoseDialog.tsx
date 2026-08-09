@@ -4,7 +4,7 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import FormGroup from 'react-bootstrap/FormGroup';
 import Row from 'react-bootstrap/Row';
-import { AMOUNT_HINT, formatAmount, parseAmount } from '../utils/fraction';
+import { AMOUNT_HINT, formatAmountForDisplay, parseAmount } from '../utils/fraction';
 
 interface TakeDoseDialogProps {
     visible: boolean;
@@ -33,7 +33,7 @@ export default function TakeDoseDialog({ visible, medicineName, maxAmount, onSub
             return;
         }
         if (amount > maxAmount) {
-            alert(`Nie można przyjąć więcej niż ${formatAmount(maxAmount)} tab.`);
+            alert(`Nie można przyjąć więcej niż ${formatAmountForDisplay(maxAmount)} tab.`);
             return;
         }
         await onSubmit(amount);
