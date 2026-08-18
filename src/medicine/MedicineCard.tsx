@@ -13,9 +13,9 @@ import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
 import Dose from '../models/Dose';
 import IMedicine from '../models/IMedicine';
 import IPurchase from '../models/IPurchase';
-import { getDateText } from '../text.helpers';
+import { getDateText, getDaysText } from '../text.helpers';
 import { AMOUNT_HINT, formatAmount, formatAmountForDisplay, parseAmount, subtractAmount } from '../utils/fraction';
-import { countAmountInCurrentPackage, countDaysOfStock } from '../utils/medicineMath';
+import { countAmountInCurrentPackage, forecastStock } from '../utils/medicineMath';
 import DoseDialog from './DoseDialog';
 import DoseList from './DoseList';
 import EditableField from './EditableField';
@@ -29,6 +29,8 @@ export interface IMedicineProps extends IMedicine {
     updateMedicine: (id: string, params: Partial<IMedicine>) => Promise<void>;
     deleteMedicine: (id: string) => Promise<void>;
 }
+
+const SHORT_DATE_OPTIONS: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit' };
 
 const newDoseTemplate = (): Dose => ({
     id: Uuid(),
@@ -193,13 +195,11 @@ export default function MedicineCard(props: IMedicineProps) {
         await props.updateMedicine(props.id, { count: newValue });
     };
 
-    const daysOfStock = countDaysOfStock(props);
+    const forecast = forecastStock(props);
     const tabsInPackage = countAmountInCurrentPackage(props);
-    const lastDayLabel = (() => {
-        const date = new Date();
-        date.setDate(date.getDate() + daysOfStock);
-        return daysOfStock < 7 ? getDateText(date) : date.toLocaleDateString('pl-PL');
-    })();
+    const lastDayLabel = forecast && forecast.days < 7
+        ? getDateText(forecast.lastDay)
+        : forecast?.lastDay.toLocaleDateString('pl-PL');
 
     return (
         <Card className="my-2">
@@ -211,13 +211,19 @@ export default function MedicineCard(props: IMedicineProps) {
                             <small> ( {formatAmountForDisplay(tabsInPackage)} tab. w akt. opak. )</small>
                         )}
                     </Col>
-                    <Col xs="auto" hidden={daysOfStock < 0}>
-                        {props.count > 0 && (
-                            <small className={`text-${daysOfStock < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>
-                                {lastDayLabel} ({daysOfStock} dni)
-                            </small>
-                        )}
-                    </Col>
+                    {forecast && (
+                        <Col xs="auto">
+                            {forecast.coversWholePlan ? (
+                                <small className="text-success">
+                                    wystarczy do {forecast.lastDay.toLocaleDateString('pl-PL', SHORT_DATE_OPTIONS)}
+                                </small>
+                            ) : (
+                                <small className={`text-${forecast.days < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>
+                                    {lastDayLabel} ({getDaysText(forecast.days)})
+                                </small>
+                            )}
+                        </Col>
+                    )}
                 </Row>
                 <Row className="mt-2">
                     <Col>
