@@ -4,6 +4,7 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
 import IPurchase from '../models/IPurchase';
+import { formatDate } from '../utils/dateFormat';
 
 interface PurchaseListProps {
     purchases: IPurchase[];
@@ -33,7 +34,7 @@ export default function PurchaseList({ purchases, onRemove }: PurchaseListProps)
                                 <td width="20%">
                                     {p.price !== undefined ? `${p.price} zł` : '-'}
                                 </td>
-                                <td>{p.date.toLocaleDateString('pl')}</td>
+                                <td>{formatDate(p.date)}</td>
                                 <td className="text-end">
                                     <Button onClick={() => onRemove(p)} variant="link" className="text-danger my-0">
                                         Usuń

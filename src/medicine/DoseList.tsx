@@ -4,6 +4,7 @@ import Table from 'react-bootstrap/Table';
 import Dose from '../models/Dose';
 import { getDaysText } from '../text.helpers';
 import { formatAmountForDisplay } from '../utils/fraction';
+import { formatDate } from '../utils/dateFormat';
 
 interface DoseListProps {
     doses: Dose[];
@@ -11,7 +12,6 @@ interface DoseListProps {
     onRemove: (dose: Dose) => void;
 }
 
-const DATE_OPTIONS: Intl.DateTimeFormatOptions = { year: '2-digit', month: '2-digit', day: 'numeric' };
 
 function startOfDay(date: Date): Date {
     const result = new Date(date);
@@ -39,11 +39,11 @@ export default function DoseList({ doses, onEdit, onRemove }: DoseListProps) {
                             <td width="auto" className="text-end">{formatAmountForDisplay(dose.amount)} tab.</td>
                             <td width="auto">{getDaysText(dose.numberOfDays ?? 1)}</td>
                             <td style={{ textAlign: 'right', paddingRight: '5px' }}>
-                                {dose.nextDoseDate.toLocaleDateString('pl-PL', DATE_OPTIONS)}
+                                {formatDate(dose.nextDoseDate)}
                             </td>
                             <td style={{ textAlign: 'right' }}>
                                 {dose.endDate
-                                    ? dose.endDate.toLocaleDateString('pl-PL', DATE_OPTIONS)
+                                    ? formatDate(dose.endDate)
                                     : <small className="text-secondary">bez końca</small>}
                             </td>
                             <td className="text-end">

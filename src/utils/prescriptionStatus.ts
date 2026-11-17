@@ -1,5 +1,5 @@
 import Prescription, { PrescriptionItem, PrescriptionStatus, PrescriptionValidity } from '../models/Prescription';
-import { formatYmd } from './dateFormat';
+import { formatDate, formatYmd } from './dateFormat';
 
 /**
  * Długości okresów w dniach od daty wystawienia (włącznie z ostatnim dniem).
@@ -38,12 +38,10 @@ export function addDaysYmd(ymd: string, days: number): string {
     return formatYmd(new Date(y, m - 1, d + days)) as string;
 }
 
-const DISPLAY_DATE_OPTIONS: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
-
-/** "yyyy-MM-dd" -> "dd.MM.yyyy", np. 09.02.2026. */
+/** "yyyy-MM-dd" -> wspólny format dat (formatDate), np. 09.02.26. */
 export function formatYmdForDisplay(ymd: string): string {
     const [y, m, d] = ymd.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString('pl-PL', DISPLAY_DATE_OPTIONS);
+    return formatDate(new Date(y, m - 1, d));
 }
 
 export function todayYmd(): string {

@@ -127,7 +127,7 @@ describe('tabletsOnPrescriptions', () => {
 
 describe('formatYmdForDisplay', () => {
     it('formats a stored date in Polish order', () => {
-        expect(formatYmdForDisplay('2026-02-09')).toBe('09.02.2026');
+        expect(formatYmdForDisplay('2026-02-09')).toBe('09.02.26');
     });
 });
 

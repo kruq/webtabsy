@@ -17,6 +17,7 @@ import IMedicine from '../models/IMedicine';
 import IPurchase from '../models/IPurchase';
 import { tryAddDoseLogEntry } from '../services/doseLog.service';
 import { getDateText, getDaysText } from '../text.helpers';
+import { formatDate } from '../utils/dateFormat';
 import { AMOUNT_HINT, formatAmount, formatAmountForDisplay, parseAmount, subtractAmount } from '../utils/fraction';
 import { countAmountInCurrentPackage, forecastStock } from '../utils/medicineMath';
 import DoseDialog from './DoseDialog';
@@ -35,8 +36,6 @@ export interface IMedicineProps extends IMedicine {
     tabletsOnPrescriptions: number;
 }
 
-const SHORT_DATE_OPTIONS: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit' };
-const FULL_DATE_OPTIONS: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
 
 const newDoseTemplate = (): Dose => ({
     id: Uuid(),
@@ -225,7 +224,7 @@ export default function MedicineCard(props: IMedicineProps) {
     const tabsInPackage = countAmountInCurrentPackage(props);
     const lastDayLabel = forecast && forecast.days < 7
         ? getDateText(forecast.lastDay)
-        : forecast?.lastDay.toLocaleDateString('pl-PL');
+        : forecast && formatDate(forecast.lastDay);
 
     return (
         <Card className="my-2 medicine-card" onClick={handleCardClick}>
@@ -252,7 +251,7 @@ export default function MedicineCard(props: IMedicineProps) {
                         <Col xs="auto">
                             {forecast && (forecast.coversWholePlan ? (
                                 <small className="text-success">
-                                    wystarczy do {forecast.lastDay.toLocaleDateString('pl-PL', SHORT_DATE_OPTIONS)}
+                                    wystarczy do {formatDate(forecast.lastDay)}
                                 </small>
                             ) : (
                                 <small className={`text-${forecast.days < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>
@@ -263,9 +262,9 @@ export default function MedicineCard(props: IMedicineProps) {
                                 <small className="text-primary" title="Do kiedy wystarczy tabletek posiadanych i na receptach">
                                     <span className="d-none d-md-inline"> z receptami</span>
                                     {' '}{forecastWithPrescriptions.coversWholePlan ? 'wystarczy do ' : ''}
-                                    {forecastWithPrescriptions.lastDay.toLocaleDateString('pl-PL', FULL_DATE_OPTIONS)}
+                                    {formatDate(forecastWithPrescriptions.lastDay)}
                                     {!forecastWithPrescriptions.coversWholePlan && (
-                                        <span className="d-none d-md-inline"> ({getDaysText(forecastWithPrescriptions.days)})</span>
+                                        <span> ({getDaysText(forecastWithPrescriptions.days)})</span>
                                     )}
                                 </small>
                             )}
