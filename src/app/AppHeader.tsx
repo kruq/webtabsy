@@ -1,9 +1,12 @@
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import logo from '../assets/logo192.png';
+import { applyUpdate } from '../swUpdate';
+import { useServiceWorkerUpdate } from './useServiceWorkerUpdate';
 
 const APP_VERSION = process.env.REACT_APP_VERSION ?? 'dev';
 
@@ -15,6 +18,8 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({ syncTimestamp, errorMessage, showPermissionAlert, onDismissPermissionAlert }: AppHeaderProps) {
+    const updateAvailable = useServiceWorkerUpdate();
+
     return (
         <Container className="sticky-top p-3" style={{ backgroundColor: '#fafafc' }}>
             <Row>
@@ -28,6 +33,12 @@ export default function AppHeader({ syncTimestamp, errorMessage, showPermissionA
                         Brak uprawnień do wyświetlania powiadomień
                     </Alert>
                     <Alert variant="danger" hidden={errorMessage.length === 0}>{errorMessage}</Alert>
+                    {updateAvailable && (
+                        <Alert variant="success" className="py-2 d-flex justify-content-between align-items-center">
+                            <span>Nowa wersja</span>
+                            <Button size="sm" onClick={applyUpdate}>Odśwież</Button>
+                        </Alert>
+                    )}
                 </Col>
             </Row>
             <Row>
