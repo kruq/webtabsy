@@ -26,6 +26,12 @@ html, body {
   font-size: 14px;
 }
 
+/* Akcent dla nagłówków sekcji i informacji o ilości tabletek / datach.
+   Niebieski (primary) jest zarezerwowany dla linków i przycisków, czerwony dla ostrzeżeń. */
+.text-accent {
+  color: #92400e !important;
+}
+
 dialog {
   position: fixed;
   bottom: 40vh;

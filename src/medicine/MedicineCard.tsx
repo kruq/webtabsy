@@ -254,8 +254,8 @@ export default function MedicineCard(props: IMedicineProps) {
                     </Col>
                 </Row>
                 {/* Dwie grupy: tylko posiadane tabletki oraz posiadane razem z tymi do wykupienia z ważnych recept. */}
-                {/* Cały wiersz w kolorze etykiety; czerwony nadpisuje go tylko jako ostrzeżenie. */}
-                <div className="medicine-stock text-success">
+                {/* Cały wiersz w kolorze akcentu; czerwony nadpisuje go tylko jako ostrzeżenie. */}
+                <div className="medicine-stock text-accent">
                     <small>Posiadane</small>
                     <small>
                         {tabsInPackage !== undefined && (
@@ -286,7 +286,7 @@ export default function MedicineCard(props: IMedicineProps) {
                 {isOpen && (
                     <div data-no-toggle className="medicine-card-details">
                         <Row className="mt-3 mb-1">
-                            <Col className="text-primary" xs="auto">Ustawienia</Col>
+                            <Col className="text-accent" xs="auto">Ustawienia</Col>
                         </Row>
 
                         <EditableField
@@ -364,7 +364,7 @@ export default function MedicineCard(props: IMedicineProps) {
                         </Form.Group>
 
                         <Row className="mt-4">
-                            <Col className="text-primary" xs="auto">Dawkowanie</Col>
+                            <Col className="text-accent" xs="auto">Dawkowanie</Col>
                             <Col className="text-end">
                                 <Button onClick={openDoseDialogForNew} variant="link">Dodaj</Button>
                             </Col>

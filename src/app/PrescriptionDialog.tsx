@@ -325,7 +325,7 @@ export default function PrescriptionDialog({
                         <Form.Control as="textarea" rows={2} value={draft.note} onChange={e => update({ note: e.target.value })} />
                     </Form.Group>
 
-                    <h6 className="text-primary">Leki na recepcie</h6>
+                    <h6 className="text-accent">Leki na recepcie</h6>
                     {draft.items.length === 0 && <div className="text-secondary mb-2"><small>Brak leków</small></div>}
                     {draft.items.map(item => {
                         const status = itemStatus(draft, item);
@@ -349,7 +349,7 @@ export default function PrescriptionDialog({
                     })}
 
                     <div className="border rounded p-2 mt-3">
-                        <div className="mb-2"><small className="text-primary">Dodaj lek</small></div>
+                        <div className="mb-2"><small className="text-accent">Dodaj lek</small></div>
                         <Form.Select
                             className="mb-2"
                             value={itemForm.medicineChoice}
