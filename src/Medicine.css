@@ -6,3 +6,11 @@
 .medicine-card .medicine-card-details {
     cursor: auto;
 }
+
+/* Wiersze "Posiadane" / "Z receptami" jako kolumny na całą szerokość karty. */
+.medicine-stock {
+    display: grid;
+    /* etykieta | ilość (przy etykiecie, zabiera wolne miejsce) | data | dni - data i dni przy prawej krawędzi */
+    grid-template-columns: auto 1fr auto auto;
+    column-gap: 1rem;
+}

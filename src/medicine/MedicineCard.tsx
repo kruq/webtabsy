@@ -7,7 +7,6 @@ import Collapse from 'react-bootstrap/Collapse';
 import Form from 'react-bootstrap/Form';
 import FormCheck from 'react-bootstrap/FormCheck';
 import Row from 'react-bootstrap/Row';
-import { BsBoxSeam, BsFileEarmarkMedical } from 'react-icons/bs';
 import { v4 as Uuid } from 'uuid';
 import { DEBOUNCE_TIMEOUT_MS, LOW_STOCK_THRESHOLD } from '../constants';
 import { buildUnscheduledDoseLogEntry } from '../app/doseActions';
@@ -19,7 +18,7 @@ import { tryAddDoseLogEntry } from '../services/doseLog.service';
 import { getDateText, getDaysText } from '../text.helpers';
 import { formatDate } from '../utils/dateFormat';
 import { AMOUNT_HINT, formatAmount, formatAmountForDisplay, parseAmount, subtractAmount } from '../utils/fraction';
-import { countAmountInCurrentPackage, forecastStock } from '../utils/medicineMath';
+import { countAmountInCurrentPackage, forecastStock, StockForecast } from '../utils/medicineMath';
 import DoseDialog from './DoseDialog';
 import DoseList from './DoseList';
 import EditableField from './EditableField';
@@ -45,6 +44,26 @@ const newDoseTemplate = (): Dose => ({
     nextDoseDate: new Date(),
     endDate: null,
 });
+
+/** Dni, poniżej których zamiast daty pokazujemy opis dnia ("jutro", "środa"). */
+const DESCRIPTIVE_DAYS = 7;
+
+/**
+ * Dwie komórki siatki: data i liczba dni (na czerwono, gdy zostaje mniej niż LOW_STOCK_THRESHOLD dni).
+ * Gdy zapas starcza na cały plan dawkowania (wszystkie dawki mają datę końca), zamiast dni: "cały plan".
+ * Bez prognozy - dwie puste komórki, żeby siatka się nie przesunęła.
+ */
+function ForecastCells({ forecast, descriptive }: { forecast: StockForecast | undefined; descriptive: boolean }) {
+    if (!forecast) return <><small /><small /></>;
+    const date = descriptive && forecast.days < DESCRIPTIVE_DAYS ? getDateText(forecast.lastDay) : formatDate(forecast.lastDay);
+    const className = !forecast.coversWholePlan && forecast.days < LOW_STOCK_THRESHOLD ? 'text-danger' : '';
+    return (
+        <>
+            <small className={`text-end ${className}`}>{date}</small>
+            <small className={`text-end ${className}`}>{forecast.coversWholePlan ? 'cały plan' : getDaysText(forecast.days)}</small>
+        </>
+    );
+}
 
 export default function MedicineCard(props: IMedicineProps) {
     const isOpen = props.id === props.idOfMedicineDetails;
@@ -222,63 +241,39 @@ export default function MedicineCard(props: IMedicineProps) {
         props.medicineClick(props.id);
     };
     const tabsInPackage = countAmountInCurrentPackage(props);
-    const lastDayLabel = forecast && forecast.days < 7
-        ? getDateText(forecast.lastDay)
-        : forecast && formatDate(forecast.lastDay);
 
     return (
         <Card className="my-2 medicine-card" onClick={handleCardClick}>
             <Card.Body>
-                <Row>
+                <Row className="align-items-center">
                     <Col>
-                        <small className={`text-${props.count < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>{formatAmountForDisplay(props.count)} tab.</small>
-                        {tabsInPackage !== undefined && (
-                            <small className="text-success" title="Tabletki w aktualnym opakowaniu">
-                                {' '}<BsBoxSeam style={{ verticalAlign: '-2px' }} aria-label="w aktualnym opakowaniu" />
-                                {' '}{formatAmountForDisplay(tabsInPackage)}
-                                <span className="d-none d-md-inline"> tab. w akt. opak.</span>
-                            </small>
-                        )}
-                        {props.tabletsOnPrescriptions > 0 && (
-                            <small className="text-primary" title="Tabletki do wykupienia z ważnych recept">
-                                {' '}<BsFileEarmarkMedical style={{ verticalAlign: '-2px' }} aria-label="na receptach" />
-                                {' '}{formatAmountForDisplay(props.tabletsOnPrescriptions)}
-                                <span className="d-none d-md-inline"> tab. na receptach</span>
-                            </small>
-                        )}
-                    </Col>
-                    {(forecast || forecastWithPrescriptions) && (
-                        <Col xs="auto">
-                            {forecast && (forecast.coversWholePlan ? (
-                                <small className="text-success">
-                                    wystarczy do {formatDate(forecast.lastDay)}
-                                </small>
-                            ) : (
-                                <small className={`text-${forecast.days < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>
-                                    {lastDayLabel} ({getDaysText(forecast.days)})
-                                </small>
-                            ))}
-                            {forecastWithPrescriptions && (
-                                <small className="text-primary" title="Do kiedy wystarczy tabletek posiadanych i na receptach">
-                                    <span className="d-none d-md-inline"> z receptami</span>
-                                    {' '}{forecastWithPrescriptions.coversWholePlan ? 'wystarczy do ' : ''}
-                                    {formatDate(forecastWithPrescriptions.lastDay)}
-                                    {!forecastWithPrescriptions.coversWholePlan && (
-                                        <span> ({getDaysText(forecastWithPrescriptions.days)})</span>
-                                    )}
-                                </small>
-                            )}
-                        </Col>
-                    )}
-                </Row>
-                <Row className="mt-2">
-                    <Col>
-                        <h6>{props.name}</h6>
+                        <h6 className="mb-0">{props.name}</h6>
                     </Col>
                     <Col xs="auto">
                         <Button variant="link" size="sm" onClick={openTakeDoseDialog} aria-label="Take a dose">Weź lek</Button>
                     </Col>
                 </Row>
+                {/* Dwie grupy: tylko posiadane tabletki oraz posiadane razem z tymi do wykupienia z ważnych recept. */}
+                {/* Cały wiersz w kolorze etykiety; czerwony nadpisuje go tylko jako ostrzeżenie. */}
+                <div className="medicine-stock text-success">
+                    <small>Posiadane</small>
+                    <small>
+                        {tabsInPackage !== undefined && (
+                            <span title="Tabletki w aktualnym opakowaniu">({formatAmountForDisplay(tabsInPackage)}) </span>
+                        )}
+                        <span className={props.count < LOW_STOCK_THRESHOLD ? 'text-danger' : ''}>
+                            {formatAmountForDisplay(props.count)}
+                        </span>
+                    </small>
+                    <ForecastCells forecast={forecast} descriptive />
+                    {props.tabletsOnPrescriptions > 0 && (
+                        <>
+                            <small>Z receptami</small>
+                            <small>{formatAmountForDisplay(props.count + props.tabletsOnPrescriptions)}</small>
+                            <ForecastCells forecast={forecastWithPrescriptions} descriptive={false} />
+                        </>
+                    )}
+                </div>
 
                 <TakeDoseDialog
                     visible={takeDoseDialogOpen}
