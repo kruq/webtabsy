@@ -4,24 +4,33 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import FormGroup from 'react-bootstrap/FormGroup';
 import Row from 'react-bootstrap/Row';
-import { AMOUNT_HINT, formatAmountForDisplay, parseAmount } from '../utils/fraction';
+import { AMOUNT_HINT, formatAmount, formatAmountForDisplay, parseAmount } from '../utils/fraction';
 
 interface TakeDoseDialogProps {
     visible: boolean;
     medicineName: string;
     maxAmount: number;
+    /** Ilość wpisana w pole po otwarciu dialogu; domyślnie 1. */
+    initialAmount?: number;
     onSubmit: (amount: number) => Promise<void> | void;
     onCancel: () => void;
 }
 
-const DEFAULT_AMOUNT = '1';
+const DEFAULT_AMOUNT = 1;
 
-export default function TakeDoseDialog({ visible, medicineName, maxAmount, onSubmit, onCancel }: TakeDoseDialogProps) {
-    const [amountText, setAmountText] = useState<string>(DEFAULT_AMOUNT);
+export default function TakeDoseDialog({
+    visible,
+    medicineName,
+    maxAmount,
+    initialAmount = DEFAULT_AMOUNT,
+    onSubmit,
+    onCancel,
+}: TakeDoseDialogProps) {
+    const [amountText, setAmountText] = useState<string>(formatAmount(initialAmount));
 
     useEffect(() => {
-        if (visible) setAmountText(DEFAULT_AMOUNT);
-    }, [visible]);
+        if (visible) setAmountText(formatAmount(initialAmount));
+    }, [visible, initialAmount]);
 
     const amount = parseAmount(amountText);
     const valid = amount !== undefined && amount > 0 && amount <= maxAmount;

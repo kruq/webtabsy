@@ -3,7 +3,7 @@ import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
 import { formatAmount, parseAmount } from '../utils/fraction';
-import { applyDoseAction } from './doseActions';
+import { applyDoseAction, buildScheduledDoseLogEntry, buildUnscheduledDoseLogEntry } from './doseActions';
 
 const AMOUNT = parseAmount('1 1/3') as number;
 const NEXT_DOSE_DATE = new Date('2026-08-09T08:00:00');
@@ -111,5 +111,102 @@ describe('applyDoseAction', () => {
 
         expect(result.medicineToPersist).toBeUndefined();
         expect(result.medicines[0].count).toBe(0.5);
+    });
+
+    describe('with a custom taken amount', () => {
+        it('subtracts the custom amount instead of the default dose', () => {
+            const { medicines, groups, group, overdueDose } = buildScenario(10, AMOUNT);
+
+            const result = applyDoseAction(medicines, groups, group, overdueDose, 'confirm', parseAmount('1/2') as number);
+
+            expect(formatAmount(result.medicineToPersist?.count)).toBe('9 1/2');
+        });
+
+        it('advances the next dose date exactly like a default confirmation', () => {
+            const { medicines, groups, group, overdueDose } = buildScenario(10, AMOUNT);
+
+            const result = applyDoseAction(medicines, groups, group, overdueDose, 'confirm', 2);
+
+            expect(result.medicines[0].doses[0].nextDoseDate.getDate()).toBe(NEXT_DOSE_DATE.getDate() + 1);
+            expect(result.medicines[0].doses[0].amount).toBe(AMOUNT);
+            expect(result.overdueGroups).toHaveLength(0);
+        });
+
+        it('allows a smaller dose when the stock does not cover the default one', () => {
+            const { medicines, groups, group, overdueDose } = buildScenario(0.5, 1);
+
+            const result = applyDoseAction(medicines, groups, group, overdueDose, 'confirm', 0.5);
+
+            expect(result.medicineToPersist?.count).toBe(0);
+        });
+
+        it('refuses an amount larger than the stock', () => {
+            const { medicines, groups, group, overdueDose } = buildScenario(1, 1);
+
+            const result = applyDoseAction(medicines, groups, group, overdueDose, 'confirm', 2);
+
+            expect(result.medicineToPersist).toBeUndefined();
+        });
+
+        it('refuses a zero amount', () => {
+            const { medicines, groups, group, overdueDose } = buildScenario(10, 1);
+
+            const result = applyDoseAction(medicines, groups, group, overdueDose, 'confirm', 0);
+
+            expect(result.medicineToPersist).toBeUndefined();
+        });
+    });
+});
+
+describe('buildScheduledDoseLogEntry', () => {
+    it('records the scheduled time of the dose, not the moment of confirmation', () => {
+        const { medicines, overdueDose } = buildScenario(10, AMOUNT);
+
+        const entry = buildScheduledDoseLogEntry(medicines[0], overdueDose, 'confirm');
+
+        expect(entry.scheduledAt.getTime()).toBe(NEXT_DOSE_DATE.getTime());
+        expect(entry).toMatchObject({
+            medicineId: 'medicine-1',
+            medicineName: 'Metformina',
+            doseId: 'dose-1',
+            action: 'taken',
+            amount: AMOUNT,
+            unscheduled: false,
+        });
+    });
+
+    it('records a custom taken amount', () => {
+        const { medicines, overdueDose } = buildScenario(10, AMOUNT);
+
+        const entry = buildScheduledDoseLogEntry(medicines[0], overdueDose, 'confirm', 0.5);
+
+        expect(entry.amount).toBe(0.5);
+    });
+
+    it('records a skip with the scheduled amount', () => {
+        const { medicines, overdueDose } = buildScenario(10, AMOUNT);
+
+        const entry = buildScheduledDoseLogEntry(medicines[0], overdueDose, 'skip');
+
+        expect(entry.action).toBe('skipped');
+        expect(entry.amount).toBe(AMOUNT);
+    });
+});
+
+describe('buildUnscheduledDoseLogEntry', () => {
+    it('records the moment the medicine was taken and marks it as unscheduled', () => {
+        const takenAt = new Date('2026-11-17T13:45:00');
+
+        const entry = buildUnscheduledDoseLogEntry({ id: 'medicine-1', name: 'Metformina' }, 2, takenAt);
+
+        expect(entry).toEqual({
+            medicineId: 'medicine-1',
+            medicineName: 'Metformina',
+            doseId: null,
+            action: 'taken',
+            amount: 2,
+            scheduledAt: takenAt,
+            unscheduled: true,
+        });
     });
 });

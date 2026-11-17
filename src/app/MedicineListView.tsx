@@ -16,6 +16,8 @@ interface MedicineListViewProps {
     onAddMedicine: (name: string) => Promise<void>;
     onUpdateMedicine: (id: string, params: Partial<IMedicine>) => Promise<void>;
     onDeleteMedicine: (id: string) => Promise<void>;
+    /** Tabletki do wykupienia z ważnych recept, per id leku. */
+    tabletsOnPrescriptions: Map<string, number>;
 }
 
 function shouldShow(m: IMedicine, selectedId: string, showAll: boolean, nameFilter: string): boolean {
@@ -86,6 +88,7 @@ export default function MedicineListView(props: MedicineListViewProps) {
                             medicineClick={props.onMedicineClick}
                             updateMedicine={props.onUpdateMedicine}
                             deleteMedicine={props.onDeleteMedicine}
+                            tabletsOnPrescriptions={props.tabletsOnPrescriptions.get(m.id) ?? 0}
                         />
                     ))}
                 </Col>

@@ -1,8 +1,10 @@
 import Dose from '../models/Dose';
+import DoseLogEntry from '../models/DoseLogEntry';
 import IMedicine from '../models/IMedicine';
 import IPurchase from '../models/IPurchase';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
+import IDoseLogEntryDTO from './IDoseLogEntryDTO';
 import IMedicineDTO from './IMedicineDTO';
 import IPurchaseDTO from './IPurchaseDTO';
 import IOverdueDoseGroup from './IOverdueDosesGroup';
@@ -28,4 +30,12 @@ export function overdueDoseGroupFromDTO(group: IOverdueDoseGroup): OverdueDoseGr
             endDate: dose.endDate ? new Date(dose.endDate) : null,
         })),
     });
+}
+
+export function doseLogEntryFromDTO(entry: IDoseLogEntryDTO): DoseLogEntry {
+    return {
+        ...entry,
+        scheduledAt: new Date(entry.scheduledAt),
+        loggedAt: new Date(entry.loggedAt),
+    };
 }

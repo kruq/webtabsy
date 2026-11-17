@@ -1,3 +1,4 @@
+import { NewDoseLogEntry } from '../models/DoseLogEntry';
 import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
@@ -25,21 +26,19 @@ export function applyDoseAction(
     group: OverdueDoseGroup,
     dose: OverdueDose,
     action: DoseAction,
+    takenAmount: number = dose.amount,
 ): DoseActionResult {
+    const unchanged = { medicines, overdueGroups, medicineToPersist: undefined };
     const sourceMedicine = medicines.find(m => m.name === dose.medicineName);
-    if (!sourceMedicine) {
-        return { medicines, overdueGroups, medicineToPersist: undefined };
-    }
-    if (action === 'confirm' && sourceMedicine.count < dose.amount) {
-        return { medicines, overdueGroups, medicineToPersist: undefined };
-    }
+    if (!sourceMedicine) return unchanged;
+    if (action === 'confirm' && (takenAmount <= 0 || sourceMedicine.count < takenAmount)) return unchanged;
 
     const days = dose.numberOfDays ?? 1;
     const updatedDoses = sourceMedicine.doses.map(d => {
         if (d.id !== dose.id) return d;
         return { ...d, nextDoseDate: advanceNextDoseDate(d.nextDoseDate, d.time, days) };
     });
-    const decrement = action === 'confirm' ? dose.amount : 0;
+    const decrement = action === 'confirm' ? takenAmount : 0;
     const updatedMedicine: IMedicine = {
         ...sourceMedicine,
         count: subtractAmount(sourceMedicine.count, decrement),
@@ -55,4 +54,39 @@ export function applyDoseAction(
         .filter(g => g.doses.length > 0);
 
     return { medicines: updatedMedicines, overdueGroups: updatedGroups, medicineToPersist: updatedMedicine };
+}
+
+/**
+ * Wpis historii dla dawki z grafiku. Data to zaplanowany termin tego konkretnego wystąpienia dawki
+ * (API zwraca go w nextDoseDate zaległej dawki razem z godziną), a nie moment kliknięcia.
+ * Przy pominięciu zapisujemy zaplanowaną ilość.
+ */
+export function buildScheduledDoseLogEntry(
+    medicine: IMedicine,
+    dose: OverdueDose,
+    action: DoseAction,
+    takenAmount: number = dose.amount,
+): NewDoseLogEntry {
+    return {
+        medicineId: medicine.id,
+        medicineName: medicine.name,
+        doseId: dose.id,
+        action: action === 'confirm' ? 'taken' : 'skipped',
+        amount: action === 'confirm' ? takenAmount : dose.amount,
+        scheduledAt: dose.nextDoseDate,
+        unscheduled: false,
+    };
+}
+
+/** Wpis historii dla leku wziętego poza grafikiem („Weź lek” w karcie leku) - z datą wzięcia. */
+export function buildUnscheduledDoseLogEntry(medicine: Pick<IMedicine, 'id' | 'name'>, amount: number, takenAt: Date): NewDoseLogEntry {
+    return {
+        medicineId: medicine.id,
+        medicineName: medicine.name,
+        doseId: null,
+        action: 'taken',
+        amount,
+        scheduledAt: takenAt,
+        unscheduled: true,
+    };
 }

@@ -3,7 +3,7 @@ import { ERROR_MESSAGE_TIMEOUT_MS } from '../constants';
 import IMedicine from '../models/IMedicine';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
 import { ApiError } from '../services/http';
-import { addMedicine, deleteMedicine, fetchMedicines, updateMedicine } from '../services/medicine.service';
+import { addMedicine, deleteMedicine, fetchMedicines, newMedicine, updateMedicine } from '../services/medicine.service';
 import { findOverdueDoses } from '../services/overdueDoses.service';
 
 interface UseMedicinesResult {
@@ -58,17 +58,7 @@ export function useMedicines(): UseMedicinesResult {
     const addNewMedicine = useCallback(async (name: string) => {
         setShowSpinner(true);
         try {
-            await addMedicine({
-                id: '',
-                name,
-                meal: '',
-                description: '',
-                count: 0,
-                isVisible: true,
-                doses: [],
-                purchases: [],
-                hideWhenEmpty: false,
-            });
+            await addMedicine(newMedicine(name));
             setMedicines(await fetchMedicines());
         } catch (e) {
             reportError(e);

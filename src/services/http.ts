@@ -29,6 +29,18 @@ export async function postJson<T>(url: string, body: T): Promise<void> {
     await ensureOk(response, `POST ${url}`);
 }
 
+/** POST, który zwraca utworzony obiekt z odpowiedzi (np. z identyfikatorem nadanym przez API). */
+export async function postJsonForResult<TBody, TResult>(url: string, body: TBody): Promise<TResult> {
+    const response = await fetch(url, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    await ensureOk(response, `POST ${url}`);
+    return response.json() as Promise<TResult>;
+}
+
 export async function putJson<T>(url: string, body: T): Promise<void> {
     const response = await fetch(url, {
         method: 'PUT',

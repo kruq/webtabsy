@@ -7,12 +7,15 @@ import Collapse from 'react-bootstrap/Collapse';
 import Form from 'react-bootstrap/Form';
 import FormCheck from 'react-bootstrap/FormCheck';
 import Row from 'react-bootstrap/Row';
+import { BsBoxSeam, BsFileEarmarkMedical } from 'react-icons/bs';
 import { v4 as Uuid } from 'uuid';
 import { DEBOUNCE_TIMEOUT_MS, LOW_STOCK_THRESHOLD } from '../constants';
+import { buildUnscheduledDoseLogEntry } from '../app/doseActions';
 import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
 import Dose from '../models/Dose';
 import IMedicine from '../models/IMedicine';
 import IPurchase from '../models/IPurchase';
+import { tryAddDoseLogEntry } from '../services/doseLog.service';
 import { getDateText, getDaysText } from '../text.helpers';
 import { AMOUNT_HINT, formatAmount, formatAmountForDisplay, parseAmount, subtractAmount } from '../utils/fraction';
 import { countAmountInCurrentPackage, forecastStock } from '../utils/medicineMath';
@@ -28,6 +31,8 @@ export interface IMedicineProps extends IMedicine {
     medicineClick: (medicineId: string) => void;
     updateMedicine: (id: string, params: Partial<IMedicine>) => Promise<void>;
     deleteMedicine: (id: string) => Promise<void>;
+    /** Tabletki, które można jeszcze wykupić z ważnych recept. */
+    tabletsOnPrescriptions: number;
 }
 
 const SHORT_DATE_OPTIONS: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit' };
@@ -114,6 +119,10 @@ export default function MedicineCard(props: IMedicineProps) {
         props.updateMedicine(props.id, { isVisible: e.target.checked });
     };
 
+    const handleAsNeededChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        props.updateMedicine(props.id, { asNeeded: e.target.checked });
+    };
+
     const handleHideWhenEmptyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         props.updateMedicine(props.id, { hideWhenEmpty: e.target.checked });
     };
@@ -192,7 +201,9 @@ export default function MedicineCard(props: IMedicineProps) {
         setCount(newValue);
         setCountText(formatAmount(newValue));
         setTakeDoseDialogOpen(false);
+        const takenAt = new Date();
         await props.updateMedicine(props.id, { count: newValue });
+        await tryAddDoseLogEntry(buildUnscheduledDoseLogEntry(props, amount, takenAt));
     };
 
     const forecast = forecastStock(props);
@@ -208,7 +219,18 @@ export default function MedicineCard(props: IMedicineProps) {
                     <Col onClick={() => props.medicineClick(props.id)} className="medicine-title">
                         <small className={`text-${props.count < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>{formatAmountForDisplay(props.count)} tab.</small>
                         {tabsInPackage !== undefined && (
-                            <small> ( {formatAmountForDisplay(tabsInPackage)} tab. w akt. opak. )</small>
+                            <small className="text-success" title="Tabletki w aktualnym opakowaniu">
+                                {' '}<BsBoxSeam style={{ verticalAlign: '-2px' }} aria-label="w aktualnym opakowaniu" />
+                                {' '}{formatAmountForDisplay(tabsInPackage)}
+                                <span className="d-none d-md-inline"> tab. w akt. opak.</span>
+                            </small>
+                        )}
+                        {props.tabletsOnPrescriptions > 0 && (
+                            <small className="text-primary" title="Tabletki do wykupienia z ważnych recept">
+                                {' '}<BsFileEarmarkMedical style={{ verticalAlign: '-2px' }} aria-label="na receptach" />
+                                {' '}{formatAmountForDisplay(props.tabletsOnPrescriptions)}
+                                <span className="d-none d-md-inline"> tab. na receptach</span>
+                            </small>
                         )}
                     </Col>
                     {forecast && (
@@ -306,6 +328,17 @@ export default function MedicineCard(props: IMedicineProps) {
                                         label="Ukryj jeśli brakuje leku"
                                         checked={props.hideWhenEmpty}
                                         onChange={handleHideWhenEmptyChange}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <FormCheck
+                                        type="switch"
+                                        id={`medicine-as-needed-${props.id}`}
+                                        label="Lek doraźny"
+                                        checked={Boolean(props.asNeeded)}
+                                        onChange={handleAsNeededChange}
                                     />
                                 </Col>
                             </Row>

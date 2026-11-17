@@ -9,6 +9,8 @@ export default interface IMedicine {
   count: number;
   isVisible: boolean;
   hideWhenEmpty: boolean;
+  /** Lek doraźny - pokazywany w panelu leków doraźnych na zakładce Status, niezależnie od dawek. */
+  asNeeded?: boolean;
   doses: Dose[];
   purchases: IPurchase[];
 }

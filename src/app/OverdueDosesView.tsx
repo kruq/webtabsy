@@ -6,20 +6,25 @@ import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
 import { formatDoseTimestamp } from '../utils/dateFormat';
+import { PurchaseDeadline } from '../utils/prescriptionStatus';
 import OverdueDoseCard from './OverdueDoseCard';
+import PurchaseDeadlinesPanel from './PurchaseDeadlinesPanel';
 
 interface OverdueDosesViewProps {
     medicines: IMedicine[];
     groups: OverdueDoseGroup[];
+    purchaseDeadlines: PurchaseDeadline[];
     onSkipDose: (group: OverdueDoseGroup, dose: OverdueDose) => void;
-    onConfirmDose: (group: OverdueDoseGroup, dose: OverdueDose) => void;
+    /** amount: ilość faktycznie przyjęta; undefined = domyślna ilość z dawki. */
+    onConfirmDose: (group: OverdueDoseGroup, dose: OverdueDose, amount?: number) => void;
 }
 
-export default function OverdueDosesView({ medicines, groups, onSkipDose, onConfirmDose }: OverdueDosesViewProps) {
+export default function OverdueDosesView({ medicines, groups, purchaseDeadlines, onSkipDose, onConfirmDose }: OverdueDosesViewProps) {
     const hasMedicines = medicines.length > 0;
 
     return (
         <Tab.Pane eventKey="missingDoses" className="justify-content-center">
+            <PurchaseDeadlinesPanel deadlines={purchaseDeadlines} />
             <Row hidden={!hasMedicines || groups.length !== 0} className="mt-5 text-center">
                 <Col>
                     <h4>Gratulacje!</h4>
@@ -45,7 +50,7 @@ export default function OverdueDosesView({ medicines, groups, onSkipDose, onConf
                                             dose={dose}
                                             medicines={medicines}
                                             onSkip={() => onSkipDose(group, dose)}
-                                            onConfirm={() => onConfirmDose(group, dose)}
+                                            onConfirm={amount => onConfirmDose(group, dose, amount)}
                                         />
                                     ))}
                                 </Col>
