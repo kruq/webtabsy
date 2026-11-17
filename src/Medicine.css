@@ -1,3 +1,8 @@
-.medicine-title {
+.medicine-card {
     cursor: pointer;
+}
+
+/* Rozwinięta część karty nie zwija jej po kliknięciu, więc nie udaje klikalnej. */
+.medicine-card .medicine-card-details {
+    cursor: auto;
 }

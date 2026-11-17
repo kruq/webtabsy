@@ -36,6 +36,7 @@ export interface IMedicineProps extends IMedicine {
 }
 
 const SHORT_DATE_OPTIONS: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit' };
+const FULL_DATE_OPTIONS: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
 
 const newDoseTemplate = (): Dose => ({
     id: Uuid(),
@@ -207,16 +208,30 @@ export default function MedicineCard(props: IMedicineProps) {
     };
 
     const forecast = forecastStock(props);
+    // Ta sama symulacja, tylko z zapasem powiększonym o tabletki, które można jeszcze wykupić z recept.
+    const forecastWithPrescriptions = props.tabletsOnPrescriptions > 0
+        ? forecastStock({ ...props, count: props.count + props.tabletsOnPrescriptions })
+        : undefined;
+
+    /**
+     * Kliknięcie w dowolne miejsce karty zwija/rozwija ją - z wyjątkiem elementów interaktywnych
+     * i rozwiniętej części z ustawieniami (oznaczonej data-no-toggle), żeby edycja nie zwijała karty.
+     */
+    const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('button, a, input, select, textarea, label, dialog, [data-no-toggle]')) return;
+        props.medicineClick(props.id);
+    };
     const tabsInPackage = countAmountInCurrentPackage(props);
     const lastDayLabel = forecast && forecast.days < 7
         ? getDateText(forecast.lastDay)
         : forecast?.lastDay.toLocaleDateString('pl-PL');
 
     return (
-        <Card className="my-2">
+        <Card className="my-2 medicine-card" onClick={handleCardClick}>
             <Card.Body>
                 <Row>
-                    <Col onClick={() => props.medicineClick(props.id)} className="medicine-title">
+                    <Col>
                         <small className={`text-${props.count < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>{formatAmountForDisplay(props.count)} tab.</small>
                         {tabsInPackage !== undefined && (
                             <small className="text-success" title="Tabletki w aktualnym opakowaniu">
@@ -233,15 +248,25 @@ export default function MedicineCard(props: IMedicineProps) {
                             </small>
                         )}
                     </Col>
-                    {forecast && (
+                    {(forecast || forecastWithPrescriptions) && (
                         <Col xs="auto">
-                            {forecast.coversWholePlan ? (
+                            {forecast && (forecast.coversWholePlan ? (
                                 <small className="text-success">
                                     wystarczy do {forecast.lastDay.toLocaleDateString('pl-PL', SHORT_DATE_OPTIONS)}
                                 </small>
                             ) : (
                                 <small className={`text-${forecast.days < LOW_STOCK_THRESHOLD ? 'danger' : 'success'}`}>
                                     {lastDayLabel} ({getDaysText(forecast.days)})
+                                </small>
+                            ))}
+                            {forecastWithPrescriptions && (
+                                <small className="text-primary" title="Do kiedy wystarczy tabletek posiadanych i na receptach">
+                                    <span className="d-none d-md-inline"> z receptami</span>
+                                    {' '}{forecastWithPrescriptions.coversWholePlan ? 'wystarczy do ' : ''}
+                                    {forecastWithPrescriptions.lastDay.toLocaleDateString('pl-PL', FULL_DATE_OPTIONS)}
+                                    {!forecastWithPrescriptions.coversWholePlan && (
+                                        <span className="d-none d-md-inline"> ({getDaysText(forecastWithPrescriptions.days)})</span>
+                                    )}
                                 </small>
                             )}
                         </Col>
@@ -265,7 +290,7 @@ export default function MedicineCard(props: IMedicineProps) {
                 />
 
                 {isOpen && (
-                    <>
+                    <div data-no-toggle className="medicine-card-details">
                         <Row className="mt-3 mb-1">
                             <Col className="text-primary" xs="auto">Ustawienia</Col>
                         </Row>
@@ -400,11 +425,11 @@ export default function MedicineCard(props: IMedicineProps) {
                                 <PurchaseList purchases={props.purchases ?? []} onRemove={handleRemovePurchase} />
                             </div>
                         </Collapse>
-                    </>
+                    </div>
                 )}
             </Card.Body>
             {isOpen && (
-                <Card.Footer>
+                <Card.Footer data-no-toggle className="medicine-card-details">
                     <Row>
                         <Col></Col>
                         <Col xs="auto">

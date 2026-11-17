@@ -3,6 +3,7 @@ import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
+import ListGroup from 'react-bootstrap/ListGroup';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import IMedicine from '../models/IMedicine';
@@ -20,6 +21,8 @@ import {
     VALIDITY_LABELS,
 } from '../utils/prescriptionStatus';
 import PrescriptionDialog, { emptyPrescription, PrescriptionDraft } from './PrescriptionDialog';
+import { PrescriptionItemPurchase } from './prescriptionPurchase';
+import PrescriptionPurchaseDialog from './PrescriptionPurchaseDialog';
 
 interface PrescriptionsViewProps {
     prescriptions: Prescription[];
@@ -30,6 +33,7 @@ interface PrescriptionsViewProps {
     onDelete: (id: string) => Promise<void>;
     onAddSpecialization: (name: string) => Promise<Specialization>;
     onAddDoctor: (doctor: Omit<Doctor, 'id'>) => Promise<Doctor>;
+    onPurchase: (prescription: Prescription, purchaseDate: Date, purchases: PrescriptionItemPurchase[]) => Promise<void>;
 }
 
 const SHOW_EXPIRED_STORAGE_KEY = 'prescriptionsShowExpired';
@@ -52,8 +56,15 @@ function useStoredFlag(key: string): [boolean, (value: boolean) => void] {
     return [value, update];
 }
 
-function PrescriptionCard({ prescription, onClick }: { prescription: Prescription; onClick: () => void }) {
+interface PrescriptionCardProps {
+    prescription: Prescription;
+    onClick: () => void;
+    onPurchase: () => void;
+}
+
+function PrescriptionCard({ prescription, onClick, onPurchase }: PrescriptionCardProps) {
     const status = prescriptionStatus(prescription);
+    const canPurchase = status === 'new' || status === 'partiallyPurchased';
     const doctorLine = [prescription.doctor, prescription.specialization].filter(Boolean).join(', ');
 
     return (
@@ -63,7 +74,10 @@ function PrescriptionCard({ prescription, onClick }: { prescription: Prescriptio
                     <Col>
                         <strong>{formatYmdForDisplay(prescription.issueDate)}</strong>
                         <small className="text-secondary">
-                            {' '}· {VALIDITY_LABELS[prescription.validity]}, ważna do {formatYmdForDisplay(expiryDate(prescription))}
+                            {' '}·{' '}
+                            {/* Na telefonie pełny opis się nie mieści - zostaje "do <data>". */}
+                            <span className="d-none d-md-inline">{VALIDITY_LABELS[prescription.validity]}, ważna </span>
+                            do {formatYmdForDisplay(expiryDate(prescription))}
                         </small>
                     </Col>
                     <Col xs="auto">
@@ -79,27 +93,46 @@ function PrescriptionCard({ prescription, onClick }: { prescription: Prescriptio
                     </div>
                 )}
                 {prescription.note && <div><small className="text-secondary">{prescription.note}</small></div>}
-                <div className="mt-2">
+            </Card.Body>
+            {prescription.items.length > 0 && (
+                <ListGroup variant="flush" className="border-top">
                     {prescription.items.map(item => {
                         const itemStat = itemStatus(prescription, item);
                         return (
-                            <Row key={item.id} className="align-items-center">
-                                <Col>
-                                    <small>
-                                        {item.medicineName}{' '}
-                                        <span className="text-secondary">
-                                            {remainingPackages(item)}/{item.packages} op. × {formatAmountForDisplay(item.packageSize)} tab.
-                                        </span>
-                                    </small>
-                                </Col>
-                                <Col xs="auto">
-                                    <Badge bg={STATUS_VARIANTS[itemStat]} pill>{ITEM_STATUS_LABELS[itemStat]}</Badge>
-                                </Col>
-                            </Row>
+                            <ListGroup.Item key={item.id} className="py-1 bg-light">
+                                <Row className="align-items-center">
+                                    <Col>
+                                        <small>
+                                            {item.medicineName}{' '}
+                                            <span className="text-secondary">
+                                                {remainingPackages(item)}/{item.packages} op. × {formatAmountForDisplay(item.packageSize)} tab.
+                                            </span>
+                                        </small>
+                                    </Col>
+                                    <Col xs="auto">
+                                        <Badge bg={STATUS_VARIANTS[itemStat]} pill>{ITEM_STATUS_LABELS[itemStat]}</Badge>
+                                    </Col>
+                                </Row>
+                            </ListGroup.Item>
                         );
                     })}
-                </div>
-            </Card.Body>
+                </ListGroup>
+            )}
+            {canPurchase && (
+                <Card.Footer className="text-end py-2">
+                    <Button
+                        size="sm"
+                        variant="outline-primary"
+                        onClick={e => {
+                            // Kliknięcie karty otwiera edycję - przycisk ma otworzyć tylko wykup.
+                            e.stopPropagation();
+                            onPurchase();
+                        }}
+                    >
+                        Wykup
+                    </Button>
+                </Card.Footer>
+            )}
         </Card>
     );
 }
@@ -107,6 +140,7 @@ function PrescriptionCard({ prescription, onClick }: { prescription: Prescriptio
 export default function PrescriptionsView(props: PrescriptionsViewProps) {
     // Obiekt (nie id), żeby dialog dostał stabilną wartość początkową także dla nowej recepty.
     const [editing, setEditing] = useState<Prescription | undefined>(undefined);
+    const [purchasing, setPurchasing] = useState<Prescription | undefined>(undefined);
     const [showExpired, setShowExpired] = useStoredFlag(SHOW_EXPIRED_STORAGE_KEY);
     const [showFulfilled, setShowFulfilled] = useStoredFlag(SHOW_FULFILLED_STORAGE_KEY);
 
@@ -129,7 +163,9 @@ export default function PrescriptionsView(props: PrescriptionsViewProps) {
         <>
             <Row className="mb-2">
                 <Col>
-                    <Button size="sm" onClick={() => setEditing(emptyPrescription())}>Dodaj receptę</Button>
+                    <Button size="sm" onClick={() => setEditing(emptyPrescription())}>
+                        Dodaj<span className="d-none d-md-inline"> receptę</span>
+                    </Button>
                 </Col>
                 <Col xs="auto" className="d-flex align-items-center">
                     <Form.Switch
@@ -155,8 +191,16 @@ export default function PrescriptionsView(props: PrescriptionsViewProps) {
                 </div>
             )}
             {sorted.map(p => (
-                <PrescriptionCard key={p.id} prescription={p} onClick={() => setEditing(p)} />
+                <PrescriptionCard key={p.id} prescription={p} onClick={() => setEditing(p)} onPurchase={() => setPurchasing(p)} />
             ))}
+            <PrescriptionPurchaseDialog
+                prescription={purchasing}
+                onSubmit={async (purchaseDate, purchases) => {
+                    await props.onPurchase(purchasing as Prescription, purchaseDate, purchases);
+                    setPurchasing(undefined);
+                }}
+                onClose={() => setPurchasing(undefined)}
+            />
             <PrescriptionDialog
                 initial={editing}
                 medicines={props.medicines}

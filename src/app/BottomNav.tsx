@@ -1,7 +1,7 @@
 import React, { forwardRef, ReactNode } from 'react';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
-import { BsCardList, BsClockHistory, BsFileEarmarkMedical, BsFillCalendarWeekFill, BsFillPersonCheckFill } from 'react-icons/bs';
+import { BsCalendarWeek, BsCardList, BsClockHistory, BsFileEarmarkMedical, BsPersonCheck } from 'react-icons/bs';
 
 interface BottomNavProps {
     /** Treść przyklejona do dołu ekranu nad przyciskami zakładek (np. panel leków doraźnych). */
@@ -15,7 +15,7 @@ const BottomNav = forwardRef<HTMLDivElement, BottomNavProps>(({ children }, ref)
             <Nav variant="pills" className="nav-justified">
                 <Nav.Item>
                     <Nav.Link eventKey="missingDoses">
-                        <BsFillPersonCheckFill /> <span className="d-none d-md-inline">Status</span>
+                        <BsPersonCheck /> <span className="d-none d-md-inline">Status</span>
                     </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
@@ -25,7 +25,7 @@ const BottomNav = forwardRef<HTMLDivElement, BottomNavProps>(({ children }, ref)
                 </Nav.Item>
                 <Nav.Item>
                     <Nav.Link eventKey="schedule">
-                        <BsFillCalendarWeekFill /> <span className="d-none d-md-inline">Grafik</span>
+                        <BsCalendarWeek /> <span className="d-none d-md-inline">Grafik</span>
                     </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>

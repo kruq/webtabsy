@@ -14,12 +14,14 @@ import MedicineListView from './app/MedicineListView';
 import OverdueDosesView from './app/OverdueDosesView';
 import { PrescriptionDraft } from './app/PrescriptionDialog';
 import { resolveNewMedicines } from './app/prescriptionDraft';
+import { applyPrescriptionPurchase, PrescriptionItemPurchase } from './app/prescriptionPurchase';
 import PrescriptionsView from './app/PrescriptionsView';
 import { usePrescriptions } from './app/usePrescriptions';
 import { useMedicines } from './app/useMedicines';
 import { useSyncTimer } from './app/useSyncTimer';
 import { useElementHeight } from './hooks/useElementHeight';
 import IMedicine from './models/IMedicine';
+import Prescription from './models/Prescription';
 import OverdueDose from './models/OverdueDoses';
 import OverdueDoseGroup from './models/OverdueDosesGroup';
 import Schedule from './schedule.component';
@@ -96,6 +98,35 @@ function App() {
         if (createdAny) await refresh();
     };
 
+    const handlePrescriptionPurchase = async (
+        prescription: Prescription,
+        purchaseDate: Date,
+        purchases: PrescriptionItemPurchase[],
+    ) => {
+        // Jak przy zwykłym kupowaniu: lek, który się skończył, może zacząć dawkowanie od nowa.
+        const medicineIds = new Set(
+            purchases
+                .map(p => prescription.items.find(i => i.id === p.itemId)?.medicineId)
+                .filter((id): id is string => Boolean(id)),
+        );
+        const resetDosesFor = new Set<string>();
+        for (const id of Array.from(medicineIds)) {
+            const medicine = medicines.find(m => m.id === id);
+            if (medicine && !medicine.count && medicine.doses.length > 0
+                && window.confirm(`${medicine.name}: czy chcesz zresetować następny dzień dawkowania?`)) {
+                resetDosesFor.add(id);
+            }
+        }
+
+        const result = applyPrescriptionPurchase(prescription, medicines, purchases, purchaseDate, resetDosesFor);
+        // Najpierw leki, potem recepta: błąd przy leku przerywa zapis, zanim recepta pokaże wykupione opakowania.
+        for (const medicine of result.medicines) {
+            await persistMedicine(medicine);
+        }
+        await savePrescription(result.prescription);
+        await refresh();
+    };
+
     return (
         <>
             {showSpinner && (
@@ -154,6 +185,7 @@ function App() {
                                         onDelete={removePrescription}
                                         onAddSpecialization={addSpecialization}
                                         onAddDoctor={addDoctor}
+                                        onPurchase={handlePrescriptionPurchase}
                                     />
                                 </Tab.Pane>
                                 {/* Montowany przy każdym wejściu w zakładkę, żeby pokazać świeże wpisy. */}
