@@ -3,7 +3,7 @@ import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
 import { formatAmount, parseAmount } from '../utils/fraction';
-import { applyDoseAction, buildScheduledDoseLogEntry, buildUnscheduledDoseLogEntry } from './doseActions';
+import { applyDoseAction, buildUnscheduledDoseLogEntry } from './doseActions';
 
 const AMOUNT = parseAmount('1 1/3') as number;
 const NEXT_DOSE_DATE = new Date('2026-08-09T08:00:00');
@@ -155,41 +155,6 @@ describe('applyDoseAction', () => {
 
             expect(result.medicineToPersist).toBeUndefined();
         });
-    });
-});
-
-describe('buildScheduledDoseLogEntry', () => {
-    it('records the scheduled time of the dose, not the moment of confirmation', () => {
-        const { medicines, overdueDose } = buildScenario(10, AMOUNT);
-
-        const entry = buildScheduledDoseLogEntry(medicines[0], overdueDose, 'confirm');
-
-        expect(entry.scheduledAt.getTime()).toBe(NEXT_DOSE_DATE.getTime());
-        expect(entry).toMatchObject({
-            medicineId: 'medicine-1',
-            medicineName: 'Metformina',
-            doseId: 'dose-1',
-            action: 'taken',
-            amount: AMOUNT,
-            unscheduled: false,
-        });
-    });
-
-    it('records a custom taken amount', () => {
-        const { medicines, overdueDose } = buildScenario(10, AMOUNT);
-
-        const entry = buildScheduledDoseLogEntry(medicines[0], overdueDose, 'confirm', 0.5);
-
-        expect(entry.amount).toBe(0.5);
-    });
-
-    it('records a skip with the scheduled amount', () => {
-        const { medicines, overdueDose } = buildScenario(10, AMOUNT);
-
-        const entry = buildScheduledDoseLogEntry(medicines[0], overdueDose, 'skip');
-
-        expect(entry.action).toBe('skipped');
-        expect(entry.amount).toBe(AMOUNT);
     });
 });
 

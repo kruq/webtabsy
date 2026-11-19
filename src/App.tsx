@@ -14,7 +14,7 @@ import { useAuth } from './app/useAuth';
 import UsersView from './app/UsersView';
 import AsNeededPanel from './app/AsNeededPanel';
 import BottomNav from './app/BottomNav';
-import { applyDoseAction, buildScheduledDoseLogEntry, buildUnscheduledDoseLogEntry } from './app/doseActions';
+import { applyDoseAction, buildUnscheduledDoseLogEntry } from './app/doseActions';
 import DoseLogView from './app/DoseLogView';
 import MedicineListView from './app/MedicineListView';
 import OverdueDosesView from './app/OverdueDosesView';
@@ -33,6 +33,8 @@ import OverdueDose from './models/OverdueDoses';
 import OverdueDoseGroup from './models/OverdueDosesGroup';
 import Schedule from './schedule.component';
 import { tryAddDoseLogEntry } from './services/doseLog.service';
+import { ApiError } from './services/http';
+import { recordDose } from './services/overdueDoses.service';
 import { createMedicine, updateMedicine as persistMedicine } from './services/medicine.service';
 import { subtractAmount } from './utils/fraction';
 import { tabletsOnPrescriptions, upcomingPurchaseDeadlines } from './utils/prescriptionStatus';
@@ -60,6 +62,8 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
         removeMedicine,
         setMedicines,
         setOverdueGroups,
+        trackWrite,
+        reportError,
     } = useMedicines();
 
     const { prescriptions, specializations, doctors, savePrescription, removePrescription, addSpecialization, addDoctor } =
@@ -85,31 +89,36 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
         action: 'skip' | 'confirm',
         takenAmount?: number,
     ) => {
+        // Natychmiast na ekranie (karta znika, ilość maleje); prawdziwy stan przychodzi z API.
         const result = applyDoseAction(medicines, overdueGroups, group, dose, action, takenAmount);
         if (!result.medicineToPersist) return;
-        if (action === 'confirm') dose.disabled = true;
+        dose.disabled = true;
         setMedicines(result.medicines);
         setOverdueGroups(result.overdueGroups);
         try {
-            await persistMedicine(result.medicineToPersist);
+            // nextDoseDate zaległej dawki to konkretne wystąpienie (dzień i godzina), którego dotyczy kliknięcie.
+            const saved = await trackWrite(() => recordDose(dose.id, action, dose.nextDoseDate, takenAmount));
+            setMedicines(prev => prev.map(m => (m.id === saved.id ? saved : m)));
         } catch (e) {
-            console.error(e);
-            return;
+            // 409: to wystąpienie było już obsłużone (np. drugie kliknięcie albo inne urządzenie) - API niczego
+            // nie zmieniło, a odświeżenie po zapisie pokaże prawdziwy stan.
+            if (!(e instanceof ApiError && e.status === 409)) reportError(e);
         }
-        await tryAddDoseLogEntry(buildScheduledDoseLogEntry(result.medicineToPersist, dose, action, takenAmount));
     };
 
     const takeAsNeeded = async (medicine: IMedicine, amount: number) => {
         if (amount <= 0 || amount > medicine.count) return;
         const takenAt = new Date();
         await saveMedicine(medicine.id, { count: subtractAmount(medicine.count, amount) });
-        await tryAddDoseLogEntry(buildUnscheduledDoseLogEntry(medicine, amount, takenAt));
+        await trackWrite(() => tryAddDoseLogEntry(buildUnscheduledDoseLogEntry(medicine, amount, takenAt)));
     };
 
     const handleSavePrescription = async (draft: PrescriptionDraft) => {
-        const { items, createdAny } = await resolveNewMedicines(draft.items, medicines, createMedicine);
-        await savePrescription({ ...draft, items });
-        if (createdAny) await refresh();
+        // Nowe leki z recepty trafiają na listę leków; po zapisie dane i tak są odświeżane (trackWrite).
+        await trackWrite(async () => {
+            const { items } = await resolveNewMedicines(draft.items, medicines, createMedicine);
+            await savePrescription({ ...draft, items });
+        });
     };
 
     const handlePrescriptionPurchase = async (
@@ -134,11 +143,12 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
 
         const result = applyPrescriptionPurchase(prescription, medicines, purchases, purchaseDate, resetDosesFor);
         // Najpierw leki, potem recepta: błąd przy leku przerywa zapis, zanim recepta pokaże wykupione opakowania.
-        for (const medicine of result.medicines) {
-            await persistMedicine(medicine);
-        }
-        await savePrescription(result.prescription);
-        await refresh();
+        await trackWrite(async () => {
+            for (const medicine of result.medicines) {
+                await persistMedicine(medicine);
+            }
+            await savePrescription(result.prescription);
+        });
     };
 
     return (

@@ -56,28 +56,6 @@ export function applyDoseAction(
     return { medicines: updatedMedicines, overdueGroups: updatedGroups, medicineToPersist: updatedMedicine };
 }
 
-/**
- * Wpis historii dla dawki z grafiku. Data to zaplanowany termin tego konkretnego wystąpienia dawki
- * (API zwraca go w nextDoseDate zaległej dawki razem z godziną), a nie moment kliknięcia.
- * Przy pominięciu zapisujemy zaplanowaną ilość.
- */
-export function buildScheduledDoseLogEntry(
-    medicine: IMedicine,
-    dose: OverdueDose,
-    action: DoseAction,
-    takenAmount: number = dose.amount,
-): NewDoseLogEntry {
-    return {
-        medicineId: medicine.id,
-        medicineName: medicine.name,
-        doseId: dose.id,
-        action: action === 'confirm' ? 'taken' : 'skipped',
-        amount: action === 'confirm' ? takenAmount : dose.amount,
-        scheduledAt: dose.nextDoseDate,
-        unscheduled: false,
-    };
-}
-
 /** Wpis historii dla leku wziętego poza grafikiem („Weź lek” w karcie leku) - z datą wzięcia. */
 export function buildUnscheduledDoseLogEntry(medicine: Pick<IMedicine, 'id' | 'name'>, amount: number, takenAt: Date): NewDoseLogEntry {
     return {

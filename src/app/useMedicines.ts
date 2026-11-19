@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ERROR_MESSAGE_TIMEOUT_MS } from '../constants';
 import IMedicine from '../models/IMedicine';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
@@ -12,12 +12,18 @@ interface UseMedicinesResult {
     errorMessage: string;
     showSpinner: boolean;
     refresh: () => Promise<void>;
-    refreshOverdue: () => Promise<void>;
     addNewMedicine: (name: string) => Promise<void>;
     saveMedicine: (id: string, params: Partial<IMedicine>) => Promise<void>;
     removeMedicine: (id: string) => Promise<void>;
-    setMedicines: (next: IMedicine[]) => void;
+    setMedicines: (next: IMedicine[] | ((prev: IMedicine[]) => IMedicine[])) => void;
     setOverdueGroups: (next: OverdueDoseGroup[]) => void;
+    /**
+     * Opakowuje każdy zapis do API. Odświeżenie, które trwało w czasie zapisu albo zaczęło się przed jego końcem,
+     * jest odrzucane - mogłoby przywrócić stan sprzed zapisu (np. potwierdzona dawka wróciłaby na ekran).
+     * Po zakończeniu ostatniego zapisu dane są odświeżane jeszcze raz.
+     */
+    trackWrite: <T>(write: () => Promise<T>) => Promise<T>;
+    reportError: (error: unknown) => void;
 }
 
 export function useMedicines(): UseMedicinesResult {
@@ -25,6 +31,8 @@ export function useMedicines(): UseMedicinesResult {
     const [overdueGroups, setOverdueGroups] = useState<OverdueDoseGroup[]>([]);
     const [errorMessage, setErrorMessage] = useState('');
     const [showSpinner, setShowSpinner] = useState(false);
+    // pending: zapisy w toku; version: zmienia się na początku i na końcu każdego zapisu.
+    const writes = useRef({ pending: 0, version: 0 });
 
     const reportError = useCallback((error: unknown) => {
         const isNetwork = error instanceof TypeError || (error instanceof ApiError && error.status >= 500);
@@ -33,23 +41,37 @@ export function useMedicines(): UseMedicinesResult {
         setTimeout(() => setErrorMessage(''), ERROR_MESSAGE_TIMEOUT_MS);
     }, []);
 
-    const refreshOverdue = useCallback(async () => {
-        try {
-            setOverdueGroups(await findOverdueDoses());
-        } catch (e) {
-            reportError(e);
-        }
-    }, [reportError]);
-
     const refresh = useCallback(async () => {
+        // Po zakończeniu zapisów odświeżenie i tak nastąpi.
+        if (writes.current.pending > 0) return;
+        const startedAt = writes.current.version;
         try {
             const [meds, groups] = await Promise.all([fetchMedicines(), findOverdueDoses()]);
+            // W międzyczasie zaczął się albo skończył zapis - te dane mogą być sprzed niego.
+            if (writes.current.pending > 0 || writes.current.version !== startedAt) return;
             setMedicines(meds);
             setOverdueGroups(groups);
         } catch (e) {
             reportError(e);
         }
     }, [reportError]);
+
+    const refreshRef = useRef(refresh);
+    useEffect(() => {
+        refreshRef.current = refresh;
+    }, [refresh]);
+
+    const trackWrite = useCallback(async <T,>(write: () => Promise<T>): Promise<T> => {
+        writes.current.pending++;
+        writes.current.version++;
+        try {
+            return await write();
+        } finally {
+            writes.current.pending--;
+            writes.current.version++;
+            if (writes.current.pending === 0) refreshRef.current();
+        }
+    }, []);
 
     useEffect(() => {
         refresh();
@@ -58,14 +80,13 @@ export function useMedicines(): UseMedicinesResult {
     const addNewMedicine = useCallback(async (name: string) => {
         setShowSpinner(true);
         try {
-            await addMedicine(newMedicine(name));
-            setMedicines(await fetchMedicines());
+            await trackWrite(() => addMedicine(newMedicine(name)));
         } catch (e) {
             reportError(e);
         } finally {
             setShowSpinner(false);
         }
-    }, [reportError]);
+    }, [reportError, trackWrite]);
 
     const saveMedicine = useCallback(async (id: string, params: Partial<IMedicine>) => {
         const current = medicines.find(m => m.id === id);
@@ -73,19 +94,17 @@ export function useMedicines(): UseMedicinesResult {
         const next: IMedicine = { ...current, ...params };
         setMedicines(prev => prev.map(m => (m.id === id ? next : m)));
         try {
-            await updateMedicine(next);
-            await refreshOverdue();
+            await trackWrite(() => updateMedicine(next));
         } catch (e) {
             reportError(e);
         }
-    }, [medicines, refreshOverdue, reportError]);
+    }, [medicines, reportError, trackWrite]);
 
     const removeMedicine = useCallback(async (id: string) => {
         setShowSpinner(true);
         try {
-            await deleteMedicine(id);
+            await trackWrite(() => deleteMedicine(id));
             setMedicines(prev => prev.filter(m => m.id !== id));
-            await refreshOverdue();
         } catch (e) {
             setErrorMessage('Błąd podczas usuwania leku');
             console.error(e);
@@ -93,7 +112,7 @@ export function useMedicines(): UseMedicinesResult {
         } finally {
             setShowSpinner(false);
         }
-    }, [refreshOverdue]);
+    }, [trackWrite]);
 
     return {
         medicines,
@@ -101,11 +120,12 @@ export function useMedicines(): UseMedicinesResult {
         errorMessage,
         showSpinner,
         refresh,
-        refreshOverdue,
         addNewMedicine,
         saveMedicine,
         removeMedicine,
         setMedicines,
         setOverdueGroups,
+        trackWrite,
+        reportError,
     };
 }
