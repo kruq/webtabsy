@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import logo from '../assets/logo192.png';
+import { AuthUser } from '../services/auth.service';
 import { applyUpdate } from '../swUpdate';
+import RenameDialog from './RenameDialog';
 import { useServiceWorkerUpdate } from './useServiceWorkerUpdate';
 
 const APP_VERSION = process.env.REACT_APP_VERSION ?? 'dev';
@@ -15,10 +17,22 @@ interface AppHeaderProps {
     errorMessage: string;
     showPermissionAlert: boolean;
     onDismissPermissionAlert: () => void;
+    userName: string;
+    onLogout: () => void;
+    onUserChanged: (user: AuthUser) => void;
 }
 
-export default function AppHeader({ syncTimestamp, errorMessage, showPermissionAlert, onDismissPermissionAlert }: AppHeaderProps) {
+export default function AppHeader({
+    syncTimestamp,
+    errorMessage,
+    showPermissionAlert,
+    onDismissPermissionAlert,
+    userName,
+    onLogout,
+    onUserChanged,
+}: AppHeaderProps) {
     const updateAvailable = useServiceWorkerUpdate();
+    const [renaming, setRenaming] = useState(false);
 
     return (
         <Container className="sticky-top p-3" style={{ backgroundColor: '#fafafc' }}>
@@ -50,9 +64,28 @@ export default function AppHeader({ syncTimestamp, errorMessage, showPermissionA
                 </Col>
                 <Col xs="auto" className="text-end text-secondary">
                     <span style={{ fontSize: '1.2rem' }}>{syncTimestamp < 5 ? '⌛ ' : ''}</span>
+                    <small className="me-2">
+                        <Button
+                            variant="link"
+                            size="sm"
+                            className="p-0 align-baseline"
+                            title="Zmień nazwę"
+                            onClick={() => setRenaming(true)}
+                        >
+                            {userName}
+                        </Button>
+                        {' '}·{' '}
+                        <Button variant="link" size="sm" className="p-0 align-baseline" onClick={onLogout}>Wyloguj</Button>
+                    </small>
                     <span style={{ fontSize: '0.5rem' }}>v. {APP_VERSION}</span>
                 </Col>
             </Row>
+            <RenameDialog
+                visible={renaming}
+                currentName={userName}
+                onRenamed={onUserChanged}
+                onClose={() => setRenaming(false)}
+            />
         </Container>
     );
 }

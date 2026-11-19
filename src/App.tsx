@@ -1,11 +1,17 @@
 import React, { useMemo, useRef, useState } from 'react';
 import './App.css';
+import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Spinner from 'react-bootstrap/Spinner';
 import Tab from 'react-bootstrap/Tab';
 import AppHeader from './app/AppHeader';
+import AuthScreen from './app/AuthScreen';
+import ChangePasswordView from './app/ChangePasswordView';
+import LoginView from './app/LoginView';
+import { useAuth } from './app/useAuth';
+import UsersView from './app/UsersView';
 import AsNeededPanel from './app/AsNeededPanel';
 import BottomNav from './app/BottomNav';
 import { applyDoseAction, buildScheduledDoseLogEntry, buildUnscheduledDoseLogEntry } from './app/doseActions';
@@ -21,6 +27,7 @@ import { useMedicines } from './app/useMedicines';
 import { useSyncTimer } from './app/useSyncTimer';
 import { useElementHeight } from './hooks/useElementHeight';
 import IMedicine from './models/IMedicine';
+import { AuthUser } from './services/auth.service';
 import Prescription from './models/Prescription';
 import OverdueDose from './models/OverdueDoses';
 import OverdueDoseGroup from './models/OverdueDosesGroup';
@@ -34,7 +41,14 @@ const STATUS_TAB = 'missingDoses';
 // Minimalny odstęp treści od dołu ekranu, zanim zmierzymy faktyczną wysokość dolnego paska.
 const MIN_BOTTOM_PADDING_PX = 60;
 
-function App() {
+interface MainAppProps {
+    user: AuthUser;
+    onLogout: () => void;
+    onUserChanged: (user: AuthUser) => void;
+}
+
+/** Aplikacja zalogowanego użytkownika; montowana od nowa (key) przy zmianie użytkownika, więc dane się nie mieszają. */
+function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
     const {
         medicines,
         overdueGroups,
@@ -146,6 +160,9 @@ function App() {
                 errorMessage={errorMessage}
                 showPermissionAlert={showPermissionAlert}
                 onDismissPermissionAlert={() => setShowPermissionAlert(false)}
+                userName={user.name}
+                onLogout={onLogout}
+                onUserChanged={onUserChanged}
             />
             <Container className="position-relative pt-3">
                 <div>{medicines.length === 0 && <span>Synchronizacja danych...</span>}</div>
@@ -192,16 +209,47 @@ function App() {
                                 <Tab.Pane eventKey="doseLog" mountOnEnter unmountOnExit>
                                     <DoseLogView />
                                 </Tab.Pane>
+                                {user.isAdmin && (
+                                    <Tab.Pane eventKey="users" mountOnEnter unmountOnExit>
+                                        <UsersView />
+                                    </Tab.Pane>
+                                )}
                             </Tab.Content>
                         </Col>
                     </Row>
-                    <BottomNav ref={bottomNavRef}>
+                    <BottomNav ref={bottomNavRef} showUsers={user.isAdmin}>
                         {activeTab === STATUS_TAB && <AsNeededPanel medicines={medicines} onTake={takeAsNeeded} />}
                     </BottomNav>
                 </Tab.Container>
             </Container>
         </>
     );
+}
+
+function App() {
+    const { state, login, logout, setUser, retry } = useAuth();
+
+    switch (state.status) {
+        case 'loading':
+            return (
+                <div className="text-center" style={{ paddingTop: '40vh' }}>
+                    <Spinner animation="border" variant="primary" />
+                </div>
+            );
+        case 'offline':
+            return (
+                <AuthScreen>
+                    <p className="text-danger">Brak połączenia z serwerem.</p>
+                    <Button className="w-100" onClick={retry}>Spróbuj ponownie</Button>
+                </AuthScreen>
+            );
+        case 'loggedOut':
+            return <LoginView onLogin={login} />;
+        case 'mustChangePassword':
+            return <ChangePasswordView user={state.user} onChanged={setUser} onLogout={logout} />;
+        case 'ready':
+            return <MainApp key={state.user.id} user={state.user} onLogout={logout} onUserChanged={setUser} />;
+    }
 }
 
 export default App;

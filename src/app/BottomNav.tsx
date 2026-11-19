@@ -1,14 +1,16 @@
 import React, { forwardRef, ReactNode } from 'react';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
-import { BsCalendarWeek, BsCardList, BsClockHistory, BsFileEarmarkMedical, BsPersonCheck } from 'react-icons/bs';
+import { BsCalendarWeek, BsCardList, BsClockHistory, BsFileEarmarkMedical, BsPeople, BsPersonCheck } from 'react-icons/bs';
 
 interface BottomNavProps {
     /** Treść przyklejona do dołu ekranu nad przyciskami zakładek (np. panel leków doraźnych). */
     children?: ReactNode;
+    /** Zakładka zarządzania kontami - tylko dla administratora. */
+    showUsers?: boolean;
 }
 
-const BottomNav = forwardRef<HTMLDivElement, BottomNavProps>(({ children }, ref) => {
+const BottomNav = forwardRef<HTMLDivElement, BottomNavProps>(({ children, showUsers }, ref) => {
     return (
         <Container ref={ref} className="fixed-bottom p-3" style={{ backgroundColor: '#fafafc' }}>
             {children}
@@ -38,6 +40,13 @@ const BottomNav = forwardRef<HTMLDivElement, BottomNavProps>(({ children }, ref)
                         <BsClockHistory /> <span className="d-none d-md-inline">Historia</span>
                     </Nav.Link>
                 </Nav.Item>
+                {showUsers && (
+                    <Nav.Item>
+                        <Nav.Link eventKey="users">
+                            <BsPeople /> <span className="d-none d-md-inline">Użytkownicy</span>
+                        </Nav.Link>
+                    </Nav.Item>
+                )}
             </Nav>
         </Container>
     );
