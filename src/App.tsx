@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
@@ -14,7 +14,7 @@ import { useAuth } from './app/useAuth';
 import UsersView from './app/UsersView';
 import AsNeededPanel from './app/AsNeededPanel';
 import BottomNav from './app/BottomNav';
-import { applyDoseAction, buildUnscheduledDoseLogEntry } from './app/doseActions';
+import { applyDoseAction, buildUnscheduledDoseLogEntry, withSavedDose } from './app/doseActions';
 import DoseLogView from './app/DoseLogView';
 import MedicineListView from './app/MedicineListView';
 import OverdueDosesView from './app/OverdueDosesView';
@@ -26,6 +26,7 @@ import { usePrescriptions } from './app/usePrescriptions';
 import { useMedicines } from './app/useMedicines';
 import { useSyncTimer } from './app/useSyncTimer';
 import { useElementHeight } from './hooks/useElementHeight';
+import Dose from './models/Dose';
 import IMedicine from './models/IMedicine';
 import { AuthUser } from './services/auth.service';
 import Prescription from './models/Prescription';
@@ -38,8 +39,10 @@ import { recordDose } from './services/overdueDoses.service';
 import { createMedicine, updateMedicine as persistMedicine } from './services/medicine.service';
 import { subtractAmount } from './utils/fraction';
 import { tabletsOnPrescriptions, upcomingPurchaseDeadlines } from './utils/prescriptionStatus';
+import { scrollToMedicineCard } from './utils/scrollToMedicine';
 
 const STATUS_TAB = 'missingDoses';
+const MEDICINES_TAB = 'medicines';
 // Minimalny odstęp treści od dołu ekranu, zanim zmierzymy faktyczną wysokość dolnego paska.
 const MIN_BOTTOM_PADDING_PX = 60;
 
@@ -84,6 +87,24 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
         setSelectedMedicineId(prev => (prev === id ? '' : id));
     };
 
+    // Przejście ze Statusu do karty leku: zakładka "Lista leków", karta rozwinięta, strona przewinięta do niej.
+    const [medicineToReveal, setMedicineToReveal] = useState<string | undefined>(undefined);
+    // Nowy klucz montuje listę leków od nowa - czyści wpisane wyszukiwanie, które mogłoby ukryć ten lek.
+    const [medicineListKey, setMedicineListKey] = useState(0);
+
+    const openMedicine = (id: string) => {
+        setSelectedMedicineId(id);
+        setMedicineListKey(key => key + 1);
+        setActiveTab(MEDICINES_TAB);
+        setMedicineToReveal(id);
+    };
+
+    useEffect(() => {
+        if (!medicineToReveal || activeTab !== MEDICINES_TAB) return;
+        scrollToMedicineCard(medicineToReveal);
+        setMedicineToReveal(undefined);
+    }, [medicineToReveal, activeTab]);
+
     const runDoseAction = async (
         group: OverdueDoseGroup,
         dose: OverdueDose,
@@ -105,6 +126,12 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
             // nie zmieniło, a odświeżenie po zapisie pokaże prawdziwy stan.
             if (!(e instanceof ApiError && e.status === 409)) reportError(e);
         }
+    };
+
+    const saveScheduleDose = async (medicineId: string, dose: Dose) => {
+        const medicine = medicines.find(m => m.id === medicineId);
+        if (!medicine) return;
+        await saveMedicine(medicineId, { doses: withSavedDose(medicine.doses, dose) });
     };
 
     const takeAsNeeded = async (medicine: IMedicine, amount: number) => {
@@ -191,8 +218,10 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                     purchaseDeadlines={upcomingPurchaseDeadlines(prescriptions)}
                                     onSkipDose={(g, d) => runDoseAction(g, d, 'skip')}
                                     onConfirmDose={(g, d, amount) => runDoseAction(g, d, 'confirm', amount)}
+                                    onOpenMedicine={openMedicine}
                                 />
                                 <MedicineListView
+                                    key={medicineListKey}
                                     medicines={medicines}
                                     selectedMedicineId={selectedMedicineId}
                                     onMedicineClick={handleMedicineClick}
@@ -202,7 +231,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                     tabletsOnPrescriptions={prescriptionTablets}
                                 />
                                 <Tab.Pane eventKey="schedule">
-                                    <Schedule medicines={medicines} />
+                                    <Schedule medicines={medicines} onSaveDose={saveScheduleDose} />
                                 </Tab.Pane>
                                 <Tab.Pane eventKey="prescriptions">
                                     <PrescriptionsView

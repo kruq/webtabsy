@@ -18,9 +18,10 @@ interface OverdueDosesViewProps {
     onSkipDose: (group: OverdueDoseGroup, dose: OverdueDose) => void;
     /** amount: ilość faktycznie przyjęta; undefined = domyślna ilość z dawki. */
     onConfirmDose: (group: OverdueDoseGroup, dose: OverdueDose, amount?: number) => void;
+    onOpenMedicine: (medicineId: string) => void;
 }
 
-export default function OverdueDosesView({ medicines, groups, purchaseDeadlines, onSkipDose, onConfirmDose }: OverdueDosesViewProps) {
+export default function OverdueDosesView({ medicines, groups, purchaseDeadlines, onSkipDose, onConfirmDose, onOpenMedicine }: OverdueDosesViewProps) {
     const hasMedicines = medicines.length > 0;
 
     return (
@@ -53,6 +54,7 @@ export default function OverdueDosesView({ medicines, groups, purchaseDeadlines,
                                             medicines={medicines}
                                             onSkip={() => onSkipDose(group, dose)}
                                             onConfirm={amount => onConfirmDose(group, dose, amount)}
+                                            onOpenMedicine={onOpenMedicine}
                                         />
                                     ))}
                                 </Col>

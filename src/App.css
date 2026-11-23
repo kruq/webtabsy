@@ -81,3 +81,29 @@ button {
     transform: rotate(360deg);
   }
 } */
+
+/* Karta zaległej dawki: przyciski przyklejone do krawędzi karty, na całą wysokość. */
+.overdue-dose-card > .overdue-dose-skip,
+.overdue-dose-card > .overdue-dose-confirm > .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem; /* flex pomija spację między ikoną a napisem */
+  border-radius: 0;
+}
+
+/* Treść może się zwężać i zawijać - długa nazwa leku nie wypycha przycisków poza kartę. */
+.overdue-dose-card > .card-body {
+  min-width: 0;
+}
+
+.overdue-dose-card > .overdue-dose-skip {
+  border: 0;
+  border-right: 1px solid var(--bs-border-color);
+  border-top-left-radius: var(--bs-card-inner-border-radius);
+  border-bottom-left-radius: var(--bs-card-inner-border-radius);
+}
+
+.overdue-dose-card > .overdue-dose-confirm > .btn:last-child {
+  border-top-right-radius: var(--bs-card-inner-border-radius);
+  border-bottom-right-radius: var(--bs-card-inner-border-radius);
+}

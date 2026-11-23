@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
@@ -9,14 +10,18 @@ import IMedicine from './models/IMedicine';
 import { getDateText, getDaysText } from './text.helpers';
 import { formatAmountForDisplay } from './utils/fraction';
 import EmptyState from './app/EmptyState';
+import DoseDialog from './medicine/DoseDialog';
 
 interface IScheduleProps {
     medicines: IMedicine[];
+    /** Zapis dawki zmienionej w okienku edycji (to samo okienko co w karcie leku). */
+    onSaveDose: (medicineId: string, dose: Dose) => Promise<void>;
 }
 
 interface ScheduleEntry {
     dose: Dose;
     name: string;
+    medicineId: string;
 }
 
 function isWithinScheduleWindow(dose: Dose): boolean {
@@ -34,10 +39,18 @@ function buildScheduleEntries(medicines: IMedicine[]): ScheduleEntry[] {
         .filter(m => m.doses.length > 0 && (m.count > 0 || !m.hideWhenEmpty))
         .flatMap(m => m.doses
             .filter(isWithinScheduleWindow)
-            .map(dose => ({ dose, name: m.name })));
+            .map(dose => ({ dose, name: m.name, medicineId: m.id })));
 }
 
-export default function Schedule({ medicines }: IScheduleProps) {
+export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
+    const [editing, setEditing] = useState<ScheduleEntry | undefined>(undefined);
+
+    const handleSave = async (dose: Dose) => {
+        if (!editing) return;
+        await onSaveDose(editing.medicineId, dose);
+        setEditing(undefined);
+    };
+
     const groupsByTime = Object.entries(_.groupBy(buildScheduleEntries(medicines), e => e.dose.time))
         .sort((a, b) => (a[0] > b[0] ? 1 : -1));
 
@@ -59,9 +72,16 @@ export default function Schedule({ medicines }: IScheduleProps) {
                                     {entries
                                         .sort((y, z) => (y.name > z.name ? 1 : -1))
                                         .map(entry => (
-                                            <Row key={`schedule-dose-${entry.dose.id}`}>
+                                            // Cały wiersz otwiera edycję tej dawki; nazwa leku jest linkiem, żeby było widać, że to klikalne.
+                                            <Row
+                                                key={`schedule-dose-${entry.dose.id}`}
+                                                onClick={() => setEditing(entry)}
+                                                style={{ cursor: 'pointer' }}
+                                            >
                                                 <Col md={4} sm={8} xs={12}>
-                                                    <strong>{formatAmountForDisplay(entry.dose.amount)} x {entry.name}</strong>
+                                                    <Button variant="link" className="fw-bold text-start">
+                                                        {formatAmountForDisplay(entry.dose.amount)} x {entry.name}
+                                                    </Button>
                                                 </Col>
                                                 <Col md={4} sm={4} xs={6} className="text-start text-sm-end">
                                                     <small>co {getDaysText(entry.dose.numberOfDays)}</small>
@@ -76,6 +96,15 @@ export default function Schedule({ medicines }: IScheduleProps) {
                         </Col>
                     </Row>
                 ))}
+                {editing && (
+                    <DoseDialog
+                        visible
+                        initialDose={editing.dose}
+                        isEdit
+                        onSave={handleSave}
+                        onCancel={() => setEditing(undefined)}
+                    />
+                )}
             </Col>
         </Row>
     );

@@ -9,7 +9,7 @@ import FormCheck from 'react-bootstrap/FormCheck';
 import Row from 'react-bootstrap/Row';
 import { v4 as Uuid } from 'uuid';
 import { DEBOUNCE_TIMEOUT_MS, LOW_STOCK_THRESHOLD } from '../constants';
-import { buildUnscheduledDoseLogEntry } from '../app/doseActions';
+import { buildUnscheduledDoseLogEntry, withSavedDose } from '../app/doseActions';
 import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
 import Dose from '../models/Dose';
 import IMedicine from '../models/IMedicine';
@@ -19,6 +19,7 @@ import { getDateText, getDaysText } from '../text.helpers';
 import { formatDate } from '../utils/dateFormat';
 import { AMOUNT_HINT, formatAmount, formatAmountForDisplay, parseAmount, subtractAmount } from '../utils/fraction';
 import { countAmountInCurrentPackage, forecastStock, StockForecast } from '../utils/medicineMath';
+import { medicineCardElementId } from '../utils/scrollToMedicine';
 import DoseDialog from './DoseDialog';
 import DoseList from './DoseList';
 import EditableField from './EditableField';
@@ -167,9 +168,7 @@ export default function MedicineCard(props: IMedicineProps) {
     };
 
     const handleSaveDose = async (dose: Dose) => {
-        const others = props.doses.filter(d => d.id !== dose.id);
-        const doses = [...others, dose].sort((a, b) => (a.time > b.time ? 1 : -1));
-        await props.updateMedicine(props.id, { doses });
+        await props.updateMedicine(props.id, { doses: withSavedDose(props.doses, dose) });
         setDoseDialogOpen(false);
     };
 
@@ -243,7 +242,7 @@ export default function MedicineCard(props: IMedicineProps) {
     const tabsInPackage = countAmountInCurrentPackage(props);
 
     return (
-        <Card className="my-2 medicine-card" onClick={handleCardClick}>
+        <Card id={medicineCardElementId(props.id)} className="my-2 medicine-card" onClick={handleCardClick}>
             <Card.Body>
                 <Row className="align-items-center">
                     <Col>

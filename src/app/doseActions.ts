@@ -1,4 +1,5 @@
 import { NewDoseLogEntry } from '../models/DoseLogEntry';
+import Dose from '../models/Dose';
 import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
@@ -67,4 +68,10 @@ export function buildUnscheduledDoseLogEntry(medicine: Pick<IMedicine, 'id' | 'n
         scheduledAt: takenAt,
         unscheduled: true,
     };
+}
+
+/** Lista dawek leku po zapisaniu zmienionej (albo nowej) dawki - posortowana po godzinie. */
+export function withSavedDose(doses: Dose[], dose: Dose): Dose[] {
+    const others = doses.filter(d => d.id !== dose.id);
+    return [...others, dose].sort((a, b) => (a.time > b.time ? 1 : -1));
 }

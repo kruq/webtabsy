@@ -3,7 +3,7 @@ import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
 import { formatAmount, parseAmount } from '../utils/fraction';
-import { applyDoseAction, buildUnscheduledDoseLogEntry } from './doseActions';
+import { applyDoseAction, buildUnscheduledDoseLogEntry, withSavedDose } from './doseActions';
 
 const AMOUNT = parseAmount('1 1/3') as number;
 const NEXT_DOSE_DATE = new Date('2026-08-09T08:00:00');
@@ -173,5 +173,16 @@ describe('buildUnscheduledDoseLogEntry', () => {
             scheduledAt: takenAt,
             unscheduled: true,
         });
+    });
+});
+
+describe('withSavedDose', () => {
+    it('replaces the edited dose and keeps the list sorted by time', () => {
+        const morning = { ...buildDose(1), id: 'a', time: '08:00' };
+        const evening = { ...buildDose(1), id: 'b', time: '20:00' };
+
+        const result = withSavedDose([morning, evening], { ...evening, time: '06:30', amount: 2 });
+
+        expect(result.map(d => [d.id, d.time, d.amount])).toEqual([['b', '06:30', 2], ['a', '08:00', 1]]);
     });
 });

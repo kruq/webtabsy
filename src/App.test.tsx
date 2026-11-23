@@ -95,3 +95,28 @@ test('a new user without any medicines gets the app, not an endless "Synchroniza
     expect(screen.getAllByText('Brak leków')).toHaveLength(3);
     expect(screen.getAllByText('Dodaj lek w zakładce „Lista leków”')).toHaveLength(2);
 });
+
+test('clicking a medicine on Status opens its expanded card on the medicine list', async () => {
+    setToken('t');
+    const due = new Date(2020, 0, 1, 9, 0);
+    const medicine = {
+        id: 'm1', name: 'Euthyrox', meal: '', description: '', count: 40, isVisible: true, hideWhenEmpty: false,
+        doses: [{ id: 'd1', time: '09:00', amount: 1, numberOfDays: 1, nextDoseDate: due.toISOString(), endDate: null }],
+        purchases: [],
+    };
+    const overdue = [{ date: due.toISOString(), doses: [{ id: 'd1', amount: 1, numberOfDays: 1, nextDoseDate: due.toISOString(), endDate: null, medicineName: 'Euthyrox', meal: '', time: '09:00' }] }];
+    global.fetch = jest.fn((url: string) => {
+        const body = url.endsWith('/auth/me') ? ADMIN
+            : url.endsWith('/medicine') ? [medicine]
+            : url.includes('/overdueDoses/') ? overdue
+            : [];
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
+    }) as unknown as typeof fetch;
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: '1 x Euthyrox' }));
+
+    await waitFor(() => expect(screen.getByRole('tab', { name: /Lista leków/ })).toHaveClass('active'));
+    // Rozwinięta karta leku pokazuje sekcję ustawień.
+    expect(screen.getByText('Ustawienia')).toBeInTheDocument();
+});
