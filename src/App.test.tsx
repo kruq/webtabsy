@@ -91,4 +91,7 @@ test('a new user without any medicines gets the app, not an endless "Synchroniza
 
     await waitFor(() => expect(screen.queryByText('Synchronizacja danych...')).not.toBeInTheDocument());
     expect(screen.getByRole('button', { name: 'Dodaj lek' })).toBeInTheDocument();
+    // Status, Lista leków i Grafik mówią, że nie ma leków; Status i Grafik podpowiadają, gdzie je dodać.
+    expect(screen.getAllByText('Brak leków')).toHaveLength(3);
+    expect(screen.getAllByText('Dodaj lek w zakładce „Lista leków”')).toHaveLength(2);
 });

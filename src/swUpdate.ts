@@ -1,52 +1,44 @@
 /**
- * Aktualizacja PWA po wdrożeniu nowej wersji.
+ * Automatyczna aktualizacja PWA po wdrożeniu nowej wersji.
  *
  * Nowy service worker po pobraniu czeka ("waiting"), dopóki wszystkie okna aplikacji nie zostaną zamknięte -
  * zainstalowana aplikacja na telefonie zwykle tylko chowa się w tle, więc czekałby bardzo długo.
- * Ten moduł: sprawdza aktualizację przy każdym powrocie do aplikacji, zgłasza oczekującą wersję
- * (pasek "Nowa wersja") i po kliknięciu "Odśwież" włącza ją (SKIP_WAITING, obsługiwane w service-worker.ts)
- * i przeładowuje stronę.
+ * Ten moduł: sprawdza aktualizację przy każdym powrocie do aplikacji, a gdy nowa wersja czeka, od razu ją
+ * włącza (SKIP_WAITING, obsługiwane w service-worker.ts) i przeładowuje stronę. Po przeładowaniu aplikacja
+ * pokazuje informację o nowej wersji (justUpdated).
  */
 
-type Listener = (updateAvailable: boolean) => void;
+/** Ustawiane tuż przed przeładowaniem; sessionStorage przetrwa przeładowanie w tej samej karcie/oknie aplikacji. */
+const JUST_UPDATED_KEY = 'webtabsyJustUpdated';
 
-let waitingWorker: ServiceWorker | null = null;
 let updateRequested = false;
-const listeners = new Set<Listener>();
 
-/** Zgłasza oczekującą nową wersję, jeśli rejestracja ją ma. */
+/** Gdy rejestracja ma oczekującą nową wersję - włącza ją od razu. */
 export function notifyWaiting(registration: ServiceWorkerRegistration): void {
     if (!registration.waiting) return;
-    waitingWorker = registration.waiting;
-    listeners.forEach(listener => listener(true));
-}
-
-export function subscribe(listener: Listener): () => void {
-    listeners.add(listener);
-    listener(waitingWorker !== null);
-    return () => {
-        listeners.delete(listener);
-    };
-}
-
-/** Włącza oczekującą wersję; przeładowanie następuje po przejęciu strony przez nowy service worker. */
-export function applyUpdate(): void {
     updateRequested = true;
-    if (waitingWorker) {
-        waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-    } else {
-        window.location.reload();
-    }
+    sessionStorage.setItem(JUST_UPDATED_KEY, 'true');
+    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
 }
 
 /**
- * Przeładowanie tylko wtedy, gdy użytkownik sam kliknął "Odśwież". Przy pierwszej instalacji service worker
+ * Przeładowanie tylko po włączeniu nowej wersji przez notifyWaiting. Przy pierwszej instalacji service worker
  * też przejmuje stronę (clientsClaim) - wtedy nie przeładowujemy.
  */
 export function handleControllerChange(reload: () => void = () => window.location.reload()): void {
     if (!updateRequested) return;
     updateRequested = false;
     reload();
+}
+
+/** Czy ta strona została właśnie przeładowana po aktualizacji. */
+export function wasJustUpdated(): boolean {
+    return sessionStorage.getItem(JUST_UPDATED_KEY) === 'true';
+}
+
+/** Informacja o nowej wersji pokazuje się raz. */
+export function clearJustUpdated(): void {
+    sessionStorage.removeItem(JUST_UPDATED_KEY);
 }
 
 export function initUpdateChecks(): void {
@@ -65,7 +57,6 @@ export function initUpdateChecks(): void {
 
 /** Tylko do testów. */
 export function resetForTests(): void {
-    waitingWorker = null;
     updateRequested = false;
-    listeners.clear();
+    clearJustUpdated();
 }

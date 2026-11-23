@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
@@ -6,11 +6,11 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import logo from '../assets/logo192.png';
 import { AuthUser } from '../services/auth.service';
-import { applyUpdate } from '../swUpdate';
+import { clearJustUpdated, wasJustUpdated } from '../swUpdate';
 import RenameDialog from './RenameDialog';
-import { useServiceWorkerUpdate } from './useServiceWorkerUpdate';
 
 const APP_VERSION = process.env.REACT_APP_VERSION ?? 'dev';
+const UPDATED_MESSAGE_MS = 10_000;
 
 interface AppHeaderProps {
     syncTimestamp: number;
@@ -31,8 +31,16 @@ export default function AppHeader({
     onLogout,
     onUserChanged,
 }: AppHeaderProps) {
-    const updateAvailable = useServiceWorkerUpdate();
+    // Po automatycznym przeładowaniu do nowej wersji - informacja na 10 s.
+    const [justUpdated, setJustUpdated] = useState(wasJustUpdated);
     const [renaming, setRenaming] = useState(false);
+
+    useEffect(() => {
+        if (!justUpdated) return;
+        clearJustUpdated();
+        const timer = setTimeout(() => setJustUpdated(false), UPDATED_MESSAGE_MS);
+        return () => clearTimeout(timer);
+    }, [justUpdated]);
 
     return (
         <Container className="sticky-top p-3" style={{ backgroundColor: '#fafafc' }}>
@@ -47,11 +55,8 @@ export default function AppHeader({
                         Brak uprawnień do wyświetlania powiadomień
                     </Alert>
                     <Alert variant="danger" hidden={errorMessage.length === 0}>{errorMessage}</Alert>
-                    {updateAvailable && (
-                        <Alert variant="success" className="py-2 d-flex justify-content-between align-items-center">
-                            <span>Nowa wersja</span>
-                            <Button size="sm" onClick={applyUpdate}>Odśwież</Button>
-                        </Alert>
+                    {justUpdated && (
+                        <Alert variant="success" className="py-2">Aplikacja zaktualizowana do v{APP_VERSION}</Alert>
                     )}
                 </Col>
             </Row>

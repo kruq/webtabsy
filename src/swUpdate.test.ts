@@ -1,4 +1,4 @@
-import { applyUpdate, handleControllerChange, notifyWaiting, resetForTests, subscribe } from './swUpdate';
+import { clearJustUpdated, handleControllerChange, notifyWaiting, resetForTests, wasJustUpdated } from './swUpdate';
 
 function registrationWithWaiting(postMessage = jest.fn()): ServiceWorkerRegistration {
     return { waiting: { postMessage } } as unknown as ServiceWorkerRegistration;
@@ -7,31 +7,11 @@ function registrationWithWaiting(postMessage = jest.fn()): ServiceWorkerRegistra
 beforeEach(() => resetForTests());
 
 describe('swUpdate', () => {
-    it('reports no update until a waiting worker appears', () => {
-        const listener = jest.fn();
-        subscribe(listener);
-        expect(listener).toHaveBeenLastCalledWith(false);
-
-        notifyWaiting(registrationWithWaiting());
-
-        expect(listener).toHaveBeenLastCalledWith(true);
-    });
-
-    it('ignores a registration without a waiting worker', () => {
-        const listener = jest.fn();
-        subscribe(listener);
-
-        notifyWaiting({ waiting: null } as unknown as ServiceWorkerRegistration);
-
-        expect(listener).toHaveBeenCalledTimes(1);
-    });
-
-    it('activates the waiting worker and reloads once it takes control', () => {
+    it('activates a waiting worker right away and reloads once it takes control', () => {
         const postMessage = jest.fn();
         const reload = jest.fn();
-        notifyWaiting(registrationWithWaiting(postMessage));
 
-        applyUpdate();
+        notifyWaiting(registrationWithWaiting(postMessage));
         handleControllerChange(reload);
         handleControllerChange(reload);
 
@@ -39,7 +19,25 @@ describe('swUpdate', () => {
         expect(reload).toHaveBeenCalledTimes(1);
     });
 
-    it('does not reload when the worker takes control without a user request (first install)', () => {
+    it('remembers across the reload that the app was just updated, until cleared', () => {
+        notifyWaiting(registrationWithWaiting());
+
+        expect(wasJustUpdated()).toBe(true);
+        clearJustUpdated();
+        expect(wasJustUpdated()).toBe(false);
+    });
+
+    it('does nothing without a waiting worker', () => {
+        const reload = jest.fn();
+
+        notifyWaiting({ waiting: null } as unknown as ServiceWorkerRegistration);
+        handleControllerChange(reload);
+
+        expect(reload).not.toHaveBeenCalled();
+        expect(wasJustUpdated()).toBe(false);
+    });
+
+    it('does not reload when the worker takes control on the first install', () => {
         const reload = jest.fn();
 
         handleControllerChange(reload);

@@ -20,6 +20,7 @@ import {
     STATUS_VARIANTS,
     VALIDITY_LABELS,
 } from '../utils/prescriptionStatus';
+import EmptyState from './EmptyState';
 import PrescriptionDialog, { emptyPrescription, PrescriptionDraft } from './PrescriptionDialog';
 import { PrescriptionItemPurchase } from './prescriptionPurchase';
 import PrescriptionPurchaseDialog from './PrescriptionPurchaseDialog';
@@ -184,7 +185,7 @@ export default function PrescriptionsView(props: PrescriptionsViewProps) {
                     />
                 </Col>
             </Row>
-            {sorted.length === 0 && <div className="mt-5 text-center text-secondary">Brak recept</div>}
+            {sorted.length === 0 && <EmptyState title="Brak recept" />}
             {hiddenCount > 0 && (
                 <div className="text-center">
                     <small className="text-secondary">Ukryte recepty: {hiddenCount}</small>

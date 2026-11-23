@@ -7,6 +7,7 @@ import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
 import { formatDoseTimestamp } from '../utils/dateFormat';
 import { PurchaseDeadline } from '../utils/prescriptionStatus';
+import EmptyState from './EmptyState';
 import OverdueDoseCard from './OverdueDoseCard';
 import PurchaseDeadlinesPanel from './PurchaseDeadlinesPanel';
 
@@ -25,6 +26,7 @@ export default function OverdueDosesView({ medicines, groups, purchaseDeadlines,
     return (
         <Tab.Pane eventKey="missingDoses" className="justify-content-center">
             <PurchaseDeadlinesPanel deadlines={purchaseDeadlines} />
+            {!hasMedicines && <EmptyState title="Brak leków" hint="Dodaj lek w zakładce „Lista leków”" />}
             <Row hidden={!hasMedicines || groups.length !== 0} className="mt-5 text-center">
                 <Col>
                     <h4>Gratulacje!</h4>

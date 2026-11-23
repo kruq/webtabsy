@@ -8,6 +8,7 @@ import Dose from './models/Dose';
 import IMedicine from './models/IMedicine';
 import { getDateText, getDaysText } from './text.helpers';
 import { formatAmountForDisplay } from './utils/fraction';
+import EmptyState from './app/EmptyState';
 
 interface IScheduleProps {
     medicines: IMedicine[];
@@ -39,6 +40,10 @@ function buildScheduleEntries(medicines: IMedicine[]): ScheduleEntry[] {
 export default function Schedule({ medicines }: IScheduleProps) {
     const groupsByTime = Object.entries(_.groupBy(buildScheduleEntries(medicines), e => e.dose.time))
         .sort((a, b) => (a[0] > b[0] ? 1 : -1));
+
+    if (medicines.length === 0) {
+        return <EmptyState title="Brak leków" hint="Dodaj lek w zakładce „Lista leków”" />;
+    }
 
     return (
         <Row>

@@ -8,6 +8,7 @@ import Tab from 'react-bootstrap/Tab';
 import Medicine from '../medicine/MedicineCard';
 import IMedicine from '../models/IMedicine';
 import AddMedicineDialog from './AddMedicineDialog';
+import EmptyState from './EmptyState';
 
 interface MedicineListViewProps {
     medicines: IMedicine[];
@@ -78,6 +79,7 @@ export default function MedicineListView(props: MedicineListViewProps) {
                 onSubmit={handleAdd}
                 onCancel={() => setAddDialogOpen(false)}
             />
+            {props.medicines.length === 0 && <EmptyState title="Brak leków" />}
             <Row>
                 <Col>
                     {visible.map(m => (
