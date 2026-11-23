@@ -61,6 +61,16 @@ describe('useMedicines refresh during writes', () => {
         await waitFor(() => expect(result.current.medicines).toEqual([medicine(5)]));
     });
 
+    it('is loaded after the first refresh even with no medicines', async () => {
+        fetchMedicinesMock.mockResolvedValue([]);
+
+        const { result } = renderHook(() => useMedicines());
+
+        expect(result.current.loaded).toBe(false);
+        await waitFor(() => expect(result.current.loaded).toBe(true));
+        expect(result.current.medicines).toEqual([]);
+    });
+
     it('does not start a refresh while a write is in flight', async () => {
         fetchMedicinesMock.mockResolvedValue([medicine(5)]);
         const { result } = renderHook(() => useMedicines());

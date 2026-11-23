@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 import { clearToken, setToken } from './services/authToken';
 
@@ -81,4 +81,14 @@ test('lets the user change their own name from the header', async () => {
     expect(await screen.findByRole('button', { name: 'Jan Kowalski' })).toBeInTheDocument();
     const putCall = fetchMock.mock.calls.find(([, init]) => init?.method === 'PUT');
     expect(JSON.parse(putCall[1].body)).toEqual({ name: 'Jan Kowalski' });
+});
+
+test('a new user without any medicines gets the app, not an endless "Synchronizacja danych..."', async () => {
+    setToken('t');
+    mockApi({ ...ADMIN, isAdmin: false });
+    render(<App />);
+    expect(await screen.findByRole('button', { name: 'Wyloguj' })).toBeInTheDocument();
+
+    await waitFor(() => expect(screen.queryByText('Synchronizacja danych...')).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Dodaj lek' })).toBeInTheDocument();
 });

@@ -54,6 +54,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
     const {
         medicines,
         overdueGroups,
+        loaded,
         errorMessage,
         showSpinner,
         refresh,
@@ -175,10 +176,11 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                 onUserChanged={onUserChanged}
             />
             <Container className="position-relative pt-3">
-                <div>{medicines.length === 0 && <span>Synchronizacja danych...</span>}</div>
+                {/* Do pierwszego wczytania danych; pusta lista leków (nowy użytkownik) to już wczytane dane. */}
+                <div>{!loaded && <span>Synchronizacja danych...</span>}</div>
                 <Tab.Container activeKey={activeTab} onSelect={key => setActiveTab(key ?? STATUS_TAB)}>
                     <Row
-                        hidden={medicines.length === 0}
+                        hidden={!loaded}
                         style={{ paddingBottom: `${Math.max(MIN_BOTTOM_PADDING_PX, bottomNavHeight)}px` }}
                     >
                         <Col>

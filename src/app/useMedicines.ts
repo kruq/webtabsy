@@ -9,6 +9,8 @@ import { findOverdueDoses } from '../services/overdueDoses.service';
 interface UseMedicinesResult {
     medicines: IMedicine[];
     overdueGroups: OverdueDoseGroup[];
+    /** Dane zostały wczytane z API przynajmniej raz (lista leków może być pusta - np. nowy użytkownik). */
+    loaded: boolean;
     errorMessage: string;
     showSpinner: boolean;
     refresh: () => Promise<void>;
@@ -29,6 +31,7 @@ interface UseMedicinesResult {
 export function useMedicines(): UseMedicinesResult {
     const [medicines, setMedicines] = useState<IMedicine[]>([]);
     const [overdueGroups, setOverdueGroups] = useState<OverdueDoseGroup[]>([]);
+    const [loaded, setLoaded] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [showSpinner, setShowSpinner] = useState(false);
     // pending: zapisy w toku; version: zmienia się na początku i na końcu każdego zapisu.
@@ -51,6 +54,7 @@ export function useMedicines(): UseMedicinesResult {
             if (writes.current.pending > 0 || writes.current.version !== startedAt) return;
             setMedicines(meds);
             setOverdueGroups(groups);
+            setLoaded(true);
         } catch (e) {
             reportError(e);
         }
@@ -117,6 +121,7 @@ export function useMedicines(): UseMedicinesResult {
     return {
         medicines,
         overdueGroups,
+        loaded,
         errorMessage,
         showSpinner,
         refresh,
