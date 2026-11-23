@@ -7,7 +7,8 @@ import Row from 'react-bootstrap/Row';
 import { TfiCheck } from 'react-icons/tfi';
 import TakeDoseDialog from '../medicine/TakeDoseDialog';
 import IMedicine from '../models/IMedicine';
-import { formatAmountForDisplay } from '../utils/fraction';
+import { useUnits } from './UnitsContext';
+import { amountWithUnit } from '../utils/units';
 
 interface AsNeededPanelProps {
     medicines: IMedicine[];
@@ -22,6 +23,7 @@ export function selectAsNeededMedicines(medicines: IMedicine[]): IMedicine[] {
 }
 
 export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps) {
+    const { unitById } = useUnits();
     const [expanded, setExpanded] = useState(false);
     // Trzymamy id, nie obiekt - po synchronizacji okno ma widzieć aktualny stan leku.
     const [idToTake, setIdToTake] = useState<string | undefined>(undefined);
@@ -58,7 +60,7 @@ export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps)
                                 <Col>
                                     <strong>{medicine.name}</strong>
                                     <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
-                                        <Badge bg="secondary" pill>{formatAmountForDisplay(medicine.count)}</Badge>
+                                        <Badge bg="secondary" pill>{amountWithUnit(medicine.count, unitById(medicine.unitId))}</Badge>
                                     </small>
                                 </Col>
                                 <Col xs="auto">
@@ -75,6 +77,7 @@ export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps)
                 visible={medicineToTake !== undefined}
                 medicineName={medicineToTake?.name ?? ''}
                 maxAmount={medicineToTake?.count ?? 0}
+                unit={unitById(medicineToTake?.unitId)}
                 onSubmit={handleSubmit}
                 onCancel={() => setIdToTake(undefined)}
             />

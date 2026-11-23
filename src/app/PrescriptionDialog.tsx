@@ -9,7 +9,6 @@ import Row from 'react-bootstrap/Row';
 import { v4 as Uuid } from 'uuid';
 import IMedicine from '../models/IMedicine';
 import Prescription, { Doctor, PrescriptionValidity, Specialization } from '../models/Prescription';
-import { formatAmountForDisplay } from '../utils/fraction';
 import {
     expiryDate,
     formatYmdForDisplay,
@@ -21,6 +20,8 @@ import {
     VALIDITY_LABELS,
 } from '../utils/prescriptionStatus';
 import { DraftPrescriptionItem } from './prescriptionDraft';
+import { useUnits } from './UnitsContext';
+import { amountWithUnit, capitalize } from '../utils/units';
 
 export interface PrescriptionDraft extends Omit<Prescription, 'items'> {
     items: DraftPrescriptionItem[];
@@ -74,6 +75,7 @@ export default function PrescriptionDialog({
     onAddDoctor,
     onClose,
 }: PrescriptionDialogProps) {
+    const { unitOfMedicine } = useUnits();
     const [draft, setDraft] = useState<PrescriptionDraft>(emptyPrescription());
     const [itemForm, setItemForm] = useState<NewItemForm>(EMPTY_ITEM_FORM);
     const [addingSpecialization, setAddingSpecialization] = useState(false);
@@ -338,7 +340,7 @@ export default function PrescriptionDialog({
                                         <Badge bg={STATUS_VARIANTS[status]} className="ms-1">{ITEM_STATUS_LABELS[status]}</Badge>
                                     </div>
                                     <small className="text-secondary">
-                                        {remainingPackages(item)}/{item.packages} op. × {formatAmountForDisplay(item.packageSize)} tab.
+                                        {remainingPackages(item)}/{item.packages} op. × {amountWithUnit(item.packageSize, unitOfMedicine(item.medicineId))}
                                     </small>
                                 </Col>
                                 <Col xs="auto">
@@ -380,7 +382,7 @@ export default function PrescriptionDialog({
                                 />
                             </Form.Group>
                             <Form.Group as={Col} xs={6}>
-                                <Form.Label><small>Tabletek w opakowaniu</small></Form.Label>
+                                <Form.Label><small>{capitalize(unitOfMedicine(isNewMedicine ? undefined : itemForm.medicineChoice).genitivePlural)} w opakowaniu</small></Form.Label>
                                 <Form.Control
                                     type="text"
                                     inputMode="numeric"

@@ -11,7 +11,8 @@ import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
 import DoseLogEntry from '../models/DoseLogEntry';
 import { fetchDoseLog } from '../services/doseLog.service';
 import { formatYmd } from '../utils/dateFormat';
-import { formatAmountForDisplay } from '../utils/fraction';
+import { useUnits } from './UnitsContext';
+import { amountWithUnit } from '../utils/units';
 
 const DEFAULT_MONTHS = 1;
 // Krótsze niż DEBOUNCE_TIMEOUT_MS (3 s) - tu użytkownik czeka na wynik, a nie zapisuje pole.
@@ -55,6 +56,7 @@ function ActionBadge({ entry }: { entry: DoseLogEntry }) {
 }
 
 export default function DoseLogView() {
+    const { unitOfMedicine } = useUnits();
     const [monthsText, setMonthsText] = useState(String(DEFAULT_MONTHS));
     const [entries, setEntries] = useState<DoseLogEntry[]>([]);
     const [loading, setLoading] = useState(false);
@@ -132,7 +134,7 @@ export default function DoseLogView() {
                                     <Col xs="auto">{moment(entry.scheduledAt).format('HH:mm')}</Col>
                                     {/* Jedna linia: długa nazwa leku jest ucinana wielokropkiem zamiast zawijać się pod spód. */}
                                     <Col className="p-0 text-truncate" style={{ minWidth: 0 }}>
-                                        <strong>{formatAmountForDisplay(entry.amount)} x {entry.medicineName}</strong>
+                                        <strong>{amountWithUnit(entry.amount, unitOfMedicine(entry.medicineId))} {entry.medicineName}</strong>
                                         {entry.unscheduled && (
                                             <small className="text-secondary" title="Poza grafikiem">
                                                 {' '}<BsCalendarX style={{ verticalAlign: '-2px' }} aria-label="poza grafikiem" />

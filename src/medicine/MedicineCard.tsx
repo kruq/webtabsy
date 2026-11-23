@@ -26,6 +26,9 @@ import EditableField from './EditableField';
 import PurchaseDialog, { NewPurchase } from './PurchaseDialog';
 import PurchaseList from './PurchaseList';
 import TakeDoseDialog from './TakeDoseDialog';
+import { useUnits } from '../app/UnitsContext';
+import { amountLabel, amountWithUnit, capitalize } from '../utils/units';
+import UnitField from './UnitField';
 
 export interface IMedicineProps extends IMedicine {
     idOfMedicineDetails: string;
@@ -79,6 +82,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
     const [editingName, setEditingName] = useState(false);
     const [editingCount, setEditingCount] = useState(false);
+    const unit = useUnits().unitById(props.unitId);
     const [editingMeal, setEditingMeal] = useState(false);
     const [editingDescription, setEditingDescription] = useState(false);
 
@@ -202,7 +206,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
     const handleRemovePurchase = async (purchase: IPurchase) => {
         if (!window.confirm('Czy chcesz usunąć dawkę?')) return;
-        alert('Usunięcie zakupu nie modyfikuje ilości tabletek. Trzeba zrobić to ręcznie.');
+        alert(`Usunięcie zakupu nie modyfikuje ${amountLabel(unit).replace('Ilość', 'ilości')}. Trzeba zrobić to ręcznie.`);
         const purchases = props.purchases.filter(p => p !== purchase);
         await props.updateMedicine(props.id, { purchases });
     };
@@ -258,17 +262,17 @@ export default function MedicineCard(props: IMedicineProps) {
                     <small>Posiadane</small>
                     <small>
                         {tabsInPackage !== undefined && (
-                            <span title="Tabletki w aktualnym opakowaniu">({formatAmountForDisplay(tabsInPackage)}) </span>
+                            <span title={`${capitalize(unit.nominativePlural)} w aktualnym opakowaniu`}>({formatAmountForDisplay(tabsInPackage)}) </span>
                         )}
                         <span className={props.count < LOW_STOCK_THRESHOLD ? 'text-danger' : ''}>
-                            {formatAmountForDisplay(props.count)}
+                            {amountWithUnit(props.count, unit)}
                         </span>
                     </small>
                     <ForecastCells forecast={forecast} descriptive />
                     {props.tabletsOnPrescriptions > 0 && (
                         <>
                             <small>Z receptami</small>
-                            <small>{formatAmountForDisplay(props.count + props.tabletsOnPrescriptions)}</small>
+                            <small>{amountWithUnit(props.count + props.tabletsOnPrescriptions, unit)}</small>
                             <ForecastCells forecast={forecastWithPrescriptions} descriptive={false} />
                         </>
                     )}
@@ -278,6 +282,7 @@ export default function MedicineCard(props: IMedicineProps) {
                     visible={takeDoseDialogOpen}
                     medicineName={props.name}
                     maxAmount={count ?? 0}
+                    unit={unit}
                     onSubmit={handleTakeDose}
                     onCancel={() => setTakeDoseDialogOpen(false)}
                 />
@@ -299,7 +304,7 @@ export default function MedicineCard(props: IMedicineProps) {
                         </EditableField>
 
                         <EditableField
-                            label="Ilość tabletek"
+                            label={amountLabel(unit)}
                             isEditing={editingCount}
                             onStartEdit={() => setEditingCount(true)}
                             onStopEdit={() => setEditingCount(false)}
@@ -316,6 +321,8 @@ export default function MedicineCard(props: IMedicineProps) {
                                 <Form.Text className="text-secondary">{AMOUNT_HINT}</Form.Text>
                             </>
                         </EditableField>
+
+                        <UnitField unit={unit} onChange={unitId => props.updateMedicine(props.id, { unitId })} />
 
                         <EditableField
                             label="Przyjmowanie z posiłkiem"
@@ -370,6 +377,7 @@ export default function MedicineCard(props: IMedicineProps) {
                         </Row>
 
                         <DoseDialog
+                            unit={unit}
                             visible={doseDialogOpen}
                             initialDose={doseUnderEdit}
                             isEdit={Boolean(props.doses.find(d => d.id === doseUnderEdit.id))}
@@ -380,6 +388,7 @@ export default function MedicineCard(props: IMedicineProps) {
                         <Row>
                             <Col>
                                 <DoseList
+                                    unit={unit}
                                     doses={props.doses ?? []}
                                     onEdit={openDoseDialogForEdit}
                                     onRemove={handleRemoveDose}
@@ -407,6 +416,7 @@ export default function MedicineCard(props: IMedicineProps) {
                         </Row>
 
                         <PurchaseDialog
+                            unit={unit}
                             visible={purchaseDialogOpen}
                             lastPurchase={lastPurchase}
                             onSubmit={handleAddPurchase}
@@ -415,7 +425,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
                         <Collapse in={purchasesExpanded}>
                             <div>
-                                <PurchaseList purchases={props.purchases ?? []} onRemove={handleRemovePurchase} />
+                                <PurchaseList purchases={props.purchases ?? []} onRemove={handleRemovePurchase} unit={unit} />
                             </div>
                         </Collapse>
                     </div>

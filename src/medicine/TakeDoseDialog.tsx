@@ -4,7 +4,9 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import FormGroup from 'react-bootstrap/FormGroup';
 import Row from 'react-bootstrap/Row';
-import { AMOUNT_HINT, formatAmount, formatAmountForDisplay, parseAmount } from '../utils/fraction';
+import { AMOUNT_HINT, formatAmount, parseAmount } from '../utils/fraction';
+import Unit from '../models/Unit';
+import { amountLabel, amountWithUnitName, DEFAULT_UNIT } from '../utils/units';
 
 interface TakeDoseDialogProps {
     visible: boolean;
@@ -14,6 +16,8 @@ interface TakeDoseDialogProps {
     initialAmount?: number;
     onSubmit: (amount: number) => Promise<void> | void;
     onCancel: () => void;
+    /** Jednostka leku; domyślnie tabletka. */
+    unit?: Unit;
 }
 
 const DEFAULT_AMOUNT = 1;
@@ -25,6 +29,7 @@ export default function TakeDoseDialog({
     initialAmount = DEFAULT_AMOUNT,
     onSubmit,
     onCancel,
+    unit = DEFAULT_UNIT,
 }: TakeDoseDialogProps) {
     const [amountText, setAmountText] = useState<string>(formatAmount(initialAmount));
 
@@ -38,11 +43,11 @@ export default function TakeDoseDialog({
     const handleSubmit = async (e: MouseEvent) => {
         e.preventDefault();
         if (amount === undefined || amount <= 0) {
-            alert(`Nieprawidłowa ilość tabletek (${AMOUNT_HINT})`);
+            alert(`Nieprawidłowa ${amountLabel(unit).toLowerCase()} (${AMOUNT_HINT})`);
             return;
         }
         if (amount > maxAmount) {
-            alert(`Nie można przyjąć więcej niż ${formatAmountForDisplay(maxAmount)} tab.`);
+            alert(`Nie można przyjąć więcej niż ${amountWithUnitName(maxAmount, unit)}`);
             return;
         }
         await onSubmit(amount);
@@ -56,7 +61,7 @@ export default function TakeDoseDialog({
             <Form>
                 <Row className="mt-2">
                     <FormGroup as={Col}>
-                        <Form.Label>Ilość tabletek do przyjęcia:</Form.Label>
+                        <Form.Label>{amountLabel(unit)} do przyjęcia:</Form.Label>
                         <Form.Control
                             type="text"
                             inputMode="text"

@@ -10,6 +10,8 @@ import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import { formatAmountForDisplay } from '../utils/fraction';
 import { countAmountInCurrentPackage } from '../utils/medicineMath';
+import { useUnits } from './UnitsContext';
+import { amountWithUnit } from '../utils/units';
 
 interface OverdueDoseCardProps {
     dose: OverdueDose;
@@ -25,6 +27,7 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
     const [customAmountDialogOpen, setCustomAmountDialogOpen] = useState(false);
 
     const medicine = medicines.find(m => m.name === dose.medicineName);
+    const unit = useUnits().unitById(medicine?.unitId);
     const stock = medicine?.count ?? 0;
     const stockLow = stock < dose.amount;
     const inPackage = countAmountInCurrentPackage(medicine);
@@ -60,14 +63,14 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                             title="Pokaż lek na liście leków"
                             onClick={() => onOpenMedicine(medicine.id)}
                         >
-                            {formatAmountForDisplay(dose.amount)} x {dose.medicineName}
+                            {amountWithUnit(dose.amount, unit)} {dose.medicineName}
                         </Button>
                     ) : (
-                        <strong>{formatAmountForDisplay(dose.amount)} x {dose.medicineName}</strong>
+                        <strong>{amountWithUnit(dose.amount, unit)} {dose.medicineName}</strong>
                     )}{' '}
                     <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
                         <Badge bg={stockLow ? 'danger' : 'secondary'} pill>
-                            {formatAmountForDisplay(stock)}{inPackage !== undefined ? ` (${formatAmountForDisplay(inPackage)})` : ''}
+                            {formatAmountForDisplay(stock)}{inPackage !== undefined ? ` (${formatAmountForDisplay(inPackage)})` : ''} {unit.abbreviation}
                         </Badge>
                     </small>
                 </div>
@@ -80,6 +83,7 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     medicineName={dose.medicineName}
                     maxAmount={stock}
                     initialAmount={dose.amount}
+                    unit={unit}
                     onSubmit={handleCustomAmountSubmit}
                     onCancel={() => setCustomAmountDialogOpen(false)}
                 />

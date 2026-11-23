@@ -40,6 +40,7 @@ import { createMedicine, updateMedicine as persistMedicine } from './services/me
 import { subtractAmount } from './utils/fraction';
 import { tabletsOnPrescriptions, upcomingPurchaseDeadlines } from './utils/prescriptionStatus';
 import { scrollToMedicineCard } from './utils/scrollToMedicine';
+import { UnitsProvider } from './app/UnitsContext';
 
 const STATUS_TAB = 'missingDoses';
 const MEDICINES_TAB = 'medicines';
@@ -180,7 +181,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
     };
 
     return (
-        <>
+        <UnitsProvider medicines={medicines}>
             {showSpinner && (
                 <div
                     style={{
@@ -263,7 +264,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                     </BottomNav>
                 </Tab.Container>
             </Container>
-        </>
+        </UnitsProvider>
     );
 }
 

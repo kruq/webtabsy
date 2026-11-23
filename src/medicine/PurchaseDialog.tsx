@@ -6,6 +6,8 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Row from 'react-bootstrap/Row';
 import IPurchase from '../models/IPurchase';
+import Unit from '../models/Unit';
+import { amountLabel, DEFAULT_UNIT } from '../utils/units';
 
 export interface NewPurchase {
     numberOfPackages: number | undefined;
@@ -18,6 +20,8 @@ interface PurchaseDialogProps {
     lastPurchase: IPurchase | undefined;
     onSubmit: (purchase: NewPurchase) => Promise<void> | void;
     onCancel: () => void;
+    /** Jednostka leku; domyślnie tabletka. */
+    unit?: Unit;
 }
 
 function buildDefault(lastPurchase: IPurchase | undefined): NewPurchase {
@@ -33,7 +37,7 @@ function parseOptionalNumber(raw: string): number | undefined {
     return isNaN(value) ? undefined : value;
 }
 
-export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCancel }: PurchaseDialogProps) {
+export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCancel, unit = DEFAULT_UNIT }: PurchaseDialogProps) {
     const [draft, setDraft] = useState<NewPurchase>(buildDefault(lastPurchase));
 
     useEffect(() => {
@@ -47,7 +51,7 @@ export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCanc
             return;
         }
         if (!draft.numberOfTabletsInPackage || draft.numberOfTabletsInPackage <= 0) {
-            alert('Nieprawidłowa ilość tabletek w opakowaniu');
+            alert(`Nieprawidłowa ${amountLabel(unit).toLowerCase()} w opakowaniu`);
             return;
         }
         if (draft.pricePerPackage !== undefined && draft.pricePerPackage <= 0) {
@@ -76,7 +80,7 @@ export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCanc
                         />
                     </FormGroup>
                     <FormGroup as={Col}>
-                        <Form.Label>Ilość tab. w opakowaniu:</Form.Label>
+                        <Form.Label>{amountLabel(unit)} w opakowaniu:</Form.Label>
                         <Form.Control
                             type="number"
                             value={draft.numberOfTabletsInPackage ?? ''}

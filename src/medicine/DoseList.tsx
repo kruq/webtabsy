@@ -3,10 +3,13 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import Dose from '../models/Dose';
 import { getDaysText } from '../text.helpers';
-import { formatAmountForDisplay } from '../utils/fraction';
 import { formatDate } from '../utils/dateFormat';
+import Unit from '../models/Unit';
+import { amountWithUnit, DEFAULT_UNIT } from '../utils/units';
 
 interface DoseListProps {
+    /** Jednostka leku; domyślnie tabletka. */
+    unit?: Unit;
     doses: Dose[];
     onEdit: (dose: Dose) => void;
     onRemove: (dose: Dose) => void;
@@ -19,7 +22,7 @@ function startOfDay(date: Date): Date {
     return result;
 }
 
-export default function DoseList({ doses, onEdit, onRemove }: DoseListProps) {
+export default function DoseList({ doses, onEdit, onRemove, unit = DEFAULT_UNIT }: DoseListProps) {
     const today = startOfDay(new Date());
     const sortedDoses = [...doses].sort((a, b) => b.nextDoseDate.getTime() - a.nextDoseDate.getTime());
 
@@ -36,7 +39,7 @@ export default function DoseList({ doses, onEdit, onRemove }: DoseListProps) {
                             <td width="auto">
                                 <Button variant="link" onClick={() => onEdit(dose)}>{dose.time}</Button>
                             </td>
-                            <td width="auto" className="text-end">{formatAmountForDisplay(dose.amount)} tab.</td>
+                            <td width="auto" className="text-end">{amountWithUnit(dose.amount, unit)}</td>
                             <td width="auto">{getDaysText(dose.numberOfDays ?? 1)}</td>
                             <td style={{ textAlign: 'right', paddingRight: '5px' }}>
                                 {formatDate(dose.nextDoseDate)}

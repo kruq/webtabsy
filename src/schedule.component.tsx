@@ -8,9 +8,10 @@ import { MS_PER_DAY, SCHEDULE_WINDOW_DAYS } from './constants';
 import Dose from './models/Dose';
 import IMedicine from './models/IMedicine';
 import { getDateText, getDaysText } from './text.helpers';
-import { formatAmountForDisplay } from './utils/fraction';
 import EmptyState from './app/EmptyState';
 import DoseDialog from './medicine/DoseDialog';
+import { useUnits } from './app/UnitsContext';
+import { amountWithUnit } from './utils/units';
 
 interface IScheduleProps {
     medicines: IMedicine[];
@@ -43,6 +44,7 @@ function buildScheduleEntries(medicines: IMedicine[]): ScheduleEntry[] {
 }
 
 export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
+    const { unitOfMedicine } = useUnits();
     const [editing, setEditing] = useState<ScheduleEntry | undefined>(undefined);
 
     const handleSave = async (dose: Dose) => {
@@ -80,7 +82,7 @@ export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
                                             >
                                                 <Col md={4} sm={8} xs={12}>
                                                     <Button variant="link" className="fw-bold text-start">
-                                                        {formatAmountForDisplay(entry.dose.amount)} x {entry.name}
+                                                        {amountWithUnit(entry.dose.amount, unitOfMedicine(entry.medicineId))} {entry.name}
                                                     </Button>
                                                 </Col>
                                                 <Col md={4} sm={4} xs={6} className="text-start text-sm-end">
@@ -100,6 +102,7 @@ export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
                     <DoseDialog
                         visible
                         initialDose={editing.dose}
+                        unit={unitOfMedicine(editing.medicineId)}
                         isEdit
                         onSave={handleSave}
                         onCancel={() => setEditing(undefined)}

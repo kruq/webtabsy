@@ -8,6 +8,8 @@ import { v4 as Uuid } from 'uuid';
 import Dose from '../models/Dose';
 import { formatYmd } from '../utils/dateFormat';
 import { AMOUNT_HINT, formatAmount, parseAmount } from '../utils/fraction';
+import Unit from '../models/Unit';
+import { amountLabel, DEFAULT_UNIT } from '../utils/units';
 
 interface DoseDialogProps {
     visible: boolean;
@@ -15,6 +17,8 @@ interface DoseDialogProps {
     isEdit: boolean;
     onSave: (dose: Dose) => Promise<void> | void;
     onCancel: () => void;
+    /** Jednostka leku; domyślnie tabletka. */
+    unit?: Unit;
 }
 
 const TIME_PATTERN = /^\d?:?\d:?\d\d$/;
@@ -30,7 +34,7 @@ function applyTimeOfDay(date: Date, time: string): Date {
     return result;
 }
 
-export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCancel }: DoseDialogProps) {
+export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCancel, unit = DEFAULT_UNIT }: DoseDialogProps) {
     const [draft, setDraft] = useState<Dose>(initialDose);
     const [valid, setValid] = useState<boolean>(true);
     const [amountText, setAmountText] = useState<string>(formatAmount(initialDose.amount));
@@ -93,7 +97,7 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
         e.preventDefault();
         const amount = parseAmount(amountText);
         if (amount === undefined || amount <= 0) {
-            alert(`Nieprawidłowa ilość tabletek (${AMOUNT_HINT})`);
+            alert(`Nieprawidłowa ${amountLabel(unit).toLowerCase()} (${AMOUNT_HINT})`);
             return;
         }
         const finalised: Dose = {
@@ -123,7 +127,7 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
                         <Form.Control type="text" value={draft.time} onChange={handleTimeChange} />
                     </FormGroup>
                     <FormGroup as={Col}>
-                        <Form.Label>Ilość tabletek:</Form.Label>
+                        <Form.Label>{amountLabel(unit)}:</Form.Label>
                         <Form.Control
                             type="text"
                             inputMode="text"

@@ -5,9 +5,10 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 import Prescription from '../models/Prescription';
-import { formatAmountForDisplay } from '../utils/fraction';
 import { formatYmdForDisplay, itemStatus, purchaseDeadline, remainingPackages, todayYmd } from '../utils/prescriptionStatus';
 import { PrescriptionItemPurchase } from './prescriptionPurchase';
+import { useUnits } from './UnitsContext';
+import { amountWithUnit } from '../utils/units';
 
 interface PrescriptionPurchaseDialogProps {
     /** undefined = dialog zamknięty. */
@@ -41,6 +42,7 @@ function dateFromYmd(ymd: string): Date {
 const priceFormat = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' });
 
 export default function PrescriptionPurchaseDialog({ prescription, onSubmit, onClose }: PrescriptionPurchaseDialogProps) {
+    const { unitOfMedicine } = useUnits();
     const [purchaseDate, setPurchaseDate] = useState(todayYmd());
     const [inputs, setInputs] = useState<Record<string, ItemInput>>({});
     const [saving, setSaving] = useState(false);
@@ -118,7 +120,7 @@ export default function PrescriptionPurchaseDialog({ prescription, onSubmit, onC
                                 <div>
                                     <strong>{item.medicineName}</strong>
                                     <small className="text-secondary">
-                                        {' '}· zostało {remaining} op. × {formatAmountForDisplay(item.packageSize)} tab.
+                                        {' '}· zostało {remaining} op. × {amountWithUnit(item.packageSize, unitOfMedicine(item.medicineId))}
                                         {' '}· wykup do {formatYmdForDisplay(purchaseDeadline(prescription as Prescription, item))}
                                     </small>
                                 </div>

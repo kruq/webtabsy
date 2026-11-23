@@ -8,7 +8,6 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import IMedicine from '../models/IMedicine';
 import Prescription, { Doctor, Specialization } from '../models/Prescription';
-import { formatAmountForDisplay } from '../utils/fraction';
 import {
     expiryDate,
     formatYmdForDisplay,
@@ -24,6 +23,8 @@ import EmptyState from './EmptyState';
 import PrescriptionDialog, { emptyPrescription, PrescriptionDraft } from './PrescriptionDialog';
 import { PrescriptionItemPurchase } from './prescriptionPurchase';
 import PrescriptionPurchaseDialog from './PrescriptionPurchaseDialog';
+import { useUnits } from './UnitsContext';
+import { amountWithUnit } from '../utils/units';
 
 interface PrescriptionsViewProps {
     prescriptions: Prescription[];
@@ -64,6 +65,7 @@ interface PrescriptionCardProps {
 }
 
 function PrescriptionCard({ prescription, onClick, onPurchase }: PrescriptionCardProps) {
+    const { unitOfMedicine } = useUnits();
     const status = prescriptionStatus(prescription);
     const canPurchase = status === 'new' || status === 'partiallyPurchased';
     const doctorLine = [prescription.doctor, prescription.specialization].filter(Boolean).join(', ');
@@ -106,7 +108,7 @@ function PrescriptionCard({ prescription, onClick, onPurchase }: PrescriptionCar
                                         <small>
                                             {item.medicineName}{' '}
                                             <span className="text-secondary">
-                                                {remainingPackages(item)}/{item.packages} op. × {formatAmountForDisplay(item.packageSize)} tab.
+                                                {remainingPackages(item)}/{item.packages} op. × {amountWithUnit(item.packageSize, unitOfMedicine(item.medicineId))}
                                             </span>
                                         </small>
                                     </Col>

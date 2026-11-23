@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { UnitsProvider } from '../app/UnitsContext';
 import MedicineCard, { IMedicineProps } from './MedicineCard';
 
 function setupCard(open: boolean) {
@@ -75,7 +76,26 @@ describe('MedicineCard summary', () => {
         const { container } = render(<MedicineCard {...props} />);
         const text = container.textContent ?? '';
 
-        expect(text).toMatch(/Posiadane\(14\) 70\d{2}\.\d{2}\.\d{2}20 dni/);
-        expect(text).toMatch(/Z receptami378\d{2}\.\d{2}\.\d{2}108 dni/);
+        expect(text).toMatch(/Posiadane\(14\) 70 tab\.\d{2}\.\d{2}\.\d{2}20 dni/);
+        expect(text).toMatch(/Z receptami378 tab\.\d{2}\.\d{2}\.\d{2}108 dni/);
+    });
+});
+
+describe('MedicineCard in another unit', () => {
+    it('shows amounts with the abbreviation of the medicine unit', async () => {
+        const ml = { id: 'ml', nominativeSingular: 'mililitr', nominativePlural: 'mililitry', genitiveSingular: 'mililitra', genitivePlural: 'mililitrów', abbreviation: 'ml' };
+        global.fetch = jest.fn(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve([ml]) })) as unknown as typeof fetch;
+        const props: IMedicineProps = {
+            id: 'syrop', name: 'Syrop', meal: '', description: '', count: 120, unitId: 'ml', isVisible: true, hideWhenEmpty: false,
+            doses: [], purchases: [], idOfMedicineDetails: 'syrop', medicineClick: jest.fn(),
+            updateMedicine: jest.fn(async () => undefined), deleteMedicine: jest.fn(async () => undefined), tabletsOnPrescriptions: 0,
+        };
+
+        const { container } = render(<UnitsProvider medicines={[props]}><MedicineCard {...props} /></UnitsProvider>);
+
+        await waitFor(() => expect(container.textContent).toContain('120 ml'));
+        // Pole ustawień i (ukryte) okienko edycji dawki.
+        expect(screen.getAllByText('Ilość mililitrów:').length).toBeGreaterThan(0);
+        expect(screen.getByText('mililitr (ml)')).toBeInTheDocument();
     });
 });

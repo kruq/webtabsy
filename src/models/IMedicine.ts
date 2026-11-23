@@ -9,6 +9,8 @@ export default interface IMedicine {
   count: number;
   isVisible: boolean;
   hideWhenEmpty: boolean;
+  /** Id jednostki ze wspólnej listy; brak = tabletka. */
+  unitId?: string | null;
   /** Lek doraźny - pokazywany w panelu leków doraźnych na zakładce Status, niezależnie od dawek. */
   asNeeded?: boolean;
   doses: Dose[];

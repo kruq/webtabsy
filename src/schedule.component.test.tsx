@@ -23,7 +23,7 @@ describe('Schedule', () => {
         render(<Schedule medicines={[medicine]} onSaveDose={onSaveDose} />);
         expect(screen.queryByText('Edycja dawki')).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: '1 x Euthyrox' }));
+        fireEvent.click(screen.getByRole('button', { name: '1 tab. Euthyrox' }));
         expect(screen.getByText('Edycja dawki')).toBeInTheDocument();
 
         // Pole ilości tabletek (tekstowe); „Co ile dni” też ma wartość 1, ale jest polem liczbowym.
@@ -39,7 +39,7 @@ describe('Schedule', () => {
         const onSaveDose = jest.fn();
         render(<Schedule medicines={[medicine]} onSaveDose={onSaveDose} />);
 
-        fireEvent.click(screen.getByRole('button', { name: '1 x Euthyrox' }));
+        fireEvent.click(screen.getByRole('button', { name: '1 tab. Euthyrox' }));
         fireEvent.click(screen.getByRole('button', { name: 'Anuluj' }));
 
         expect(screen.queryByText('Edycja dawki')).not.toBeInTheDocument();

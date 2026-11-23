@@ -114,7 +114,7 @@ test('clicking a medicine on Status opens its expanded card on the medicine list
     }) as unknown as typeof fetch;
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: '1 x Euthyrox' }));
+    fireEvent.click(await screen.findByRole('button', { name: '1 tab. Euthyrox' }));
 
     await waitFor(() => expect(screen.getByRole('tab', { name: /Lista leków/ })).toHaveClass('active'));
     // Rozwinięta karta leku pokazuje sekcję ustawień.

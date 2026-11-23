@@ -9,6 +9,7 @@ export default interface IMedicineDTO {
   count: number;
   isVisible: boolean;
   hideWhenEmpty: boolean;
+  unitId?: string | null;
   asNeeded?: boolean;
   doses: IDoseDTO[];
   purchases: IPurchaseDTO[];
