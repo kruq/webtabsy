@@ -99,3 +99,47 @@ describe('MedicineCard in another unit', () => {
         expect(screen.getByText('mililitr (ml)')).toBeInTheDocument();
     });
 });
+
+describe('MedicineCard without quantity control', () => {
+    function renderUntracked(extra: Partial<IMedicineProps>) {
+        const props: IMedicineProps = {
+            id: 'med-1',
+            name: 'Aerozol do nosa',
+            meal: '',
+            description: '',
+            count: 12,
+            isVisible: true,
+            hideWhenEmpty: false,
+            ignoreQuantity: true,
+            doses: [{ id: 'd', time: '09:00', amount: 1, numberOfDays: 1, nextDoseDate: new Date(), endDate: null }],
+            purchases: [{ id: 'p', date: new Date(), numberOfTablets: 0, price: 20 }],
+            idOfMedicineDetails: 'med-1',
+            medicineClick: jest.fn(),
+            updateMedicine: jest.fn(async () => undefined),
+            deleteMedicine: jest.fn(async () => undefined),
+            tabletsOnPrescriptions: 0,
+            ...extra,
+        };
+        render(<MedicineCard {...props} />);
+    }
+
+    it('hides the stock, taking, amounts, unit and hide-when-empty', () => {
+        renderUntracked({});
+
+        expect(screen.queryByRole('button', { name: 'Take a dose' })).toBeNull();
+        expect(screen.queryByText('Posiadane')).toBeNull();
+        expect(screen.queryByText('Ilość tabletek')).toBeNull();
+        expect(screen.queryByText('Jednostka')).toBeNull();
+        expect(screen.queryByLabelText('Ukryj jeśli brakuje leku')).toBeNull();
+        expect(screen.queryByText(/tab\./)).toBeNull();
+        expect(screen.getByLabelText('Lek doraźny')).toBeDisabled();
+        expect(screen.getByLabelText('Ignoruj kontrolę ilości')).toBeChecked();
+    });
+
+    it('greys out quantity control for an as-needed medicine', () => {
+        renderUntracked({ ignoreQuantity: false, asNeeded: true });
+
+        expect(screen.getByLabelText('Ignoruj kontrolę ilości')).toBeDisabled();
+        expect(screen.getByLabelText('Lek doraźny')).not.toBeDisabled();
+    });
+});

@@ -32,14 +32,15 @@ export function applyDoseAction(
     const unchanged = { medicines, overdueGroups, medicineToPersist: undefined };
     const sourceMedicine = medicines.find(m => m.name === dose.medicineName);
     if (!sourceMedicine) return unchanged;
-    if (action === 'confirm' && (takenAmount <= 0 || sourceMedicine.count < takenAmount)) return unchanged;
+    const ignoreQuantity = Boolean(sourceMedicine.ignoreQuantity);
+    if (action === 'confirm' && !ignoreQuantity && (takenAmount <= 0 || sourceMedicine.count < takenAmount)) return unchanged;
 
     const days = dose.numberOfDays ?? 1;
     const updatedDoses = sourceMedicine.doses.map(d => {
         if (d.id !== dose.id) return d;
         return { ...d, nextDoseDate: advanceNextDoseDate(d.nextDoseDate, d.time, days) };
     });
-    const decrement = action === 'confirm' ? takenAmount : 0;
+    const decrement = action === 'confirm' && !ignoreQuantity ? takenAmount : 0;
     const updatedMedicine: IMedicine = {
         ...sourceMedicine,
         count: subtractAmount(sourceMedicine.count, decrement),

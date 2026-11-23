@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
-import Collapse from 'react-bootstrap/Collapse';
+import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 import { TfiCheck } from 'react-icons/tfi';
 import TakeDoseDialog from '../medicine/TakeDoseDialog';
@@ -15,22 +15,30 @@ interface AsNeededPanelProps {
     onTake: (medicine: IMedicine, amount: number) => Promise<void> | void;
 }
 
-/** Leki doraźne z zapasem większym od zera, alfabetycznie po nazwie. */
+/** Leki doraźne z zapasem większym od zera, alfabetycznie po nazwie (bez leków z „Ignoruj kontrolę ilości”). */
 export function selectAsNeededMedicines(medicines: IMedicine[]): IMedicine[] {
     return medicines
-        .filter(m => m.asNeeded && m.count > 0)
+        .filter(m => m.asNeeded && !m.ignoreQuantity && m.count > 0)
         .sort((a, b) => a.name.localeCompare(b.name, 'pl', { sensitivity: 'base' }));
 }
 
+/**
+ * Przycisk „Weź lek doraźny” (mały, po prawej, nad dolnym menu) otwierający okienko z listą leków doraźnych.
+ * „Potwierdź” przy leku zamyka listę i pyta o ilość. Bez leków doraźnych z zapasem przycisk jest wyszarzony.
+ */
 export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps) {
     const { unitById } = useUnits();
-    const [expanded, setExpanded] = useState(false);
+    const [listOpen, setListOpen] = useState(false);
     // Trzymamy id, nie obiekt - po synchronizacji okno ma widzieć aktualny stan leku.
     const [idToTake, setIdToTake] = useState<string | undefined>(undefined);
 
     const asNeeded = selectAsNeededMedicines(medicines);
     const medicineToTake = medicines.find(m => m.id === idToTake);
-    if (asNeeded.length === 0) return null;
+
+    const chooseMedicine = (id: string) => {
+        setListOpen(false);
+        setIdToTake(id);
+    };
 
     const handleSubmit = async (amount: number) => {
         const medicine = medicineToTake;
@@ -39,40 +47,35 @@ export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps)
     };
 
     return (
-        <div className="mb-2 border rounded bg-white">
-            <Button
-                variant="light"
-                size="sm"
-                className="w-100 d-flex justify-content-between align-items-center"
-                onClick={() => setExpanded(prev => !prev)}
-                aria-expanded={expanded}
-                aria-controls="as-needed-list"
-            >
-                <span>Leki doraźne ({asNeeded.length})</span>
-                <span>{expanded ? '▼' : '▲'}</span>
-            </Button>
-            <Collapse in={expanded}>
-                <div id="as-needed-list">
-                    {/* Lista może być długa - przewija się w panelu, zamiast zasłaniać cały ekran. */}
-                    <div className="px-2" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
-                        {asNeeded.map(medicine => (
-                            <Row key={medicine.id} className="align-items-center py-1 border-top">
-                                <Col>
-                                    <strong>{medicine.name}</strong>
-                                    <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
-                                        <Badge bg="secondary" pill>{amountWithUnit(medicine.count, unitById(medicine.unitId))}</Badge>
-                                    </small>
-                                </Col>
-                                <Col xs="auto">
-                                    <Button size="sm" className="py-0 px-2" onClick={() => setIdToTake(medicine.id)}>
-                                        <TfiCheck /> <span className="d-none d-md-inline">Potwierdź</span>
-                                    </Button>
-                                </Col>
-                            </Row>
-                        ))}
-                    </div>
-                </div>
-            </Collapse>
+        <div className="mb-2">
+            {/* text-end tylko wokół przycisku - okienko ilości (dialog) nie może dziedziczyć wyrównania. */}
+            <div className="text-end">
+                <Button variant="outline-primary" size="sm" disabled={asNeeded.length === 0} onClick={() => setListOpen(true)}>
+                    Weź lek doraźny
+                </Button>
+            </div>
+            <Modal show={listOpen} onHide={() => setListOpen(false)} scrollable>
+                <Modal.Header closeButton>
+                    <Modal.Title as="h5">Leki doraźne</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {asNeeded.map(medicine => (
+                        <Row key={medicine.id} className="align-items-center py-1 border-bottom">
+                            <Col>
+                                <strong>{medicine.name}</strong>
+                                <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
+                                    <Badge bg="secondary" pill>{amountWithUnit(medicine.count, unitById(medicine.unitId))}</Badge>
+                                </small>
+                            </Col>
+                            <Col xs="auto">
+                                <Button size="sm" onClick={() => chooseMedicine(medicine.id)}>
+                                    <TfiCheck /> Potwierdź
+                                </Button>
+                            </Col>
+                        </Row>
+                    ))}
+                </Modal.Body>
+            </Modal>
             <TakeDoseDialog
                 visible={medicineToTake !== undefined}
                 medicineName={medicineToTake?.name ?? ''}

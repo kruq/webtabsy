@@ -11,6 +11,8 @@ import { amountWithUnit, DEFAULT_UNIT } from '../utils/units';
 interface PurchaseListProps {
     /** Jednostka leku; domyślnie tabletka. */
     unit?: Unit;
+    /** Lek z „Ignoruj kontrolę ilości” - bez kolumny ilości. */
+    withoutQuantity?: boolean;
     purchases: IPurchase[];
     onRemove: (purchase: IPurchase) => void;
 }
@@ -22,7 +24,7 @@ function averagePrice(purchases: IPurchase[]): number {
     return Math.round((sum * 100) / withPrice.length) / 100;
 }
 
-export default function PurchaseList({ purchases, onRemove, unit = DEFAULT_UNIT }: PurchaseListProps) {
+export default function PurchaseList({ purchases, onRemove, unit = DEFAULT_UNIT, withoutQuantity = false }: PurchaseListProps) {
     if (!purchases || purchases.length === 0) return null;
 
     const sortedPurchases = [...purchases].sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -34,7 +36,7 @@ export default function PurchaseList({ purchases, onRemove, unit = DEFAULT_UNIT 
                     <tbody>
                         {sortedPurchases.map(p => (
                             <tr key={`medicine-purchase-${p.id}`}>
-                                <td width="20%">{amountWithUnit(p.numberOfTablets, unit)}</td>
+                                {!withoutQuantity && <td width="20%">{amountWithUnit(p.numberOfTablets, unit)}</td>}
                                 <td width="20%">
                                     {p.price !== undefined ? `${p.price} zł` : '-'}
                                 </td>

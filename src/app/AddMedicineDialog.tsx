@@ -6,12 +6,19 @@ import Row from 'react-bootstrap/Row';
 
 interface AddMedicineDialogProps {
     visible: boolean;
-    onSubmit: (name: string) => Promise<void> | void;
+    /** ignoreQuantity: lek tylko jako przypomnienie, bez liczenia ilości (to samo co przełącznik na karcie leku). */
+    onSubmit: (name: string, ignoreQuantity: boolean) => Promise<void> | void;
     onCancel: () => void;
 }
 
 export default function AddMedicineDialog({ visible, onSubmit, onCancel }: AddMedicineDialogProps) {
     const [name, setName] = useState('');
+    const [ignoreQuantity, setIgnoreQuantity] = useState(false);
+
+    const reset = () => {
+        setName('');
+        setIgnoreQuantity(false);
+    };
 
     const handleSubmit = async (e: MouseEvent) => {
         e.preventDefault();
@@ -19,12 +26,12 @@ export default function AddMedicineDialog({ visible, onSubmit, onCancel }: AddMe
             alert('Nie można dodać leku bez nazwy');
             return;
         }
-        await onSubmit(name.trim());
-        setName('');
+        await onSubmit(name.trim(), ignoreQuantity);
+        reset();
     };
 
     const handleCancel = () => {
-        setName('');
+        reset();
         onCancel();
     };
 
@@ -38,6 +45,15 @@ export default function AddMedicineDialog({ visible, onSubmit, onCancel }: AddMe
                         type="text"
                         value={name}
                         onChange={e => setName(e.target.value)}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                    <Form.Check
+                        type="switch"
+                        id="new-medicine-ignore-quantity"
+                        label="Ignoruj kontrolę ilości"
+                        checked={ignoreQuantity}
+                        onChange={e => setIgnoreQuantity(e.target.checked)}
                     />
                 </Form.Group>
                 <Row className="text-end">

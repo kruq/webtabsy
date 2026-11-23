@@ -27,6 +27,7 @@ function pricePerPackage(totalPrice: number | undefined, packages: number): numb
  * Wykup z recepty: pozycje z 0 opakowań są pomijane, pozostałe zwiększają purchasedPackages na recepcie,
  * a do leku dopisują po jednym zakupie na opakowanie (jak dotychczasowe kupowanie) i zwiększają jego ilość.
  * Kilka pozycji z tym samym lekiem trafia do jednego, wspólnego stanu leku.
+ * Lek z włączonym „Ignoruj kontrolę ilości” dostaje tylko zakupy (bez ilości), a jego ilość się nie zmienia.
  *
  * @param resetDosesFor id leków, którym ustawiamy następny dzień dawkowania na `now` (jak przy zwykłym kupowaniu,
  *   gdy lek się skończył).
@@ -53,15 +54,16 @@ export function applyPrescriptionPurchase(
         if (!medicine) throw new Error(`Nie znaleziono leku ${item.medicineName}`);
 
         const price = pricePerPackage(purchase.totalPrice, purchase.packages);
+        const packageSize = medicine.ignoreQuantity ? 0 : item.packageSize;
         const newPurchases: IPurchase[] = Array.from({ length: purchase.packages }, () => ({
             id: Uuid(),
             date: purchaseDate,
-            numberOfTablets: item.packageSize,
+            numberOfTablets: packageSize,
             price,
         }));
         touched.set(medicine.id, {
             ...medicine,
-            count: medicine.count + purchase.packages * item.packageSize,
+            count: medicine.count + purchase.packages * packageSize,
             purchases: [...(medicine.purchases ?? []), ...newPurchases],
         });
 

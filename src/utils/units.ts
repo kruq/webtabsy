@@ -38,6 +38,16 @@ export function amountWithUnit(amount: number, unit: Unit): string {
     return `${formatAmountForDisplay(amount)} ${unit.abbreviation}`;
 }
 
+/** „3½ tab. Asentra”; bez ilości (lek z „Ignoruj kontrolę ilości”) - sama nazwa leku. */
+export function nameWithAmount(name: string, amount: number | undefined, unit: Unit): string {
+    return amount === undefined ? name : `${amountWithUnit(amount, unit)} ${name}`;
+}
+
+/** „× 30 tab.” po liczbie opakowań; rozmiar 0 (lek z „Ignoruj kontrolę ilości”) - pusty tekst. */
+export function packageSizeSuffix(packageSize: number, unit: Unit): string {
+    return packageSize > 0 ? ` × ${amountWithUnit(packageSize, unit)}` : '';
+}
+
 /** Etykieta „Ilość tabletek” / „Ilość mililitrów” - dopełniacz l.m. bez liczby. */
 export function amountLabel(unit: Unit): string {
     return `Ilość ${unit.genitivePlural}`;

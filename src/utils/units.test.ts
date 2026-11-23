@@ -1,4 +1,4 @@
-import { amountLabel, amountWithUnit, amountWithUnitName, DEFAULT_UNIT, unitName } from './units';
+import { amountLabel, amountWithUnit, amountWithUnitName, DEFAULT_UNIT, nameWithAmount, packageSizeSuffix, unitName } from './units';
 
 describe('unitName', () => {
     it.each([
@@ -39,6 +39,16 @@ describe('formatting', () => {
         expect(amountWithUnitName(5, DEFAULT_UNIT)).toBe('5 tabletek');
         expect(amountWithUnitName(1, ml)).toBe('1 mililitr');
         expect(amountWithUnitName(0.5, ml)).toBe('½ mililitra');
+    });
+
+    it('shows only the name when there is no amount', () => {
+        expect(nameWithAmount('Asentra', 3.5, DEFAULT_UNIT)).toBe('3½ tab. Asentra');
+        expect(nameWithAmount('Aerozol do nosa', undefined, DEFAULT_UNIT)).toBe('Aerozol do nosa');
+    });
+
+    it('omits the package size when it is 0', () => {
+        expect(packageSizeSuffix(30, DEFAULT_UNIT)).toBe(' × 30 tab.');
+        expect(packageSizeSuffix(0, DEFAULT_UNIT)).toBe('');
     });
 
     it('builds amount labels from the genitive plural', () => {

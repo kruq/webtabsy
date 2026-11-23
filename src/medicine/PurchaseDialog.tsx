@@ -22,6 +22,8 @@ interface PurchaseDialogProps {
     onCancel: () => void;
     /** Jednostka leku; domyślnie tabletka. */
     unit?: Unit;
+    /** Lek z „Ignoruj kontrolę ilości” - bez pola ilości w opakowaniu (zakup zapisuje 0). */
+    withoutQuantity?: boolean;
 }
 
 function buildDefault(lastPurchase: IPurchase | undefined): NewPurchase {
@@ -37,7 +39,7 @@ function parseOptionalNumber(raw: string): number | undefined {
     return isNaN(value) ? undefined : value;
 }
 
-export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCancel, unit = DEFAULT_UNIT }: PurchaseDialogProps) {
+export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCancel, unit = DEFAULT_UNIT, withoutQuantity = false }: PurchaseDialogProps) {
     const [draft, setDraft] = useState<NewPurchase>(buildDefault(lastPurchase));
 
     useEffect(() => {
@@ -50,7 +52,7 @@ export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCanc
             alert('Nieprawidłowa ilość opakowań');
             return;
         }
-        if (!draft.numberOfTabletsInPackage || draft.numberOfTabletsInPackage <= 0) {
+        if (!withoutQuantity && (!draft.numberOfTabletsInPackage || draft.numberOfTabletsInPackage <= 0)) {
             alert(`Nieprawidłowa ${amountLabel(unit).toLowerCase()} w opakowaniu`);
             return;
         }
@@ -61,7 +63,7 @@ export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCanc
         if (!draft.pricePerPackage && !window.confirm('Czy na pewno nie chcesz podać ceny?')) {
             return;
         }
-        await onSubmit(draft);
+        await onSubmit(withoutQuantity ? { ...draft, numberOfTabletsInPackage: 0 } : draft);
     };
 
     return (
@@ -79,14 +81,14 @@ export default function PurchaseDialog({ visible, lastPurchase, onSubmit, onCanc
                             onChange={e => setDraft({ ...draft, numberOfPackages: parseOptionalNumber(e.target.value) })}
                         />
                     </FormGroup>
-                    <FormGroup as={Col}>
+                    {!withoutQuantity && <FormGroup as={Col}>
                         <Form.Label>{amountLabel(unit)} w opakowaniu:</Form.Label>
                         <Form.Control
                             type="number"
                             value={draft.numberOfTabletsInPackage ?? ''}
                             onChange={e => setDraft({ ...draft, numberOfTabletsInPackage: parseOptionalNumber(e.target.value) })}
                         />
-                    </FormGroup>
+                    </FormGroup>}
                     <FormGroup as={Col}>
                         <Form.Label>Cena za opakowanie:</Form.Label>
                         <InputGroup>

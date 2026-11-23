@@ -11,7 +11,7 @@ import { getDateText, getDaysText } from './text.helpers';
 import EmptyState from './app/EmptyState';
 import DoseDialog from './medicine/DoseDialog';
 import { useUnits } from './app/UnitsContext';
-import { amountWithUnit } from './utils/units';
+import { nameWithAmount } from './utils/units';
 
 interface IScheduleProps {
     medicines: IMedicine[];
@@ -23,6 +23,7 @@ interface ScheduleEntry {
     dose: Dose;
     name: string;
     medicineId: string;
+    ignoreQuantity: boolean;
 }
 
 function isWithinScheduleWindow(dose: Dose): boolean {
@@ -37,10 +38,10 @@ function isWithinScheduleWindow(dose: Dose): boolean {
 
 function buildScheduleEntries(medicines: IMedicine[]): ScheduleEntry[] {
     return medicines
-        .filter(m => m.doses.length > 0 && (m.count > 0 || !m.hideWhenEmpty))
+        .filter(m => m.doses.length > 0 && (m.ignoreQuantity || m.count > 0 || !m.hideWhenEmpty))
         .flatMap(m => m.doses
             .filter(isWithinScheduleWindow)
-            .map(dose => ({ dose, name: m.name, medicineId: m.id })));
+            .map(dose => ({ dose, name: m.name, medicineId: m.id, ignoreQuantity: Boolean(m.ignoreQuantity) })));
 }
 
 export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
@@ -82,7 +83,7 @@ export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
                                             >
                                                 <Col md={4} sm={8} xs={12}>
                                                     <Button variant="link" className="fw-bold text-start">
-                                                        {amountWithUnit(entry.dose.amount, unitOfMedicine(entry.medicineId))} {entry.name}
+                                                        {nameWithAmount(entry.name, entry.ignoreQuantity ? undefined : entry.dose.amount, unitOfMedicine(entry.medicineId))}
                                                     </Button>
                                                 </Col>
                                                 <Col md={4} sm={4} xs={6} className="text-start text-sm-end">
@@ -103,6 +104,7 @@ export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
                         visible
                         initialDose={editing.dose}
                         unit={unitOfMedicine(editing.medicineId)}
+                        withoutQuantity={editing.ignoreQuantity}
                         isEdit
                         onSave={handleSave}
                         onCancel={() => setEditing(undefined)}

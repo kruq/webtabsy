@@ -19,6 +19,8 @@ interface DoseDialogProps {
     onCancel: () => void;
     /** Jednostka leku; domyślnie tabletka. */
     unit?: Unit;
+    /** Lek z „Ignoruj kontrolę ilości” - bez pola ilości (dawka zachowuje dotychczasową ilość, nieużywaną). */
+    withoutQuantity?: boolean;
 }
 
 const TIME_PATTERN = /^\d?:?\d:?\d\d$/;
@@ -34,7 +36,7 @@ function applyTimeOfDay(date: Date, time: string): Date {
     return result;
 }
 
-export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCancel, unit = DEFAULT_UNIT }: DoseDialogProps) {
+export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCancel, unit = DEFAULT_UNIT, withoutQuantity = false }: DoseDialogProps) {
     const [draft, setDraft] = useState<Dose>(initialDose);
     const [valid, setValid] = useState<boolean>(true);
     const [amountText, setAmountText] = useState<string>(formatAmount(initialDose.amount));
@@ -126,7 +128,7 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
                         <Form.Label>Godzina:</Form.Label>
                         <Form.Control type="text" value={draft.time} onChange={handleTimeChange} />
                     </FormGroup>
-                    <FormGroup as={Col}>
+                    {!withoutQuantity && <FormGroup as={Col}>
                         <Form.Label>{amountLabel(unit)}:</Form.Label>
                         <Form.Control
                             type="text"
@@ -136,7 +138,7 @@ export default function DoseDialog({ visible, initialDose, isEdit, onSave, onCan
                             onChange={handleAmountChange}
                         />
                         <Form.Text className="text-secondary">{AMOUNT_HINT}</Form.Text>
-                    </FormGroup>
+                    </FormGroup>}
                     <FormGroup as={Col}>
                         <Form.Label>Co ile dni:</Form.Label>
                         <Form.Control type="number" value={draft.numberOfDays} onChange={handleNumberOfDaysChange} />

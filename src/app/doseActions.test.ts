@@ -54,6 +54,17 @@ function buildScenario(count: number, amount: number) {
 }
 
 describe('applyDoseAction', () => {
+    it('confirms a dose of a medicine without quantity control and leaves the stock alone', () => {
+        const { medicines, groups, group, overdueDose } = buildScenario(0, 1);
+        const untracked = [{ ...medicines[0], ignoreQuantity: true }];
+
+        const result = applyDoseAction(untracked, groups, group, overdueDose, 'confirm');
+
+        expect(result.medicineToPersist?.count).toBe(0);
+        expect(result.medicineToPersist?.doses[0].nextDoseDate.getTime()).toBeGreaterThan(NEXT_DOSE_DATE.getTime());
+        expect(result.overdueGroups).toHaveLength(0);
+    });
+
     it('subtracts a fractional dose from the stock', () => {
         const { medicines, groups, group, overdueDose } = buildScenario(10, AMOUNT);
 

@@ -14,7 +14,7 @@ interface UseMedicinesResult {
     errorMessage: string;
     showSpinner: boolean;
     refresh: () => Promise<void>;
-    addNewMedicine: (name: string) => Promise<void>;
+    addNewMedicine: (name: string, ignoreQuantity: boolean) => Promise<void>;
     saveMedicine: (id: string, params: Partial<IMedicine>) => Promise<void>;
     removeMedicine: (id: string) => Promise<void>;
     setMedicines: (next: IMedicine[] | ((prev: IMedicine[]) => IMedicine[])) => void;
@@ -81,10 +81,10 @@ export function useMedicines(): UseMedicinesResult {
         refresh();
     }, [refresh]);
 
-    const addNewMedicine = useCallback(async (name: string) => {
+    const addNewMedicine = useCallback(async (name: string, ignoreQuantity: boolean) => {
         setShowSpinner(true);
         try {
-            await trackWrite(() => addMedicine(newMedicine(name)));
+            await trackWrite(() => addMedicine(newMedicine(name, ignoreQuantity)));
         } catch (e) {
             reportError(e);
         } finally {

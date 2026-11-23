@@ -14,7 +14,7 @@ interface MedicineListViewProps {
     medicines: IMedicine[];
     selectedMedicineId: string;
     onMedicineClick: (id: string) => void;
-    onAddMedicine: (name: string) => Promise<void>;
+    onAddMedicine: (name: string, ignoreQuantity: boolean) => Promise<void>;
     onUpdateMedicine: (id: string, params: Partial<IMedicine>) => Promise<void>;
     onDeleteMedicine: (id: string) => Promise<void>;
     /** Tabletki do wykupienia z ważnych recept, per id leku. */
@@ -39,8 +39,8 @@ export default function MedicineListView(props: MedicineListViewProps) {
         props.onMedicineClick('');
     };
 
-    const handleAdd = async (name: string) => {
-        await props.onAddMedicine(name);
+    const handleAdd = async (name: string, ignoreQuantity: boolean) => {
+        await props.onAddMedicine(name, ignoreQuantity);
         setAddDialogOpen(false);
     };
 

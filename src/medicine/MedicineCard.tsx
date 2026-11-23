@@ -71,6 +71,8 @@ function ForecastCells({ forecast, descriptive }: { forecast: StockForecast | un
 
 export default function MedicineCard(props: IMedicineProps) {
     const isOpen = props.id === props.idOfMedicineDetails;
+    /** Tylko przypomnienie: bez ilości, zapasu, jednostki i prognozy. */
+    const ignoreQuantity = Boolean(props.ignoreQuantity);
     const lastPurchase: IPurchase | undefined = props.purchases?.[props.purchases.length - 1];
 
     const [name, setName] = useState(props.name);
@@ -147,6 +149,10 @@ export default function MedicineCard(props: IMedicineProps) {
         props.updateMedicine(props.id, { asNeeded: e.target.checked });
     };
 
+    const handleIgnoreQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        props.updateMedicine(props.id, { ignoreQuantity: e.target.checked });
+    };
+
     const handleHideWhenEmptyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         props.updateMedicine(props.id, { hideWhenEmpty: e.target.checked });
     };
@@ -184,7 +190,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
     const handleAddPurchase = async (purchase: NewPurchase) => {
         let newDoses = props.doses;
-        if ((!count || count === 0) && window.confirm('Czy chcesz zresetować następny dzień dawkowania?')) {
+        if (!ignoreQuantity && (!count || count === 0) && window.confirm('Czy chcesz zresetować następny dzień dawkowania?')) {
             newDoses = props.doses.map(d => ({ ...d, nextDoseDate: new Date() }));
         }
         const newPurchases: IPurchase[] = [...(props.purchases ?? [])];
@@ -196,7 +202,7 @@ export default function MedicineCard(props: IMedicineProps) {
                 numberOfTablets: purchase.numberOfTabletsInPackage as number,
                 price: purchase.pricePerPackage,
             });
-            newCount += purchase.numberOfTabletsInPackage as number;
+            if (!ignoreQuantity) newCount += purchase.numberOfTabletsInPackage as number;
         }
         setCount(newCount);
         setCountText(formatAmount(newCount));
@@ -206,7 +212,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
     const handleRemovePurchase = async (purchase: IPurchase) => {
         if (!window.confirm('Czy chcesz usunąć dawkę?')) return;
-        alert(`Usunięcie zakupu nie modyfikuje ${amountLabel(unit).replace('Ilość', 'ilości')}. Trzeba zrobić to ręcznie.`);
+        if (!ignoreQuantity) alert(`Usunięcie zakupu nie modyfikuje ${amountLabel(unit).replace('Ilość', 'ilości')}. Trzeba zrobić to ręcznie.`);
         const purchases = props.purchases.filter(p => p !== purchase);
         await props.updateMedicine(props.id, { purchases });
     };
@@ -252,13 +258,15 @@ export default function MedicineCard(props: IMedicineProps) {
                     <Col>
                         <h6 className="mb-0">{props.name}</h6>
                     </Col>
-                    <Col xs="auto">
-                        <Button variant="link" size="sm" onClick={openTakeDoseDialog} aria-label="Take a dose">Weź lek</Button>
-                    </Col>
+                    {!ignoreQuantity && (
+                        <Col xs="auto">
+                            <Button variant="link" size="sm" onClick={openTakeDoseDialog} aria-label="Take a dose">Weź lek</Button>
+                        </Col>
+                    )}
                 </Row>
                 {/* Dwie grupy: tylko posiadane tabletki oraz posiadane razem z tymi do wykupienia z ważnych recept. */}
                 {/* Cały wiersz w kolorze akcentu; czerwony nadpisuje go tylko jako ostrzeżenie. */}
-                <div className="medicine-stock text-accent">
+                {!ignoreQuantity && <div className="medicine-stock text-accent">
                     <small>Posiadane</small>
                     <small>
                         {tabsInPackage !== undefined && (
@@ -276,7 +284,7 @@ export default function MedicineCard(props: IMedicineProps) {
                             <ForecastCells forecast={forecastWithPrescriptions} descriptive={false} />
                         </>
                     )}
-                </div>
+                </div>}
 
                 <TakeDoseDialog
                     visible={takeDoseDialogOpen}
@@ -303,7 +311,7 @@ export default function MedicineCard(props: IMedicineProps) {
                             <Form.Control type="text" value={name} onChange={handleNameChange} />
                         </EditableField>
 
-                        <EditableField
+                        {!ignoreQuantity && <EditableField
                             label={amountLabel(unit)}
                             isEditing={editingCount}
                             onStartEdit={() => setEditingCount(true)}
@@ -320,9 +328,9 @@ export default function MedicineCard(props: IMedicineProps) {
                                 />
                                 <Form.Text className="text-secondary">{AMOUNT_HINT}</Form.Text>
                             </>
-                        </EditableField>
+                        </EditableField>}
 
-                        <UnitField unit={unit} onChange={unitId => props.updateMedicine(props.id, { unitId })} />
+                        {!ignoreQuantity && <UnitField unit={unit} onChange={unitId => props.updateMedicine(props.id, { unitId })} />}
 
                         <EditableField
                             label="Przyjmowanie z posiłkiem"
@@ -345,17 +353,20 @@ export default function MedicineCard(props: IMedicineProps) {
                         </EditableField>
 
                         <Form.Group className="mb-3">
-                            <Row>
-                                <Col>
-                                    <FormCheck
-                                        type="switch"
-                                        id={`dose-hidden-when-empty-${props.id}`}
-                                        label="Ukryj jeśli brakuje leku"
-                                        checked={props.hideWhenEmpty}
-                                        onChange={handleHideWhenEmptyChange}
-                                    />
-                                </Col>
-                            </Row>
+                            {!ignoreQuantity && (
+                                <Row>
+                                    <Col>
+                                        <FormCheck
+                                            type="switch"
+                                            id={`dose-hidden-when-empty-${props.id}`}
+                                            label="Ukryj jeśli brakuje leku"
+                                            checked={props.hideWhenEmpty}
+                                            onChange={handleHideWhenEmptyChange}
+                                        />
+                                    </Col>
+                                </Row>
+                            )}
+                            {/* „Lek doraźny” i „Ignoruj kontrolę ilości” wykluczają się - włączony wyszarza drugi. */}
                             <Row>
                                 <Col>
                                     <FormCheck
@@ -363,7 +374,20 @@ export default function MedicineCard(props: IMedicineProps) {
                                         id={`medicine-as-needed-${props.id}`}
                                         label="Lek doraźny"
                                         checked={Boolean(props.asNeeded)}
+                                        disabled={ignoreQuantity}
                                         onChange={handleAsNeededChange}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <FormCheck
+                                        type="switch"
+                                        id={`medicine-ignore-quantity-${props.id}`}
+                                        label="Ignoruj kontrolę ilości"
+                                        checked={ignoreQuantity}
+                                        disabled={Boolean(props.asNeeded)}
+                                        onChange={handleIgnoreQuantityChange}
                                     />
                                 </Col>
                             </Row>
@@ -378,6 +402,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
                         <DoseDialog
                             unit={unit}
+                            withoutQuantity={ignoreQuantity}
                             visible={doseDialogOpen}
                             initialDose={doseUnderEdit}
                             isEdit={Boolean(props.doses.find(d => d.id === doseUnderEdit.id))}
@@ -389,6 +414,7 @@ export default function MedicineCard(props: IMedicineProps) {
                             <Col>
                                 <DoseList
                                     unit={unit}
+                                    withoutQuantity={ignoreQuantity}
                                     doses={props.doses ?? []}
                                     onEdit={openDoseDialogForEdit}
                                     onRemove={handleRemoveDose}
@@ -417,6 +443,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
                         <PurchaseDialog
                             unit={unit}
+                            withoutQuantity={ignoreQuantity}
                             visible={purchaseDialogOpen}
                             lastPurchase={lastPurchase}
                             onSubmit={handleAddPurchase}
@@ -425,7 +452,7 @@ export default function MedicineCard(props: IMedicineProps) {
 
                         <Collapse in={purchasesExpanded}>
                             <div>
-                                <PurchaseList purchases={props.purchases ?? []} onRemove={handleRemovePurchase} unit={unit} />
+                                <PurchaseList purchases={props.purchases ?? []} onRemove={handleRemovePurchase} unit={unit} withoutQuantity={ignoreQuantity} />
                             </div>
                         </Collapse>
                     </div>

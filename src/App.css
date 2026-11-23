@@ -103,6 +103,24 @@ button {
   border-bottom-left-radius: var(--bs-card-inner-border-radius);
 }
 
+/* Obszar „Potwierdź” ma stałą szerokość - z rozwijaną strzałką „inna ilość” i bez niej (lek z „Ignoruj kontrolę ilości”)
+   przyciski są tej samej wielkości, a napis zaczyna się w tym samym miejscu, od lewej. Szerokości mieszczą
+   ikonę + „Potwierdź” + strzałkę (zmierzone: ok. 129.5px od md, ok. 62px poniżej, gdy widać tylko ikonę). */
+.overdue-dose-card > .overdue-dose-confirm {
+  flex: 0 0 4.5rem;
+}
+
+@media (min-width: 768px) {
+  .overdue-dose-card > .overdue-dose-confirm {
+    flex-basis: 9.5rem;
+  }
+}
+
+.overdue-dose-card > .overdue-dose-confirm > .btn:first-child {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+}
+
 .overdue-dose-card > .overdue-dose-confirm > .btn:last-child {
   border-top-right-radius: var(--bs-card-inner-border-radius);
   border-bottom-right-radius: var(--bs-card-inner-border-radius);

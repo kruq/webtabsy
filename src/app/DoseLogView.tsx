@@ -12,7 +12,7 @@ import DoseLogEntry from '../models/DoseLogEntry';
 import { fetchDoseLog } from '../services/doseLog.service';
 import { formatYmd } from '../utils/dateFormat';
 import { useUnits } from './UnitsContext';
-import { amountWithUnit } from '../utils/units';
+import { nameWithAmount } from '../utils/units';
 
 const DEFAULT_MONTHS = 1;
 // Krótsze niż DEBOUNCE_TIMEOUT_MS (3 s) - tu użytkownik czeka na wynik, a nie zapisuje pole.
@@ -134,7 +134,8 @@ export default function DoseLogView() {
                                     <Col xs="auto">{moment(entry.scheduledAt).format('HH:mm')}</Col>
                                     {/* Jedna linia: długa nazwa leku jest ucinana wielokropkiem zamiast zawijać się pod spód. */}
                                     <Col className="p-0 text-truncate" style={{ minWidth: 0 }}>
-                                        <strong>{amountWithUnit(entry.amount, unitOfMedicine(entry.medicineId))} {entry.medicineName}</strong>
+                                        {/* Ilość 0 zapisuje lek z „Ignoruj kontrolę ilości” - wtedy sama nazwa. */}
+                                        <strong>{nameWithAmount(entry.medicineName, entry.amount > 0 ? entry.amount : undefined, unitOfMedicine(entry.medicineId))}</strong>
                                         {entry.unscheduled && (
                                             <small className="text-secondary" title="Poza grafikiem">
                                                 {' '}<BsCalendarX style={{ verticalAlign: '-2px' }} aria-label="poza grafikiem" />

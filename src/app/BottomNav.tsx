@@ -4,7 +4,7 @@ import Nav from 'react-bootstrap/Nav';
 import { BsCalendarWeek, BsCardList, BsClockHistory, BsFileEarmarkMedical, BsPeople, BsPersonCheck } from 'react-icons/bs';
 
 interface BottomNavProps {
-    /** Treść przyklejona do dołu ekranu nad przyciskami zakładek (np. panel leków doraźnych). */
+    /** Treść przyklejona do dołu ekranu nad przyciskami zakładek (np. przycisk „Weź lek doraźny”). */
     children?: ReactNode;
     /** Zakładka zarządzania kontami - tylko dla administratora. */
     showUsers?: boolean;

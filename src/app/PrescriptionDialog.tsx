@@ -21,7 +21,7 @@ import {
 } from '../utils/prescriptionStatus';
 import { DraftPrescriptionItem } from './prescriptionDraft';
 import { useUnits } from './UnitsContext';
-import { amountWithUnit, capitalize } from '../utils/units';
+import { capitalize, packageSizeSuffix } from '../utils/units';
 
 export interface PrescriptionDraft extends Omit<Prescription, 'items'> {
     items: DraftPrescriptionItem[];
@@ -60,9 +60,10 @@ interface NewItemForm {
     newMedicineName: string;
     packages: string;
     packageSize: string;
+    newMedicineIgnoreQuantity: boolean;
 }
 
-const EMPTY_ITEM_FORM: NewItemForm = { medicineChoice: '', newMedicineName: '', packages: '1', packageSize: '' };
+const EMPTY_ITEM_FORM: NewItemForm = { medicineChoice: '', newMedicineName: '', packages: '1', packageSize: '', newMedicineIgnoreQuantity: false };
 
 export default function PrescriptionDialog({
     initial,
@@ -105,7 +106,11 @@ export default function PrescriptionDialog({
     // Walidacja nowej pozycji.
     const isNewMedicine = itemForm.medicineChoice === NEW_MEDICINE;
     const packages = parsePositiveInt(itemForm.packages);
-    const packageSize = parsePositiveInt(itemForm.packageSize);
+    // Lek z „Ignoruj kontrolę ilości” ma na recepcie tylko opakowania - rozmiar opakowania zapisujemy jako 0.
+    const chosenIgnoresQuantity = isNewMedicine
+        ? itemForm.newMedicineIgnoreQuantity
+        : Boolean(medicines.find(m => m.id === itemForm.medicineChoice)?.ignoreQuantity);
+    const packageSize = chosenIgnoresQuantity ? 0 : parsePositiveInt(itemForm.packageSize);
     const medicineChosen = isNewMedicine ? itemForm.newMedicineName.trim().length > 0 : itemForm.medicineChoice !== '';
     const itemValid = medicineChosen && packages !== undefined && packageSize !== undefined;
 
@@ -120,6 +125,7 @@ export default function PrescriptionDialog({
             packageSize: packageSize as number,
             purchasedPackages: 0,
             newMedicineName: isNewMedicine ? itemForm.newMedicineName.trim() : undefined,
+            newMedicineIgnoreQuantity: isNewMedicine ? itemForm.newMedicineIgnoreQuantity : undefined,
         };
         update({ items: [...draft.items, item] });
         setItemForm(EMPTY_ITEM_FORM);
@@ -340,7 +346,7 @@ export default function PrescriptionDialog({
                                         <Badge bg={STATUS_VARIANTS[status]} className="ms-1">{ITEM_STATUS_LABELS[status]}</Badge>
                                     </div>
                                     <small className="text-secondary">
-                                        {remainingPackages(item)}/{item.packages} op. × {amountWithUnit(item.packageSize, unitOfMedicine(item.medicineId))}
+                                        {remainingPackages(item)}/{item.packages} op.{packageSizeSuffix(item.packageSize, unitOfMedicine(item.medicineId))}
                                     </small>
                                 </Col>
                                 <Col xs="auto">
@@ -362,13 +368,23 @@ export default function PrescriptionDialog({
                             <option value={NEW_MEDICINE}>+ Nowy lek…</option>
                         </Form.Select>
                         {isNewMedicine && (
-                            <Form.Control
-                                className="mb-2"
-                                type="text"
-                                placeholder="Nazwa nowego leku"
-                                value={itemForm.newMedicineName}
-                                onChange={e => setItemForm(prev => ({ ...prev, newMedicineName: e.target.value }))}
-                            />
+                            <>
+                                <Form.Control
+                                    className="mb-2"
+                                    type="text"
+                                    placeholder="Nazwa nowego leku"
+                                    value={itemForm.newMedicineName}
+                                    onChange={e => setItemForm(prev => ({ ...prev, newMedicineName: e.target.value }))}
+                                />
+                                <Form.Check
+                                    className="mb-2"
+                                    type="switch"
+                                    id="prescription-new-medicine-ignore-quantity"
+                                    label="Ignoruj kontrolę ilości"
+                                    checked={itemForm.newMedicineIgnoreQuantity}
+                                    onChange={e => setItemForm(prev => ({ ...prev, newMedicineIgnoreQuantity: e.target.checked }))}
+                                />
+                            </>
                         )}
                         <Row className="mb-2">
                             <Form.Group as={Col} xs={6}>
@@ -381,7 +397,7 @@ export default function PrescriptionDialog({
                                     onChange={e => setItemForm(prev => ({ ...prev, packages: e.target.value }))}
                                 />
                             </Form.Group>
-                            <Form.Group as={Col} xs={6}>
+                            {!chosenIgnoresQuantity && <Form.Group as={Col} xs={6}>
                                 <Form.Label><small>{capitalize(unitOfMedicine(isNewMedicine ? undefined : itemForm.medicineChoice).genitivePlural)} w opakowaniu</small></Form.Label>
                                 <Form.Control
                                     type="text"
@@ -390,7 +406,7 @@ export default function PrescriptionDialog({
                                     isInvalid={itemForm.packageSize !== '' && packageSize === undefined}
                                     onChange={e => setItemForm(prev => ({ ...prev, packageSize: e.target.value }))}
                                 />
-                            </Form.Group>
+                            </Form.Group>}
                         </Row>
                         <div className="text-end">
                             <Button size="sm" onClick={addItem} disabled={!itemValid}>Dodaj do recepty</Button>

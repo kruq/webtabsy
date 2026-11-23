@@ -164,7 +164,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
         const resetDosesFor = new Set<string>();
         for (const id of Array.from(medicineIds)) {
             const medicine = medicines.find(m => m.id === id);
-            if (medicine && !medicine.count && medicine.doses.length > 0
+            if (medicine && !medicine.ignoreQuantity && !medicine.count && medicine.doses.length > 0
                 && window.confirm(`${medicine.name}: czy chcesz zresetować następny dzień dawkowania?`)) {
                 resetDosesFor.add(id);
             }

@@ -4,6 +4,8 @@ import { PrescriptionItem } from '../models/Prescription';
 /** Pozycja w formularzu: lek z listy (medicineId) albo nowy lek (newMedicineName), tworzony dopiero przy zapisie. */
 export interface DraftPrescriptionItem extends PrescriptionItem {
     newMedicineName?: string;
+    /** Nowy lek ma od razu włączone „Ignoruj kontrolę ilości”. */
+    newMedicineIgnoreQuantity?: boolean;
 }
 
 function sameName(a: string, b: string): boolean {
@@ -17,20 +19,20 @@ function sameName(a: string, b: string): boolean {
 export async function resolveNewMedicines(
     items: DraftPrescriptionItem[],
     medicines: IMedicine[],
-    createMedicine: (name: string) => Promise<IMedicine>,
+    createMedicine: (name: string, ignoreQuantity: boolean) => Promise<IMedicine>,
 ): Promise<{ items: PrescriptionItem[]; createdAny: boolean }> {
     const known = [...medicines];
     let createdAny = false;
     const resolved: PrescriptionItem[] = [];
 
-    for (const { newMedicineName, ...item } of items) {
+    for (const { newMedicineName, newMedicineIgnoreQuantity, ...item } of items) {
         if (!newMedicineName) {
             resolved.push(item);
             continue;
         }
         let medicine = known.find(m => sameName(m.name, newMedicineName));
         if (!medicine) {
-            medicine = await createMedicine(newMedicineName.trim());
+            medicine = await createMedicine(newMedicineName.trim(), Boolean(newMedicineIgnoreQuantity));
             known.push(medicine);
             createdAny = true;
         }

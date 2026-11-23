@@ -98,3 +98,16 @@ describe('applyPrescriptionPurchase', () => {
         ).toThrow();
     });
 });
+
+describe('applyPrescriptionPurchase without quantity control', () => {
+    it('records the purchase without an amount and keeps the medicine count', () => {
+        const p = prescription([item('a', 'spray', 2, 0)]);
+        const spray = { ...medicine('spray', 7), ignoreQuantity: true };
+
+        const result = applyPrescriptionPurchase(p, [spray], [{ itemId: 'a', packages: 1, totalPrice: 20 }], PURCHASE_DATE);
+
+        expect(result.prescription.items[0].purchasedPackages).toBe(1);
+        expect(result.medicines[0].count).toBe(7);
+        expect(result.medicines[0].purchases).toEqual([expect.objectContaining({ numberOfTablets: 0, price: 20 })]);
+    });
+});

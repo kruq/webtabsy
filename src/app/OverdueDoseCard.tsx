@@ -11,7 +11,7 @@ import OverdueDose from '../models/OverdueDoses';
 import { formatAmountForDisplay } from '../utils/fraction';
 import { countAmountInCurrentPackage } from '../utils/medicineMath';
 import { useUnits } from './UnitsContext';
-import { amountWithUnit } from '../utils/units';
+import { nameWithAmount } from '../utils/units';
 
 interface OverdueDoseCardProps {
     dose: OverdueDose;
@@ -28,9 +28,18 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
 
     const medicine = medicines.find(m => m.name === dose.medicineName);
     const unit = useUnits().unitById(medicine?.unitId);
+    // Lek z „Ignoruj kontrolę ilości”: bez ilości, zapasu i „Potwierdź inną ilość”.
+    const ignoreQuantity = Boolean(medicine?.ignoreQuantity);
     const stock = medicine?.count ?? 0;
-    const stockLow = stock < dose.amount;
+    const stockLow = !ignoreQuantity && stock < dose.amount;
+    const label = nameWithAmount(dose.medicineName, ignoreQuantity ? undefined : dose.amount, unit);
     const inPackage = countAmountInCurrentPackage(medicine);
+
+    const confirmButton = (
+        <Button disabled={stockLow || dose.disabled} onClick={() => onConfirm()}>
+            <TfiCheck /> <span className="d-none d-md-inline">Potwierdź</span>
+        </Button>
+    );
 
     const handleCustomAmountSubmit = (amount: number) => {
         setCustomAmountDialogOpen(false);
@@ -63,16 +72,21 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                             title="Pokaż lek na liście leków"
                             onClick={() => onOpenMedicine(medicine.id)}
                         >
-                            {amountWithUnit(dose.amount, unit)} {dose.medicineName}
+                            {label}
                         </Button>
                     ) : (
-                        <strong>{amountWithUnit(dose.amount, unit)} {dose.medicineName}</strong>
-                    )}{' '}
-                    <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
-                        <Badge bg={stockLow ? 'danger' : 'secondary'} pill>
-                            {formatAmountForDisplay(stock)}{inPackage !== undefined ? ` (${formatAmountForDisplay(inPackage)})` : ''} {unit.abbreviation}
-                        </Badge>
-                    </small>
+                        <strong>{label}</strong>
+                    )}
+                    {!ignoreQuantity && (
+                        <>
+                            {' '}
+                            <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
+                                <Badge bg={stockLow ? 'danger' : 'secondary'} pill>
+                                    {formatAmountForDisplay(stock)}{inPackage !== undefined ? ` (${formatAmountForDisplay(inPackage)})` : ''} {unit.abbreviation}
+                                </Badge>
+                            </small>
+                        </>
+                    )}
                 </div>
                 {/* ms-md-3: odstęp od leku tylko wtedy, gdy stoi obok niego (od md). */}
                 <div className="ms-md-3">
@@ -88,18 +102,20 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     onCancel={() => setCustomAmountDialogOpen(false)}
                 />
             </Card.Body>
-            <Dropdown as={ButtonGroup} align="end" className="overdue-dose-confirm">
-                <Button disabled={stockLow || dose.disabled} onClick={() => onConfirm()}>
-                    <TfiCheck /> <span className="d-none d-md-inline">Potwierdź</span>
-                </Button>
-                {/* Mniejszą dawkę da się przyjąć nawet wtedy, gdy zapas nie starcza na domyślną. */}
-                <Dropdown.Toggle split disabled={stock <= 0 || dose.disabled} aria-label="Inna ilość" />
-                <Dropdown.Menu>
-                    <Dropdown.Item onClick={() => setCustomAmountDialogOpen(true)}>
-                        Potwierdź inną ilość…
-                    </Dropdown.Item>
-                </Dropdown.Menu>
-            </Dropdown>
+            {ignoreQuantity ? (
+                <ButtonGroup className="overdue-dose-confirm">{confirmButton}</ButtonGroup>
+            ) : (
+                <Dropdown as={ButtonGroup} align="end" className="overdue-dose-confirm">
+                    {confirmButton}
+                    {/* Mniejszą dawkę da się przyjąć nawet wtedy, gdy zapas nie starcza na domyślną. */}
+                    <Dropdown.Toggle split disabled={stock <= 0 || dose.disabled} aria-label="Inna ilość" />
+                    <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => setCustomAmountDialogOpen(true)}>
+                            Potwierdź inną ilość…
+                        </Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
+            )}
         </Card>
     );
 }

@@ -8,7 +8,7 @@ import Prescription from '../models/Prescription';
 import { formatYmdForDisplay, itemStatus, purchaseDeadline, remainingPackages, todayYmd } from '../utils/prescriptionStatus';
 import { PrescriptionItemPurchase } from './prescriptionPurchase';
 import { useUnits } from './UnitsContext';
-import { amountWithUnit } from '../utils/units';
+import { packageSizeSuffix } from '../utils/units';
 
 interface PrescriptionPurchaseDialogProps {
     /** undefined = dialog zamknięty. */
@@ -120,7 +120,7 @@ export default function PrescriptionPurchaseDialog({ prescription, onSubmit, onC
                                 <div>
                                     <strong>{item.medicineName}</strong>
                                     <small className="text-secondary">
-                                        {' '}· zostało {remaining} op. × {amountWithUnit(item.packageSize, unitOfMedicine(item.medicineId))}
+                                        {' '}· zostało {remaining} op.{packageSizeSuffix(item.packageSize, unitOfMedicine(item.medicineId))}
                                         {' '}· wykup do {formatYmdForDisplay(purchaseDeadline(prescription as Prescription, item))}
                                     </small>
                                 </div>

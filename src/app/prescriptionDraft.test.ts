@@ -34,4 +34,18 @@ describe('resolveNewMedicines', () => {
         expect(result.createdAny).toBe(false);
         expect(result.items[0]).toMatchObject({ medicineId: 'med-1', medicineName: 'Metformina' });
     });
+
+    it('creates a new medicine without quantity control when asked', async () => {
+        const create = jest.fn(async (name: string) => medicine(`new-${name}`, name));
+
+        const result = await resolveNewMedicines(
+            [{ ...item('a', '', 'Aerozol'), packageSize: 0, newMedicineIgnoreQuantity: true }, item('b', '', 'Apap')],
+            [],
+            create,
+        );
+
+        expect(create).toHaveBeenNthCalledWith(1, 'Aerozol', true);
+        expect(create).toHaveBeenNthCalledWith(2, 'Apap', false);
+        expect(result.items.some(i => 'newMedicineIgnoreQuantity' in i)).toBe(false);
+    });
 });

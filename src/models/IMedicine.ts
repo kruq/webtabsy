@@ -13,6 +13,8 @@ export default interface IMedicine {
   unitId?: string | null;
   /** Lek doraźny - pokazywany w panelu leków doraźnych na zakładce Status, niezależnie od dawek. */
   asNeeded?: boolean;
+  /** Tylko przypomnienie: dawki bez ilości, zapas (count) nie jest sprawdzany ani zmieniany. */
+  ignoreQuantity?: boolean;
   doses: Dose[];
   purchases: IPurchase[];
 }

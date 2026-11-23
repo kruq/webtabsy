@@ -15,7 +15,7 @@ export async function addMedicine(medicine: IMedicine): Promise<void> {
     await postJson(API_URL, medicine);
 }
 
-export function newMedicine(name: string): IMedicine {
+export function newMedicine(name: string, ignoreQuantity = false): IMedicine {
     return {
         id: '',
         name,
@@ -26,12 +26,13 @@ export function newMedicine(name: string): IMedicine {
         doses: [],
         purchases: [],
         hideWhenEmpty: false,
+        ignoreQuantity,
     };
 }
 
 /** Tworzy lek i zwraca go z identyfikatorem nadanym przez API. */
-export async function createMedicine(name: string): Promise<IMedicine> {
-    const created = await postJsonForResult<IMedicine, IMedicineDTO>(API_URL, newMedicine(name));
+export async function createMedicine(name: string, ignoreQuantity = false): Promise<IMedicine> {
+    const created = await postJsonForResult<IMedicine, IMedicineDTO>(API_URL, newMedicine(name, ignoreQuantity));
     return medicineFromDTO(created);
 }
 

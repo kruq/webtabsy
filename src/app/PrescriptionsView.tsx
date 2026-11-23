@@ -24,7 +24,7 @@ import PrescriptionDialog, { emptyPrescription, PrescriptionDraft } from './Pres
 import { PrescriptionItemPurchase } from './prescriptionPurchase';
 import PrescriptionPurchaseDialog from './PrescriptionPurchaseDialog';
 import { useUnits } from './UnitsContext';
-import { amountWithUnit } from '../utils/units';
+import { packageSizeSuffix } from '../utils/units';
 
 interface PrescriptionsViewProps {
     prescriptions: Prescription[];
@@ -108,7 +108,7 @@ function PrescriptionCard({ prescription, onClick, onPurchase }: PrescriptionCar
                                         <small>
                                             {item.medicineName}{' '}
                                             <span className="text-secondary">
-                                                {remainingPackages(item)}/{item.packages} op. × {amountWithUnit(item.packageSize, unitOfMedicine(item.medicineId))}
+                                                {remainingPackages(item)}/{item.packages} op.{packageSizeSuffix(item.packageSize, unitOfMedicine(item.medicineId))}
                                             </span>
                                         </small>
                                     </Col>

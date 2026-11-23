@@ -50,3 +50,11 @@ describe('selectAsNeededMedicines', () => {
         expect(input.map(m => m.name)).toEqual(['B', 'A']);
     });
 });
+
+describe('selectAsNeededMedicines without quantity control', () => {
+    it('skips medicines that ignore quantity', () => {
+        const spray = { ...medicine('Aerozol', 5, true), ignoreQuantity: true };
+
+        expect(selectAsNeededMedicines([spray, medicine('Apap', 5, true)]).map(m => m.name)).toEqual(['Apap']);
+    });
+});

@@ -11,6 +11,7 @@ export default interface IMedicineDTO {
   hideWhenEmpty: boolean;
   unitId?: string | null;
   asNeeded?: boolean;
+  ignoreQuantity?: boolean;
   doses: IDoseDTO[];
   purchases: IPurchaseDTO[];
 }
