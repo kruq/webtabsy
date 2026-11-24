@@ -10,6 +10,7 @@ import IMedicine from './models/IMedicine';
 import { getDateText, getDaysText } from './text.helpers';
 import EmptyState from './app/EmptyState';
 import DoseDialog from './medicine/DoseDialog';
+import ScheduleTimeDialog from './app/ScheduleTimeDialog';
 import { useUnits } from './app/UnitsContext';
 import { nameWithAmount } from './utils/units';
 
@@ -17,6 +18,8 @@ interface IScheduleProps {
     medicines: IMedicine[];
     /** Zapis dawki zmienionej w okienku edycji (to samo okienko co w karcie leku). */
     onSaveDose: (medicineId: string, dose: Dose) => Promise<void>;
+    /** Nowa godzina dla wszystkich dawek z jednej godziny Grafiku. */
+    onSaveTime: (doses: { medicineId: string; doseId: string }[], time: string) => Promise<void>;
 }
 
 interface ScheduleEntry {
@@ -44,9 +47,17 @@ function buildScheduleEntries(medicines: IMedicine[]): ScheduleEntry[] {
             .map(dose => ({ dose, name: m.name, medicineId: m.id, ignoreQuantity: Boolean(m.ignoreQuantity) })));
 }
 
-export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
+export default function Schedule({ medicines, onSaveDose, onSaveTime }: IScheduleProps) {
     const { unitOfMedicine } = useUnits();
     const [editing, setEditing] = useState<ScheduleEntry | undefined>(undefined);
+    // Godzina grupy, której godzinę zmieniamy, i dawki tej grupy (zapamiętane w chwili kliknięcia).
+    const [editingTime, setEditingTime] = useState<{ time: string; entries: ScheduleEntry[] } | undefined>(undefined);
+
+    const handleSaveTime = async (time: string) => {
+        if (!editingTime) return;
+        await onSaveTime(editingTime.entries.map(e => ({ medicineId: e.medicineId, doseId: e.dose.id })), time);
+        setEditingTime(undefined);
+    };
 
     const handleSave = async (dose: Dose) => {
         if (!editing) return;
@@ -67,7 +78,15 @@ export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
                 {groupsByTime.map(([time, entries]) => (
                     <Row className="w-100" key={`schedule-${entries[0].dose.id}`}>
                         <Col xs="auto" className="d-flex align-items-center">
-                            <strong className="text-secondary">{time}</strong>
+                            {/* Godzina jest linkiem: zmiana godziny wszystkich dawek z tej grupy. */}
+                            <Button
+                                variant="link"
+                                className="p-0 fw-bold"
+                                title="Zmień godzinę wszystkich dawek z tej godziny"
+                                onClick={() => setEditingTime({ time, entries })}
+                            >
+                                {time}
+                            </Button>
                         </Col>
                         <Col>
                             <Card className="my-2">
@@ -99,6 +118,12 @@ export default function Schedule({ medicines, onSaveDose }: IScheduleProps) {
                         </Col>
                     </Row>
                 ))}
+                <ScheduleTimeDialog
+                    time={editingTime?.time}
+                    doseCount={editingTime?.entries.length ?? 0}
+                    onSubmit={handleSaveTime}
+                    onCancel={() => setEditingTime(undefined)}
+                />
                 {editing && (
                     <DoseDialog
                         visible

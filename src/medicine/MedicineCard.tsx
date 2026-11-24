@@ -29,6 +29,8 @@ import TakeDoseDialog from './TakeDoseDialog';
 import { useUnits } from '../app/UnitsContext';
 import { amountLabel, amountWithUnit, capitalize } from '../utils/units';
 import UnitField from './UnitField';
+import MedicineNameHints from './MedicineNameHints';
+import { isMedicineNameTaken } from '../utils/medicineNames';
 
 export interface IMedicineProps extends IMedicine {
     idOfMedicineDetails: string;
@@ -37,6 +39,8 @@ export interface IMedicineProps extends IMedicine {
     deleteMedicine: (id: string) => Promise<void>;
     /** Tabletki, które można jeszcze wykupić z ważnych recept. */
     tabletsOnPrescriptions: number;
+    /** Wszystkie leki - zmiana nazwy na nazwę innego leku jest blokowana, a podobne nazwy podpowiadane. */
+    allMedicines: IMedicine[];
 }
 
 
@@ -111,10 +115,23 @@ export default function MedicineCard(props: IMedicineProps) {
         DEBOUNCE_TIMEOUT_MS,
     );
 
+    const nameTaken = isMedicineNameTaken(name, props.allMedicines, props.id);
+
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setName(value);
+        // Nazwy innego leku nie zapisujemy; porzucamy też zapis wcześniej wpisanego fragmentu.
+        if (isMedicineNameTaken(value, props.allMedicines, props.id)) {
+            debouncedUpdate.cancel();
+            return;
+        }
         debouncedUpdate({ name: value }, () => setEditingName(false));
+    };
+
+    const stopEditingName = () => {
+        // Zajęta nazwa nie została zapisana - wracamy do zapisanej.
+        if (nameTaken) setName(props.name);
+        setEditingName(false);
     };
 
     const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -305,10 +322,13 @@ export default function MedicineCard(props: IMedicineProps) {
                             label="Nazwa leku"
                             isEditing={editingName}
                             onStartEdit={() => setEditingName(true)}
-                            onStopEdit={() => setEditingName(false)}
+                            onStopEdit={stopEditingName}
                             display={name}
                         >
-                            <Form.Control type="text" value={name} onChange={handleNameChange} />
+                            <>
+                                <Form.Control type="text" value={name} isInvalid={nameTaken} onChange={handleNameChange} />
+                                <MedicineNameHints name={name} medicines={props.allMedicines} exceptId={props.id} />
+                            </>
                         </EditableField>
 
                         {!ignoreQuantity && <EditableField

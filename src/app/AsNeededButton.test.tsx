@@ -8,6 +8,12 @@ function medicine(name: string, count: number): IMedicine {
 }
 
 describe('Weź lek doraźny', () => {
+    it('is not shown without any as-needed medicine', () => {
+        render(<AsNeededPanel medicines={[{ ...medicine('Apap', 10), asNeeded: false }]} onTake={jest.fn()} />);
+
+        expect(screen.queryByRole('button', { name: 'Weź lek doraźny' })).toBeNull();
+    });
+
     it('is greyed out without as-needed medicines in stock', () => {
         render(<AsNeededPanel medicines={[medicine('Apap', 0)]} onTake={jest.fn()} />);
 

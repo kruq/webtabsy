@@ -22,6 +22,8 @@ import {
 import { DraftPrescriptionItem } from './prescriptionDraft';
 import { useUnits } from './UnitsContext';
 import { capitalize, packageSizeSuffix } from '../utils/units';
+import MedicineNameHints from '../medicine/MedicineNameHints';
+import { isMedicineNameTaken } from '../utils/medicineNames';
 
 export interface PrescriptionDraft extends Omit<Prescription, 'items'> {
     items: DraftPrescriptionItem[];
@@ -111,7 +113,11 @@ export default function PrescriptionDialog({
         ? itemForm.newMedicineIgnoreQuantity
         : Boolean(medicines.find(m => m.id === itemForm.medicineChoice)?.ignoreQuantity);
     const packageSize = chosenIgnoresQuantity ? 0 : parsePositiveInt(itemForm.packageSize);
-    const medicineChosen = isNewMedicine ? itemForm.newMedicineName.trim().length > 0 : itemForm.medicineChoice !== '';
+    // Nowy lek nie może mieć nazwy istniejącego leku - wtedy trzeba go wybrać z listy.
+    const newNameTaken = isNewMedicine && isMedicineNameTaken(itemForm.newMedicineName, medicines);
+    const medicineChosen = isNewMedicine
+        ? itemForm.newMedicineName.trim().length > 0 && !newNameTaken
+        : itemForm.medicineChoice !== '';
     const itemValid = medicineChosen && packages !== undefined && packageSize !== undefined;
 
     const addItem = () => {
@@ -374,8 +380,12 @@ export default function PrescriptionDialog({
                                     type="text"
                                     placeholder="Nazwa nowego leku"
                                     value={itemForm.newMedicineName}
+                                    isInvalid={newNameTaken}
                                     onChange={e => setItemForm(prev => ({ ...prev, newMedicineName: e.target.value }))}
                                 />
+                                <div className="mb-2">
+                                    <MedicineNameHints name={itemForm.newMedicineName} medicines={medicines} />
+                                </div>
                                 <Form.Check
                                     className="mb-2"
                                     type="switch"

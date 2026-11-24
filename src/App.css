@@ -125,3 +125,18 @@ button {
   border-top-right-radius: var(--bs-card-inner-border-radius);
   border-bottom-right-radius: var(--bs-card-inner-border-radius);
 }
+
+/* „Weź wszystkie”, gdy którejś dawki nie da się potwierdzić: pomarańczowy (Bootstrap orange), wyszarzony przez disabled. */
+.btn.confirm-all-warning,
+.btn.confirm-all-warning:disabled {
+  --bs-btn-disabled-bg: #fd7e14;
+  --bs-btn-disabled-border-color: #fd7e14;
+  --bs-btn-disabled-color: #fff;
+}
+
+/* Okienko zmiany godziny w Grafiku: jedno krótkie pole, więc wąskie (dialogi mają domyślnie min. 50vw). */
+dialog.schedule-time-dialog {
+  min-width: 0;
+  width: 20rem;
+  max-width: calc(100vw - 2rem);
+}

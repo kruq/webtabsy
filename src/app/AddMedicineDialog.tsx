@@ -3,17 +3,24 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import MedicineNameHints from '../medicine/MedicineNameHints';
+import IMedicine from '../models/IMedicine';
+import { isMedicineNameTaken } from '../utils/medicineNames';
 
 interface AddMedicineDialogProps {
     visible: boolean;
+    /** Istniejące leki - do blokady tej samej nazwy i podpowiedzi podobnych. */
+    medicines: IMedicine[];
     /** ignoreQuantity: lek tylko jako przypomnienie, bez liczenia ilości (to samo co przełącznik na karcie leku). */
     onSubmit: (name: string, ignoreQuantity: boolean) => Promise<void> | void;
     onCancel: () => void;
 }
 
-export default function AddMedicineDialog({ visible, onSubmit, onCancel }: AddMedicineDialogProps) {
+export default function AddMedicineDialog({ visible, medicines, onSubmit, onCancel }: AddMedicineDialogProps) {
     const [name, setName] = useState('');
     const [ignoreQuantity, setIgnoreQuantity] = useState(false);
+
+    const nameTaken = isMedicineNameTaken(name, medicines);
 
     const reset = () => {
         setName('');
@@ -26,6 +33,7 @@ export default function AddMedicineDialog({ visible, onSubmit, onCancel }: AddMe
             alert('Nie można dodać leku bez nazwy');
             return;
         }
+        if (nameTaken) return;
         await onSubmit(name.trim(), ignoreQuantity);
         reset();
     };
@@ -44,8 +52,10 @@ export default function AddMedicineDialog({ visible, onSubmit, onCancel }: AddMe
                     <Form.Control
                         type="text"
                         value={name}
+                        isInvalid={nameTaken}
                         onChange={e => setName(e.target.value)}
                     />
+                    <MedicineNameHints name={name} medicines={medicines} />
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Check
@@ -58,7 +68,7 @@ export default function AddMedicineDialog({ visible, onSubmit, onCancel }: AddMe
                 </Form.Group>
                 <Row className="text-end">
                     <Col>
-                        <Button type="submit" onClick={handleSubmit} variant="primary">Dodaj</Button>
+                        <Button type="submit" onClick={handleSubmit} variant="primary" disabled={nameTaken}>Dodaj</Button>
                         <Button className="ms-2" variant="secondary" onClick={handleCancel}>Anuluj</Button>
                     </Col>
                 </Row>

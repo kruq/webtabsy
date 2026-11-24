@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import _ from 'lodash';
 import './App.css';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
@@ -14,7 +15,7 @@ import { useAuth } from './app/useAuth';
 import UsersView from './app/UsersView';
 import AsNeededPanel from './app/AsNeededPanel';
 import BottomNav from './app/BottomNav';
-import { applyDoseAction, buildUnscheduledDoseLogEntry, withSavedDose } from './app/doseActions';
+import { applyDoseAction, buildUnscheduledDoseLogEntry, confirmAllDoses, withDoseTimes, withSavedDose } from './app/doseActions';
 import DoseLogView from './app/DoseLogView';
 import MedicineListView from './app/MedicineListView';
 import OverdueDosesView from './app/OverdueDosesView';
@@ -129,6 +130,33 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
         }
     };
 
+    /** „Weź wszystkie”: od razu na ekranie, potem zapis każdej dawki po kolei (jak pojedyncze „Potwierdź”). */
+    const confirmAllInGroup = async (group: OverdueDoseGroup) => {
+        const result = confirmAllDoses(medicines, overdueGroups, group);
+        if (!result.allConfirmed) return;
+        result.confirmed.forEach(dose => { dose.disabled = true; });
+        setMedicines(result.medicines);
+        setOverdueGroups(result.overdueGroups);
+        for (const dose of result.confirmed) {
+            try {
+                const saved = await trackWrite(() => recordDose(dose.id, 'confirm', dose.nextDoseDate, undefined));
+                setMedicines(prev => prev.map(m => (m.id === saved.id ? saved : m)));
+            } catch (e) {
+                if (!(e instanceof ApiError && e.status === 409)) reportError(e);
+            }
+        }
+    };
+
+    /** Grafik: nowa godzina dla wszystkich dawek z jednej godziny - jeden zapis na lek (lek może mieć kilka takich dawek). */
+    const saveScheduleTime = async (doses: { medicineId: string; doseId: string }[], time: string) => {
+        const byMedicine = _.groupBy(doses, d => d.medicineId);
+        for (const [medicineId, medicineDoses] of Object.entries(byMedicine)) {
+            const medicine = medicines.find(m => m.id === medicineId);
+            if (!medicine) continue;
+            await saveMedicine(medicineId, { doses: withDoseTimes(medicine.doses, new Set(medicineDoses.map(d => d.doseId)), time) });
+        }
+    };
+
     const saveScheduleDose = async (medicineId: string, dose: Dose) => {
         const medicine = medicines.find(m => m.id === medicineId);
         if (!medicine) return;
@@ -219,6 +247,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                     purchaseDeadlines={upcomingPurchaseDeadlines(prescriptions)}
                                     onSkipDose={(g, d) => runDoseAction(g, d, 'skip')}
                                     onConfirmDose={(g, d, amount) => runDoseAction(g, d, 'confirm', amount)}
+                                    onConfirmAll={confirmAllInGroup}
                                     onOpenMedicine={openMedicine}
                                 />
                                 <MedicineListView
@@ -232,7 +261,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                     tabletsOnPrescriptions={prescriptionTablets}
                                 />
                                 <Tab.Pane eventKey="schedule">
-                                    <Schedule medicines={medicines} onSaveDose={saveScheduleDose} />
+                                    <Schedule medicines={medicines} onSaveDose={saveScheduleDose} onSaveTime={saveScheduleTime} />
                                 </Tab.Pane>
                                 <Tab.Pane eventKey="prescriptions">
                                     <PrescriptionsView

@@ -20,6 +20,7 @@ function setupCard(open: boolean) {
         updateMedicine: jest.fn(async () => undefined),
         deleteMedicine: jest.fn(async () => undefined),
         tabletsOnPrescriptions: 0,
+        allMedicines: [],
     };
     render(<MedicineCard {...props} />);
     return medicineClick;
@@ -71,6 +72,7 @@ describe('MedicineCard summary', () => {
             updateMedicine: jest.fn(async () => undefined),
             deleteMedicine: jest.fn(async () => undefined),
             tabletsOnPrescriptions: 308,
+            allMedicines: [],
         };
 
         const { container } = render(<MedicineCard {...props} />);
@@ -88,7 +90,7 @@ describe('MedicineCard in another unit', () => {
         const props: IMedicineProps = {
             id: 'syrop', name: 'Syrop', meal: '', description: '', count: 120, unitId: 'ml', isVisible: true, hideWhenEmpty: false,
             doses: [], purchases: [], idOfMedicineDetails: 'syrop', medicineClick: jest.fn(),
-            updateMedicine: jest.fn(async () => undefined), deleteMedicine: jest.fn(async () => undefined), tabletsOnPrescriptions: 0,
+            updateMedicine: jest.fn(async () => undefined), deleteMedicine: jest.fn(async () => undefined), tabletsOnPrescriptions: 0, allMedicines: [],
         };
 
         const { container } = render(<UnitsProvider medicines={[props]}><MedicineCard {...props} /></UnitsProvider>);
@@ -118,6 +120,7 @@ describe('MedicineCard without quantity control', () => {
             updateMedicine: jest.fn(async () => undefined),
             deleteMedicine: jest.fn(async () => undefined),
             tabletsOnPrescriptions: 0,
+            allMedicines: [],
             ...extra,
         };
         render(<MedicineCard {...props} />);
@@ -141,5 +144,33 @@ describe('MedicineCard without quantity control', () => {
 
         expect(screen.getByLabelText('Ignoruj kontrolę ilości')).toBeDisabled();
         expect(screen.getByLabelText('Lek doraźny')).not.toBeDisabled();
+    });
+});
+
+describe('MedicineCard rename', () => {
+    it('does not save the name of another medicine and lists similar ones', () => {
+        jest.useFakeTimers();
+        const updateMedicine = jest.fn(async () => undefined);
+        const others = [
+            { id: 'other', name: 'Metformina XR', meal: '', description: '', count: 0, isVisible: true, hideWhenEmpty: false, doses: [], purchases: [] },
+        ];
+        render(
+            <MedicineCard
+                id="med-1" name="Metformina" meal="" description="" count={10} isVisible hideWhenEmpty={false} doses={[]} purchases={[]}
+                idOfMedicineDetails="med-1" medicineClick={jest.fn()} updateMedicine={updateMedicine} deleteMedicine={jest.fn(async () => undefined)}
+                tabletsOnPrescriptions={0} allMedicines={others}
+            />,
+        );
+        fireEvent.click(screen.getAllByRole('button')[1]);
+        const input = screen.getByDisplayValue('Metformina');
+
+        fireEvent.change(input, { target: { value: 'Metformina X' } });
+        fireEvent.change(input, { target: { value: 'metformina xr ' } });
+        jest.runAllTimers();
+
+        expect(screen.getByText('Lek o tej nazwie już istnieje')).toBeInTheDocument();
+        expect(screen.getByText('Metformina XR')).toBeInTheDocument();
+        expect(updateMedicine).not.toHaveBeenCalled();
+        jest.useRealTimers();
     });
 });

@@ -76,6 +76,7 @@ export default function MedicineListView(props: MedicineListViewProps) {
             </Row>
             <AddMedicineDialog
                 visible={addDialogOpen}
+                medicines={props.medicines}
                 onSubmit={handleAdd}
                 onCancel={() => setAddDialogOpen(false)}
             />
@@ -91,6 +92,7 @@ export default function MedicineListView(props: MedicineListViewProps) {
                             updateMedicine={props.onUpdateMedicine}
                             deleteMedicine={props.onDeleteMedicine}
                             tabletsOnPrescriptions={props.tabletsOnPrescriptions.get(m.id) ?? 0}
+                            allMedicines={props.medicines}
                         />
                     ))}
                 </Col>

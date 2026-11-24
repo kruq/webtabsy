@@ -24,7 +24,8 @@ export function selectAsNeededMedicines(medicines: IMedicine[]): IMedicine[] {
 
 /**
  * Przycisk „Weź lek doraźny” (mały, po prawej, nad dolnym menu) otwierający okienko z listą leków doraźnych.
- * „Potwierdź” przy leku zamyka listę i pyta o ilość. Bez leków doraźnych z zapasem przycisk jest wyszarzony.
+ * „Potwierdź” przy leku zamyka listę i pyta o ilość. Przycisk jest tylko wtedy, gdy istnieje jakiś lek doraźny;
+ * bez leków doraźnych z zapasem jest wyszarzony.
  */
 export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps) {
     const { unitById } = useUnits();
@@ -34,6 +35,8 @@ export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps)
 
     const asNeeded = selectAsNeededMedicines(medicines);
     const medicineToTake = medicines.find(m => m.id === idToTake);
+    // Bez żadnego leku doraźnego przycisku nie ma; gdy są, ale bez zapasu - jest wyszarzony.
+    if (!medicines.some(m => m.asNeeded && !m.ignoreQuantity)) return null;
 
     const chooseMedicine = (id: string) => {
         setListOpen(false);
@@ -50,7 +53,7 @@ export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps)
         <div className="mb-2">
             {/* text-end tylko wokół przycisku - okienko ilości (dialog) nie może dziedziczyć wyrównania. */}
             <div className="text-end">
-                <Button variant="outline-primary" size="sm" disabled={asNeeded.length === 0} onClick={() => setListOpen(true)}>
+                <Button variant="primary" size="sm" disabled={asNeeded.length === 0} onClick={() => setListOpen(true)}>
                     Weź lek doraźny
                 </Button>
             </div>
