@@ -107,3 +107,13 @@ export function forecastStock(medicine: IMedicine): StockForecast | undefined {
     lastDay.setDate(lastDay.getDate() + days);
     return { days, lastDay, coversWholePlan: !ranOut };
 }
+
+/** Na jak długo starcza zapas: brak, do 3 dni, do 7 dni, więcej (albo zapas nie zmaleje / pokrywa cały plan). */
+export type StockLevel = 'empty' | 'critical' | 'low' | 'ok';
+
+export function stockLevel(medicine: IMedicine): StockLevel {
+    if (!medicine.count || medicine.count <= 0) return 'empty';
+    const forecast = forecastStock(medicine);
+    if (!forecast || forecast.coversWholePlan || forecast.days > 7) return 'ok';
+    return forecast.days > 3 ? 'low' : 'critical';
+}

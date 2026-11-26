@@ -29,6 +29,7 @@ function renderView(medicines: IMedicine[], doses: OverdueDose[], onConfirmAll =
                     onConfirmDose={jest.fn()}
                     onOpenMedicine={jest.fn()}
                     onConfirmAll={onConfirmAll}
+                    showCurrentPackage
                 />
             </Tab.Content>
         </Tab.Container>,
@@ -55,5 +56,42 @@ describe('Weź wszystkie', () => {
         renderView([med('Apap', 5), med('Ibuprom', 0)], [dose('a', 'Apap'), dose('b', 'Ibuprom')]);
 
         expect(screen.getByRole('button', { name: /Weź wszystkie - Za mało leku, żeby potwierdzić: Ibuprom/ })).toBeDisabled();
+    });
+});
+
+describe('Status day separators', () => {
+    it('are hidden when all doses are from today', () => {
+        const now = new Date();
+        now.setHours(0, 1, 0, 0);
+        const group = new OverdueDoseGroup({ time: now, doses: [dose('a', 'Apap')] });
+        render(
+            <Tab.Container activeKey="missingDoses">
+                <Tab.Content>
+                    <OverdueDosesView medicines={[med('Apap', 5)]} groups={[group]} purchaseDeadlines={[]} onSkipDose={jest.fn()}
+                        onConfirmDose={jest.fn()} onOpenMedicine={jest.fn()} onConfirmAll={jest.fn()} showCurrentPackage />
+                </Tab.Content>
+            </Tab.Container>,
+        );
+        expect(screen.queryByText('dziś')).toBeNull();
+    });
+
+    it('show each day when doses come from more than one day', () => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const today = new Date();
+        today.setHours(0, 1, 0, 0);
+        render(
+            <Tab.Container activeKey="missingDoses">
+                <Tab.Content>
+                    <OverdueDosesView
+                        medicines={[med('Apap', 5)]}
+                        groups={[new OverdueDoseGroup({ time: yesterday, doses: [dose('a', 'Apap')] }), new OverdueDoseGroup({ time: today, doses: [dose('b', 'Apap')] })]}
+                        purchaseDeadlines={[]} onSkipDose={jest.fn()} onConfirmDose={jest.fn()} onOpenMedicine={jest.fn()} onConfirmAll={jest.fn()} showCurrentPackage
+                    />
+                </Tab.Content>
+            </Tab.Container>,
+        );
+        expect(screen.getByText('wczoraj')).toBeInTheDocument();
+        expect(screen.getByText('dziś')).toBeInTheDocument();
     });
 });

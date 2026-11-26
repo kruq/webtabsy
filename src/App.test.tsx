@@ -80,7 +80,7 @@ test('lets the user change their own name from the header', async () => {
 
     expect(await screen.findByRole('button', { name: 'Jan Kowalski' })).toBeInTheDocument();
     const putCall = fetchMock.mock.calls.find(([, init]) => init?.method === 'PUT');
-    expect(JSON.parse(putCall[1].body)).toEqual({ name: 'Jan Kowalski' });
+    expect(JSON.parse(putCall[1].body)).toEqual({ name: 'Jan Kowalski', showCurrentPackage: true });
 });
 
 test('a new user without any medicines gets the app, not an endless "Synchronizacja danych..."', async () => {

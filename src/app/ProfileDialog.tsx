@@ -2,25 +2,28 @@ import React, { FormEvent, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
-import { AuthUser, renameMe } from '../services/auth.service';
+import { AuthUser, showsCurrentPackage, updateProfile } from '../services/auth.service';
 
-interface RenameDialogProps {
+interface ProfileDialogProps {
     visible: boolean;
-    currentName: string;
-    onRenamed: (user: AuthUser) => void;
+    user: AuthUser;
+    onSaved: (user: AuthUser) => void;
     onClose: () => void;
 }
 
-export default function RenameDialog({ visible, currentName, onRenamed, onClose }: RenameDialogProps) {
-    const [name, setName] = useState(currentName);
+/** Profil zalogowanego: nazwa i ustawienia. „Zapisz” zapisuje wszystko naraz, „Anuluj” porzuca zmiany. */
+export default function ProfileDialog({ visible, user, onSaved, onClose }: ProfileDialogProps) {
+    const [name, setName] = useState(user.name);
+    const [showCurrentPackage, setShowCurrentPackage] = useState(showsCurrentPackage(user));
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (!visible) return;
-        setName(currentName);
+        setName(user.name);
+        setShowCurrentPackage(showsCurrentPackage(user));
         setError('');
-    }, [visible, currentName]);
+    }, [visible, user]);
 
     const valid = name.trim().length > 0;
 
@@ -30,11 +33,11 @@ export default function RenameDialog({ visible, currentName, onRenamed, onClose 
         setSaving(true);
         setError('');
         try {
-            onRenamed(await renameMe(name.trim()));
+            onSaved(await updateProfile(name.trim(), showCurrentPackage));
             onClose();
         } catch (err) {
             console.error(err);
-            setError('Nie udało się zmienić nazwy');
+            setError('Nie udało się zapisać profilu');
         } finally {
             setSaving(false);
         }
@@ -44,13 +47,21 @@ export default function RenameDialog({ visible, currentName, onRenamed, onClose 
         <Modal show={visible} onHide={onClose}>
             <Form onSubmit={handleSubmit}>
                 <Modal.Header closeButton>
-                    <Modal.Title as="h5">Zmień nazwę</Modal.Title>
+                    <Modal.Title as="h5">Profil</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <Form.Group controlId="rename-name">
+                    <Form.Group controlId="profile-name">
                         <Form.Label>Nazwa</Form.Label>
                         <Form.Control type="text" value={name} autoFocus onChange={e => setName(e.target.value)} />
                     </Form.Group>
+                    <Form.Check
+                        className="mt-3"
+                        type="switch"
+                        id="profile-show-current-package"
+                        label="Pokaż ilość w aktualnym opakowaniu"
+                        checked={showCurrentPackage}
+                        onChange={e => setShowCurrentPackage(e.target.checked)}
+                    />
                     {error && <div className="text-danger mt-2">{error}</div>}
                 </Modal.Body>
                 <Modal.Footer>

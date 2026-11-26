@@ -76,9 +76,11 @@ export function parseAmount(raw: string): number | undefined {
     if (fractionMatch) {
         const [, wholePart, numerator, denominator] = fractionMatch;
         const d = parseInt(denominator, 10);
-        if (d === 0) return undefined;
+        const n = parseInt(numerator, 10);
+        // Licznik większy od mianownika jest błędem: „9991/2” to pomyłka przy wpisywaniu „999 1/2”, nie 4995½.
+        if (d === 0 || n > d) return undefined;
         const whole = wholePart ? parseInt(wholePart, 10) : 0;
-        return whole + parseInt(numerator, 10) / d;
+        return whole + n / d;
     }
 
     if (DECIMAL_PATTERN.test(text)) {

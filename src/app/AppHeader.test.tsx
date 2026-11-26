@@ -10,7 +10,7 @@ function renderHeader() {
             errorMessage=""
             showPermissionAlert={false}
             onDismissPermissionAlert={jest.fn()}
-            userName="Darek"
+            user={{ id: "u", name: "Darek", login: "darek", isAdmin: false, mustChangePassword: false }}
             onLogout={jest.fn()}
             onUserChanged={jest.fn()}
         />,

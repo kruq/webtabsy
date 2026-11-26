@@ -7,7 +7,7 @@ import Row from 'react-bootstrap/Row';
 import logo from '../assets/logo192.png';
 import { AuthUser } from '../services/auth.service';
 import { clearJustUpdated, wasJustUpdated } from '../swUpdate';
-import RenameDialog from './RenameDialog';
+import ProfileDialog from './ProfileDialog';
 
 const APP_VERSION = process.env.REACT_APP_VERSION ?? 'dev';
 const UPDATED_MESSAGE_MS = 10_000;
@@ -17,7 +17,7 @@ interface AppHeaderProps {
     errorMessage: string;
     showPermissionAlert: boolean;
     onDismissPermissionAlert: () => void;
-    userName: string;
+    user: AuthUser;
     onLogout: () => void;
     onUserChanged: (user: AuthUser) => void;
 }
@@ -27,13 +27,13 @@ export default function AppHeader({
     errorMessage,
     showPermissionAlert,
     onDismissPermissionAlert,
-    userName,
+    user,
     onLogout,
     onUserChanged,
 }: AppHeaderProps) {
     // Po automatycznym przeładowaniu do nowej wersji - informacja na 10 s.
     const [justUpdated, setJustUpdated] = useState(wasJustUpdated);
-    const [renaming, setRenaming] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
 
     useEffect(() => {
         if (!justUpdated) return;
@@ -74,10 +74,10 @@ export default function AppHeader({
                             variant="link"
                             size="sm"
                             className="p-0 align-baseline"
-                            title="Zmień nazwę"
-                            onClick={() => setRenaming(true)}
+                            title="Profil"
+                            onClick={() => setProfileOpen(true)}
                         >
-                            {userName}
+                            {user.name}
                         </Button>
                         {' '}·{' '}
                         <Button variant="link" size="sm" className="p-0 align-baseline" onClick={onLogout}>Wyloguj</Button>
@@ -85,11 +85,11 @@ export default function AppHeader({
                     <span style={{ fontSize: '0.5rem' }}>v. {APP_VERSION}</span>
                 </Col>
             </Row>
-            <RenameDialog
-                visible={renaming}
-                currentName={userName}
-                onRenamed={onUserChanged}
-                onClose={() => setRenaming(false)}
+            <ProfileDialog
+                visible={profileOpen}
+                user={user}
+                onSaved={onUserChanged}
+                onClose={() => setProfileOpen(false)}
             />
         </Container>
     );

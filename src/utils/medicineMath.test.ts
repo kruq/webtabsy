@@ -1,7 +1,7 @@
 import Dose from '../models/Dose';
 import IMedicine from '../models/IMedicine';
 import { formatAmount } from './fraction';
-import { forecastStock } from './medicineMath';
+import { forecastStock, stockLevel } from './medicineMath';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -134,5 +134,31 @@ describe('forecastStock', () => {
 
     it('ignores doses with a non-positive amount instead of looping forever', () => {
         expect(forecastStock(medicine(10, [dose({ amount: 0 })]))).toBeUndefined();
+    });
+});
+
+describe('stockLevel', () => {
+    function daily(count: number): IMedicine {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(8, 0, 0, 0);
+        return {
+            id: 'm', name: 'm', meal: '', description: '', count, isVisible: true, hideWhenEmpty: false, purchases: [],
+            doses: [{ id: 'd', time: '08:00', amount: 1, numberOfDays: 1, nextDoseDate: tomorrow, endDate: null }],
+        };
+    }
+
+    it.each([
+        [0, 'empty'],
+        [3, 'critical'],
+        [4, 'low'],
+        [7, 'low'],
+        [8, 'ok'],
+    ])('%s tablets at 1 a day from tomorrow -> %s', (count, level) => {
+        expect(stockLevel(daily(count))).toBe(level);
+    });
+
+    it('is ok when the stock is not used', () => {
+        expect(stockLevel({ ...daily(2), doses: [] })).toBe('ok');
     });
 });

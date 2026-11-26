@@ -8,6 +8,12 @@ export interface AuthUser {
     login: string;
     isAdmin: boolean;
     mustChangePassword: boolean;
+    /** Ustawienie profilu: ilość w aktualnym opakowaniu na Statusie; brak (starsze API) = pokazywać. */
+    showCurrentPackage?: boolean;
+}
+
+export function showsCurrentPackage(user: AuthUser): boolean {
+    return user.showCurrentPackage !== false;
 }
 
 export const DEFAULT_PASSWORD = 'WerbelISonia';
@@ -59,9 +65,9 @@ export async function changePassword(newPassword: string): Promise<AuthUser> {
     return postJsonForResult<{ newPassword: string }, AuthUser>(`${API_HOST}/auth/change-password`, { newPassword });
 }
 
-/** Zmiana własnej nazwy wyświetlanej (login się nie zmienia). */
-export async function renameMe(name: string): Promise<AuthUser> {
-    return putJsonForResult<{ name: string }, AuthUser>(`${API_HOST}/auth/me`, { name });
+/** Zapis profilu: nazwa wyświetlana (login się nie zmienia) i ustawienia. */
+export async function updateProfile(name: string, showCurrentPackage: boolean): Promise<AuthUser> {
+    return putJsonForResult<{ name: string; showCurrentPackage: boolean }, AuthUser>(`${API_HOST}/auth/me`, { name, showCurrentPackage });
 }
 
 export async function fetchUsers(): Promise<AuthUser[]> {

@@ -82,47 +82,126 @@ button {
   }
 } */
 
-/* Karta zaległej dawki: przyciski przyklejone do krawędzi karty, na całą wysokość. */
-.overdue-dose-card > .overdue-dose-skip,
-.overdue-dose-card > .overdue-dose-confirm > .btn {
+/* Status: kreska między dniami z dniem na środku (tylko gdy są dawki nie tylko z dzisiaj). */
+.overdue-day-separator {
   display: flex;
   align-items: center;
-  gap: 0.25rem; /* flex pomija spację między ikoną a napisem */
-  border-radius: 0;
+  gap: 0.75rem;
+  margin: 1rem 0 0.25rem;
+  font-size: 16px;
+  font-weight: bold;
 }
 
-/* Treść może się zwężać i zawijać - długa nazwa leku nie wypycha przycisków poza kartę. */
-.overdue-dose-card > .card-body {
+.overdue-day-separator::before,
+.overdue-day-separator::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* Godzina nad grupą dawek. */
+.overdue-group-time {
+  font-size: 16px;
+}
+
+/* Karta zaległej dawki: tekst 14px (także w przyciskach), nazwa leku 16px. */
+.overdue-dose-card,
+.overdue-dose-card .btn {
+  font-size: 14px;
+}
+
+.overdue-dose-card .overdue-dose-name,
+.overdue-dose-card .overdue-dose-name .btn {
+  font-size: 16px;
+}
+
+/* Górna linia: nazwa może się zwężać i zawijać, „info” zostaje po prawej. */
+.overdue-dose-card .overdue-dose-name {
   min-width: 0;
 }
 
-.overdue-dose-card > .overdue-dose-skip {
-  border: 0;
-  border-right: 1px solid var(--bs-border-color);
-  border-top-left-radius: var(--bs-card-inner-border-radius);
-  border-bottom-left-radius: var(--bs-card-inner-border-radius);
+/* Pola z ilością między przyciskami w dolnej linii. Na telefonie: stała szerokość (3rem na liczbę, połączone pole
+   6rem, „Masz 9999½ zastrz.” 10.5rem - zmierzone przy 14px ok. 132px), żeby pola stały w jednej linii.
+   Od tabletu wiersz jest dzielony 1 : 2 : 1 („Pomiń” : pola : „Potwierdź”), a pola dzielą swój blok po równo -
+   przy 1/3 na najwęższym tablecie (karta ok. 696px) nie mieściło się „W opak. 9999½ zastrz.” (ok. 150px). */
+.overdue-dose-card .overdue-dose-stock-area {
+  display: flex;
+  flex: 0 0 calc(6rem + 1px);
 }
 
-/* Obszar „Potwierdź” ma stałą szerokość - z rozwijaną strzałką „inna ilość” i bez niej (lek z „Ignoruj kontrolę ilości”)
-   przyciski są tej samej wielkości, a napis zaczyna się w tym samym miejscu, od lewej. Szerokości mieszczą
-   ikonę + „Potwierdź” + strzałkę (zmierzone: ok. 129.5px od md, ok. 62px poniżej, gdy widać tylko ikonę). */
-.overdue-dose-card > .overdue-dose-confirm {
-  flex: 0 0 4.5rem;
+.overdue-dose-card .overdue-dose-stock-area-summary {
+  flex-basis: 10.5rem;
+}
+
+.overdue-dose-card .overdue-dose-stock {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.25rem;
+  border-right: 1px solid var(--bs-border-color);
+  white-space: nowrap;
 }
 
 @media (min-width: 768px) {
-  .overdue-dose-card > .overdue-dose-confirm {
-    flex-basis: 9.5rem;
+  .overdue-dose-card .overdue-dose-stock-area {
+    flex: 2 1 0;
+    min-width: 0;
   }
 }
 
-.overdue-dose-card > .overdue-dose-confirm > .btn:first-child {
-  flex: 1 1 auto;
-  justify-content: flex-start;
+/* Pomarańczowy (Bootstrap orange) - zapas na 4-7 dni. */
+.text-orange {
+  color: #fd7e14 !important;
 }
 
-.overdue-dose-card > .overdue-dose-confirm > .btn:last-child {
-  border-top-right-radius: var(--bs-card-inner-border-radius);
+/* Dolna linia: „Pomiń” i „Potwierdź” dzielą po równo miejsce obok pól z ilością, przyklejone do dolnej
+   krawędzi karty, z zaokrągleniem jej dolnych rogów. */
+.overdue-dose-card .overdue-dose-actions {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.overdue-dose-card .overdue-dose-skip,
+.overdue-dose-card .overdue-dose-confirm {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Mniejszy odstęp w przyciskach (0.5rem zamiast 0.75rem) - zmieszczą się obok pól z ilością na telefonie. */
+.overdue-dose-card .overdue-dose-skip,
+.overdue-dose-card .overdue-dose-confirm > .btn {
+  --bs-btn-padding-x: 0.5rem;
+}
+
+/* Na wąskim telefonie „Potwierdź” ze strzałką nie zmieściłby się w połowie - ma najmniej tyle, ile potrzebuje
+   (zmierzone: ok. 101px przy 14px, bez ikon), także bez strzałki, żeby pola z ilością stały w jednej linii we
+   wszystkich kartach; „Pomiń” bierze resztę miejsca. */
+.overdue-dose-card .overdue-dose-confirm {
+  min-width: 7.5rem;
+}
+
+.overdue-dose-card .overdue-dose-skip,
+.overdue-dose-card .overdue-dose-confirm > .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+}
+
+.overdue-dose-card .overdue-dose-skip {
+  border: 0;
+  border-right: 1px solid var(--bs-border-color);
+  border-bottom-left-radius: var(--bs-card-inner-border-radius);
+}
+
+/* Strzałka „inna ilość” po lewej ma stałą szerokość, „Potwierdź” zajmuje resztę i zaokrągla prawy dolny róg karty. */
+.overdue-dose-card .overdue-dose-confirm > .dropdown-toggle-split {
+  flex: 0 0 auto;
+}
+
+.overdue-dose-card .overdue-dose-confirm > .overdue-dose-confirm-main {
+  flex: 1 1 auto;
   border-bottom-right-radius: var(--bs-card-inner-border-radius);
 }
 

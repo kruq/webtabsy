@@ -7,12 +7,16 @@ import { TfiAlert, TfiCheck } from 'react-icons/tfi';
 import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
-import { formatDoseTimestamp } from '../utils/dateFormat';
+import moment from 'moment';
+import { formatDayLabel, sameDay } from '../utils/dateFormat';
 import { PurchaseDeadline } from '../utils/prescriptionStatus';
 import { confirmAllDoses } from './doseActions';
 import EmptyState from './EmptyState';
 import OverdueDoseCard from './OverdueDoseCard';
 import PurchaseDeadlinesPanel from './PurchaseDeadlinesPanel';
+
+/** Przezroczystość całej grupy (godzina, „Weź wszystkie”, karty) z godziny, która jeszcze nie nadeszła. */
+const FUTURE_OPACITY = 0.6;
 
 interface OverdueDosesViewProps {
     medicines: IMedicine[];
@@ -24,6 +28,8 @@ interface OverdueDosesViewProps {
     onOpenMedicine: (medicineId: string) => void;
     /** „Weź wszystkie”: potwierdzenie wszystkich pozostałych dawek grupy w domyślnej ilości. */
     onConfirmAll: (group: OverdueDoseGroup) => void;
+    /** Ustawienie profilu: ilość w aktualnym opakowaniu na kartach. */
+    showCurrentPackage: boolean;
 }
 
 /**
@@ -59,9 +65,12 @@ function ConfirmAllButton({ group, medicines, onConfirmAll }: {
 }
 
 export default function OverdueDosesView({
-    medicines, groups, purchaseDeadlines, onSkipDose, onConfirmDose, onOpenMedicine, onConfirmAll,
+    medicines, groups, purchaseDeadlines, onSkipDose, onConfirmDose, onOpenMedicine, onConfirmAll, showCurrentPackage,
 }: OverdueDosesViewProps) {
     const hasMedicines = medicines.length > 0;
+    // Kreski z dniem tylko wtedy, gdy są dawki z więcej niż jednego dnia albo nie z dzisiaj.
+    const today = new Date();
+    const showDays = groups.some(g => !sameDay(g.date, today));
 
     return (
         <Tab.Pane eventKey="missingDoses" className="justify-content-center">
@@ -75,34 +84,50 @@ export default function OverdueDosesView({
             </Row>
             <Row>
                 <Col>
-                    {groups.map(group => (
+                    {groups.map((group, index) => {
+                        const newDay = showDays && (index === 0 || !sameDay(groups[index - 1].date, group.date));
+                        return (
                         <div key={`overdue-group-${group.date}`}>
-                            <Row className="align-items-center">
-                                <Col xs="auto" className="d-flex align-items-center">
-                                    <strong className="text-secondary">
-                                        <small>{formatDoseTimestamp(group.date)}</small>
-                                    </strong>
-                                </Col>
-                                <Col className="text-end">
-                                    <ConfirmAllButton group={group} medicines={medicines} onConfirmAll={onConfirmAll} />
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col>
-                                    {group.doses.map(dose => (
-                                        <OverdueDoseCard
-                                            key={`overdue-dose-${dose.id}`}
-                                            dose={dose}
-                                            medicines={medicines}
-                                            onSkip={() => onSkipDose(group, dose)}
-                                            onConfirm={amount => onConfirmDose(group, dose, amount)}
-                                            onOpenMedicine={onOpenMedicine}
-                                        />
-                                    ))}
-                                </Col>
-                            </Row>
+                            {newDay && (
+                                <div className="overdue-day-separator text-secondary">
+                                    <span>{formatDayLabel(group.date, today)}</span>
+                                </div>
+                            )}
+                            {/* Grupa jednej godziny: odstęp od poprzedniej; z godziny, która jeszcze nie nadeszła - cała
+                                (godzina, „Weź wszystkie”, karty) z przezroczystością. */}
+                            <div
+                                className={index > 0 && !newDay ? 'mt-4' : undefined}
+                                style={group.date > today ? { opacity: FUTURE_OPACITY } : undefined}
+                            >
+                                <Row className="align-items-center">
+                                    <Col xs="auto" className="d-flex align-items-center">
+                                        <strong className="text-secondary overdue-group-time">
+                                            {moment(group.date).format('HH:mm')}
+                                        </strong>
+                                    </Col>
+                                    <Col className="text-end">
+                                        <ConfirmAllButton group={group} medicines={medicines} onConfirmAll={onConfirmAll} />
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col>
+                                        {group.doses.map(dose => (
+                                            <OverdueDoseCard
+                                                key={`overdue-dose-${dose.id}`}
+                                                dose={dose}
+                                                medicines={medicines}
+                                                onSkip={() => onSkipDose(group, dose)}
+                                                onConfirm={amount => onConfirmDose(group, dose, amount)}
+                                                onOpenMedicine={onOpenMedicine}
+                                                showCurrentPackage={showCurrentPackage}
+                                            />
+                                        ))}
+                                    </Col>
+                                </Row>
+                            </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </Col>
             </Row>
         </Tab.Pane>

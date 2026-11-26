@@ -29,7 +29,7 @@ import { useSyncTimer } from './app/useSyncTimer';
 import { useElementHeight } from './hooks/useElementHeight';
 import Dose from './models/Dose';
 import IMedicine from './models/IMedicine';
-import { AuthUser } from './services/auth.service';
+import { AuthUser, showsCurrentPackage } from './services/auth.service';
 import Prescription from './models/Prescription';
 import OverdueDose from './models/OverdueDoses';
 import OverdueDoseGroup from './models/OverdueDosesGroup';
@@ -227,7 +227,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                 errorMessage={errorMessage}
                 showPermissionAlert={showPermissionAlert}
                 onDismissPermissionAlert={() => setShowPermissionAlert(false)}
-                userName={user.name}
+                user={user}
                 onLogout={onLogout}
                 onUserChanged={onUserChanged}
             />
@@ -249,6 +249,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                     onConfirmDose={(g, d, amount) => runDoseAction(g, d, 'confirm', amount)}
                                     onConfirmAll={confirmAllInGroup}
                                     onOpenMedicine={openMedicine}
+                                    showCurrentPackage={showsCurrentPackage(user)}
                                 />
                                 <MedicineListView
                                     key={medicineListKey}

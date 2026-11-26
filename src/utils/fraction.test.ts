@@ -35,6 +35,9 @@ describe('parseAmount', () => {
         expect(parseAmount('   ')).toBeUndefined();
         expect(parseAmount('abc')).toBeUndefined();
         expect(parseAmount('1/0')).toBeUndefined();
+        expect(parseAmount('9991/2')).toBeUndefined();
+        expect(parseAmount('3/2')).toBeUndefined();
+        expect(parseAmount('1 5/4')).toBeUndefined();
         expect(parseAmount('1 1/')).toBeUndefined();
         expect(parseAmount('-1')).toBeUndefined();
     });

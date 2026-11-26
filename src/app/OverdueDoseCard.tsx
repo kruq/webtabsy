@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import Badge from 'react-bootstrap/Badge';
+import { createPortal } from 'react-dom';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Card from 'react-bootstrap/Card';
 import Dropdown from 'react-bootstrap/Dropdown';
-import { TfiCheck, TfiClose } from 'react-icons/tfi';
+import { BsQuestionCircle } from 'react-icons/bs';
 import TakeDoseDialog from '../medicine/TakeDoseDialog';
 import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import { formatAmountForDisplay } from '../utils/fraction';
-import { countAmountInCurrentPackage } from '../utils/medicineMath';
+import { countAmountInCurrentPackage, stockLevel, StockLevel } from '../utils/medicineMath';
+import MedicineInfoDialog from './MedicineInfoDialog';
 import { useUnits } from './UnitsContext';
-import { nameWithAmount } from '../utils/units';
+import { amountWithUnit, nameWithAmount } from '../utils/units';
 
 interface OverdueDoseCardProps {
     dose: OverdueDose;
@@ -21,10 +22,21 @@ interface OverdueDoseCardProps {
     onConfirm: (amount?: number) => void;
     /** Przejście do karty leku na liście leków. */
     onOpenMedicine?: (medicineId: string) => void;
+    /** Ustawienie profilu: pole z ilością w aktualnym opakowaniu; bez niego - tylko cały zapas. Domyślnie tak. */
+    showCurrentPackage?: boolean;
 }
 
-export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, onOpenMedicine }: OverdueDoseCardProps) {
+/** Kolor „Masz …”: ponad 7 dni zielony, ponad 3 dni pomarańczowy, mniej i brak - czerwony. */
+const STOCK_LEVEL_CLASS: Record<StockLevel, string> = {
+    ok: 'text-success',
+    low: 'text-orange',
+    critical: 'text-danger',
+    empty: 'text-danger',
+};
+
+export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, onOpenMedicine, showCurrentPackage = true }: OverdueDoseCardProps) {
     const [customAmountDialogOpen, setCustomAmountDialogOpen] = useState(false);
+    const [infoOpen, setInfoOpen] = useState(false);
 
     const medicine = medicines.find(m => m.name === dose.medicineName);
     const unit = useUnits().unitById(medicine?.unitId);
@@ -33,11 +45,13 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
     const stock = medicine?.count ?? 0;
     const stockLow = !ignoreQuantity && stock < dose.amount;
     const label = nameWithAmount(dose.medicineName, ignoreQuantity ? undefined : dose.amount, unit);
-    const inPackage = countAmountInCurrentPackage(medicine);
+    const inPackage = showCurrentPackage ? countAmountInCurrentPackage(medicine) : undefined;
+    const levelClass = medicine ? STOCK_LEVEL_CLASS[stockLevel(medicine)] : '';
+    const totalText = stock > 0 ? `Masz ${amountWithUnit(stock, unit)}` : `Brak ${unit.genitivePlural}`;
 
     const confirmButton = (
-        <Button disabled={stockLow || dose.disabled} onClick={() => onConfirm()}>
-            <TfiCheck /> <span className="d-none d-md-inline">Potwierdź</span>
+        <Button className="overdue-dose-confirm-main" disabled={stockLow || dose.disabled} onClick={() => onConfirm()}>
+            Potwierdź
         </Button>
     );
 
@@ -47,24 +61,13 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
     };
 
     return (
-        // Przyciski „Pomiń” i „Potwierdź” są przyklejone do lewej i prawej krawędzi karty, na całą jej wysokość
-        // (jak „X” przy polu wyszukiwania leków). Zaokrąglenia przycisków pasują do wnętrza karty.
-        <Card
-            className="my-2 d-flex flex-row align-items-stretch overdue-dose-card"
-            style={{ backgroundColor: dose.todaysDate > new Date() ? '#eceff1' : 'white' }}
-        >
-            <Button
-                variant="outline-secondary"
-                className="overdue-dose-skip"
-                disabled={dose.disabled}
-                onClick={onSkip}
-            >
-                <TfiClose /> <span className="d-none d-md-inline">Pomiń</span>
-            </Button>
-            {/* Od szerokości tabletu (md) sposób przyjmowania stoi obok leku; na mniejszych ekranach pod nim, a jego
-                linia jest zawsze zajęta (pusta, gdy brak informacji) - wszystkie karty mają tę samą wysokość. */}
-            <Card.Body className="d-flex flex-column flex-md-row align-items-md-baseline justify-content-center justify-content-md-start py-2">
-                <div>
+        <>
+        {/* Dwie linie: u góry nazwa leku i „? info”; na dole „Pomiń”, pola z ilością i „Potwierdź”.
+            Przezroczystość dawek z godziny, która jeszcze nie nadeszła, ustawia cała grupa (OverdueDosesView). */}
+        <Card className="my-2 overdue-dose-card">
+            {/* Górna linia: nazwa leku, a po prawej „? info” (tylko gdy jest przyjmowanie z posiłkiem albo opis). */}
+            <div className="d-flex align-items-center py-2 px-3 overdue-dose-top">
+                <div className="flex-grow-1 overdue-dose-name">
                     {medicine && onOpenMedicine ? (
                         <Button
                             variant="link"
@@ -77,21 +80,77 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     ) : (
                         <strong>{label}</strong>
                     )}
-                    {!ignoreQuantity && (
+                </div>
+                {medicine && (medicine.meal || medicine.description) && (
+                    <Button
+                        variant="link"
+                        className="p-0 ms-2 d-inline-flex align-items-center gap-1 text-nowrap"
+                        aria-label="Informacje o leku"
+                        onClick={() => setInfoOpen(true)}
+                    >
+                        <BsQuestionCircle /> <span>info</span>
+                    </Button>
+                )}
+            </div>
+            {/* Dolna linia: „Pomiń”, pola z ilością i „Potwierdź”, przyklejone do dolnej krawędzi karty; przyciski
+                dzielą po równo miejsce obok pól z ilością. */}
+            <div className="d-flex overdue-dose-actions">
+                <Button
+                    variant="outline-secondary"
+                    className="overdue-dose-skip"
+                    disabled={dose.disabled}
+                    onClick={onSkip}
+                >
+                    Pomiń
+                </Button>
+                {/* Pola z ilością (w jednym bloku - od tabletu zajmuje 1/3 dolnego wiersza):
+                    - profil bez opakowania: jedno pole „Masz 70 tab.” / „Brak tabletek”;
+                    - z opakowaniem: „W opak. 14 tab.” i „Masz 70 tab.”, na telefonie same liczby;
+                    - bez aktualnego opakowania: jedno połączone pole, na telefonie sama liczba;
+                    - lek bez kontroli ilości: „-”.
+                    Kolor wg tego, na ile dni starcza zapas: zielony / pomarańczowy / czerwony. */}
+                <div className={`overdue-dose-stock-area${!showCurrentPackage ? ' overdue-dose-stock-area-summary' : ''}`}>
+                    {ignoreQuantity || !medicine ? (
+                        <div className="overdue-dose-stock" title="Razem">-</div>
+                    ) : !showCurrentPackage ? (
+                        <div className={`overdue-dose-stock ${levelClass}`} title="Razem">{totalText}</div>
+                    ) : inPackage !== undefined ? (
                         <>
-                            {' '}
-                            <small style={{ verticalAlign: 'top', marginLeft: '5px' }}>
-                                <Badge bg={stockLow ? 'danger' : 'secondary'} pill>
-                                    {formatAmountForDisplay(stock)}{inPackage !== undefined ? ` (${formatAmountForDisplay(inPackage)})` : ''} {unit.abbreviation}
-                                </Badge>
-                            </small>
+                            <div className={`overdue-dose-stock ${levelClass}`} title="W aktualnym opakowaniu">
+                                <span className="d-md-none">{formatAmountForDisplay(inPackage)}</span>
+                                <span className="d-none d-md-inline">W opak. {amountWithUnit(inPackage, unit)}</span>
+                            </div>
+                            <div className={`overdue-dose-stock ${levelClass}`} title="Razem">
+                                <span className="d-md-none">{formatAmountForDisplay(stock)}</span>
+                                <span className="d-none d-md-inline">{totalText}</span>
+                            </div>
                         </>
+                    ) : (
+                        <div className={`overdue-dose-stock ${levelClass}`} title="Razem">
+                            <span className="d-md-none">{formatAmountForDisplay(stock)}</span>
+                            <span className="d-none d-md-inline">{totalText}</span>
+                        </div>
                     )}
                 </div>
-                {/* ms-md-3: odstęp od leku tylko wtedy, gdy stoi obok niego (od md). */}
-                <div className="ms-md-3">
-                    <small className="text-secondary">{dose.meal || '\u00a0'}</small>
-                </div>
+                {ignoreQuantity ? (
+                    <ButtonGroup className="overdue-dose-confirm">{confirmButton}</ButtonGroup>
+                ) : (
+                    <Dropdown as={ButtonGroup} align="start" className="overdue-dose-confirm">
+                        {/* Strzałka „inna ilość” po lewej stronie „Potwierdź”. Mniejszą dawkę da się przyjąć nawet wtedy,
+                            gdy zapas nie starcza na domyślną. */}
+                        <Dropdown.Toggle split disabled={stock <= 0 || dose.disabled} aria-label="Inna ilość" />
+                        {confirmButton}
+                        <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => setCustomAmountDialogOpen(true)}>
+                                Potwierdź inną ilość…
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                )}
+            </div>
+        </Card>
+            {/* Okienko ilości przeniesione do <body> - nie dziedziczy przezroczystości grupy dawek. */}
+            {createPortal(
                 <TakeDoseDialog
                     visible={customAmountDialogOpen}
                     medicineName={dose.medicineName}
@@ -100,22 +159,10 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     unit={unit}
                     onSubmit={handleCustomAmountSubmit}
                     onCancel={() => setCustomAmountDialogOpen(false)}
-                />
-            </Card.Body>
-            {ignoreQuantity ? (
-                <ButtonGroup className="overdue-dose-confirm">{confirmButton}</ButtonGroup>
-            ) : (
-                <Dropdown as={ButtonGroup} align="end" className="overdue-dose-confirm">
-                    {confirmButton}
-                    {/* Mniejszą dawkę da się przyjąć nawet wtedy, gdy zapas nie starcza na domyślną. */}
-                    <Dropdown.Toggle split disabled={stock <= 0 || dose.disabled} aria-label="Inna ilość" />
-                    <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => setCustomAmountDialogOpen(true)}>
-                            Potwierdź inną ilość…
-                        </Dropdown.Item>
-                    </Dropdown.Menu>
-                </Dropdown>
+                />,
+                document.body,
             )}
-        </Card>
+            {medicine && <MedicineInfoDialog medicine={medicine} show={infoOpen} onClose={() => setInfoOpen(false)} />}
+        </>
     );
 }
