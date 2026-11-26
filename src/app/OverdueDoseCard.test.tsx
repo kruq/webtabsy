@@ -19,13 +19,16 @@ function renderCard(medicine: IMedicine) {
 describe('OverdueDoseCard stock', () => {
     it('shows the current package and the total in separate fields', () => {
         // Na telefonie same liczby, od tabletu z opisem (widoczność przełącza CSS: d-md-none / d-md-inline).
-        expect(renderCard(med({ purchases: [newPurchase('p', new Date(), 3, 28, 10)] }))).toEqual(['14W opak. 14 tab.', '70Wszystkich 70 tab.']);
-        expect(screen.getByText('W opak. 14 tab.')).toHaveClass('d-none', 'd-md-inline');
+        // Telefon: same liczby; tablet: opis ze skrótem; od 992px opis z pełną nazwą (przełącza CSS).
+        expect(renderCard(med({ purchases: [newPurchase('p', new Date(), 3, 28, 10)] })))
+            .toEqual(['14W opakowaniu: 14 tab.14 tabletek', '70Wszystkich: 70 tab.70 tabletek']);
         expect(screen.getByText('14')).toHaveClass('d-md-none');
+        expect(screen.getByText('14 tab.')).toHaveClass('d-lg-none');
+        expect(screen.getByText('14 tabletek')).toHaveClass('d-none', 'd-lg-inline');
     });
 
     it('shows one field without a current package', () => {
-        expect(renderCard(med({}))).toEqual(['70Masz 70 tab.']);
+        expect(renderCard(med({}))).toEqual(['70Masz: 70 tab.70 tabletek']);
     });
 
     it('shows a dash without quantity control', () => {
@@ -65,7 +68,7 @@ describe('OverdueDoseCard without the current package', () => {
                 showCurrentPackage={false}
             />,
         );
-        expect(screen.queryAllByTitle(/^(W aktualnym opakowaniu|Razem)$/).map(e => e.textContent)).toEqual(['Masz 70 tab.']);
+        expect(screen.queryAllByTitle(/^(W aktualnym opakowaniu|Razem)$/).map(e => e.textContent)).toEqual(['Masz: 70 tab.70 tabletek']);
     });
 });
 
@@ -76,7 +79,7 @@ describe('OverdueDoseCard total only', () => {
 
     it('says how much is left', () => {
         renderTotal(med({ count: 70 }));
-        expect(screen.getByTitle('Razem')).toHaveTextContent('Masz 70 tab.');
+        expect(screen.getByTitle('Razem')).toHaveTextContent('Masz: 70 tab.');
     });
 
     it('says the medicine is missing at 0', () => {
@@ -98,5 +101,14 @@ describe('OverdueDoseCard meal', () => {
         const withMeal = new OverdueDose({ id: 'd', amount: 1, numberOfDays: 1, nextDoseDate: new Date(), medicineName: 'Asentra', meal: 'po jedzeniu', time: '08:00', endDate: null });
         render(<OverdueDoseCard dose={withMeal} medicines={[med({ meal: 'po jedzeniu' })]} onSkip={jest.fn()} onConfirm={jest.fn()} />);
         expect(screen.getByText('po jedzeniu')).toHaveClass('d-none', 'd-md-inline');
+    });
+});
+
+describe('OverdueDoseCard dose label', () => {
+    it('shows the abbreviation below 992px and the full unit name above', () => {
+        const half = new OverdueDose({ id: 'd', amount: 3.5, numberOfDays: 1, nextDoseDate: new Date(), medicineName: 'Asentra', meal: '', time: '08:00', endDate: null });
+        render(<OverdueDoseCard dose={half} medicines={[med({})]} onSkip={jest.fn()} onConfirm={jest.fn()} />);
+        expect(screen.getByText('3½ tab.')).toHaveClass('d-lg-none');
+        expect(screen.getByText('3½ tabletki')).toHaveClass('d-none', 'd-lg-inline');
     });
 });

@@ -12,7 +12,8 @@ import { formatAmountForDisplay } from '../utils/fraction';
 import { countAmountInCurrentPackage, stockLevel, StockLevel } from '../utils/medicineMath';
 import MedicineInfoDialog from './MedicineInfoDialog';
 import { useUnits } from './UnitsContext';
-import { amountWithUnit, nameWithAmount } from '../utils/units';
+import Unit from '../models/Unit';
+import { amountWithUnit, amountWithUnitName } from '../utils/units';
 
 interface OverdueDoseCardProps {
     dose: OverdueDose;
@@ -26,7 +27,17 @@ interface OverdueDoseCardProps {
     showCurrentPackage?: boolean;
 }
 
-/** Kolor „Masz …”: ponad 7 dni zielony, ponad 3 dni pomarańczowy, mniej i brak - czerwony. */
+/** Ilość z jednostką: poniżej 992px skrót („3½ tab.”), od 992px pełna odmieniona nazwa („3½ tabletki”). */
+function UnitAmount({ amount, unit }: { amount: number; unit: Unit }) {
+    return (
+        <>
+            <span className="d-lg-none">{amountWithUnit(amount, unit)}</span>
+            <span className="d-none d-lg-inline">{amountWithUnitName(amount, unit)}</span>
+        </>
+    );
+}
+
+/** Kolor „Masz: …”: ponad 7 dni zielony, ponad 3 dni pomarańczowy, mniej i brak - czerwony. */
 const STOCK_LEVEL_CLASS: Record<StockLevel, string> = {
     ok: 'text-success',
     low: 'text-orange',
@@ -44,10 +55,13 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
     const ignoreQuantity = Boolean(medicine?.ignoreQuantity);
     const stock = medicine?.count ?? 0;
     const stockLow = !ignoreQuantity && stock < dose.amount;
-    const label = nameWithAmount(dose.medicineName, ignoreQuantity ? undefined : dose.amount, unit);
+    // Dawka przed nazwą leku; lek bez kontroli ilości - sama nazwa.
+    const label = ignoreQuantity
+        ? dose.medicineName
+        : <><UnitAmount amount={dose.amount} unit={unit} /> {dose.medicineName}</>;
     const inPackage = showCurrentPackage ? countAmountInCurrentPackage(medicine) : undefined;
     const levelClass = medicine ? STOCK_LEVEL_CLASS[stockLevel(medicine)] : '';
-    const totalText = stock > 0 ? `Masz ${amountWithUnit(stock, unit)}` : `Brak ${unit.genitivePlural}`;
+    const totalText = stock > 0 ? <>Masz: <UnitAmount amount={stock} unit={unit} /></> : `Brak ${unit.genitivePlural}`;
 
     const confirmButton = (
         <Button className="overdue-dose-confirm-main" disabled={stockLow || dose.disabled} onClick={() => onConfirm()}>
@@ -106,8 +120,8 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     Pomiń
                 </Button>
                 {/* Pola z ilością (w jednym bloku - od tabletu zajmuje 1/3 dolnego wiersza):
-                    - profil bez opakowania: jedno pole „Masz 70 tab.” / „Brak tabletek”;
-                    - z opakowaniem: „W opak. 14 tab.” i „Wszystkich 70 tab.”, na telefonie same liczby;
+                    - profil bez opakowania: jedno pole „Masz: 70 tab.” / „Brak tabletek”;
+                    - z opakowaniem: „W opakowaniu: 14 tab.” i „Wszystkich: 70 tab.”, na telefonie same liczby;
                     - bez aktualnego opakowania: jedno połączone pole, na telefonie sama liczba;
                     - lek bez kontroli ilości: „-”.
                     Kolor wg tego, na ile dni starcza zapas: zielony / pomarańczowy / czerwony. */}
@@ -120,12 +134,12 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                         <>
                             <div className={`overdue-dose-stock ${levelClass}`} title="W aktualnym opakowaniu">
                                 <span className="d-md-none">{formatAmountForDisplay(inPackage)}</span>
-                                <span className="d-none d-md-inline">W opak. {amountWithUnit(inPackage, unit)}</span>
+                                <span className="d-none d-md-inline">W opakowaniu: <UnitAmount amount={inPackage} unit={unit} /></span>
                             </div>
-                            {/* Obok opakowania całość to „Wszystkich 70 tab.” (pole z opakowaniem jest tylko przy zapasie > 0). */}
+                            {/* Obok opakowania całość to „Wszystkich: 70 tab.” (pole z opakowaniem jest tylko przy zapasie > 0). */}
                             <div className={`overdue-dose-stock ${levelClass}`} title="Razem">
                                 <span className="d-md-none">{formatAmountForDisplay(stock)}</span>
-                                <span className="d-none d-md-inline">Wszystkich {amountWithUnit(stock, unit)}</span>
+                                <span className="d-none d-md-inline">Wszystkich: <UnitAmount amount={stock} unit={unit} /></span>
                             </div>
                         </>
                     ) : (
