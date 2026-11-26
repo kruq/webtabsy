@@ -130,7 +130,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
         }
     };
 
-    /** „Weź wszystkie”: od razu na ekranie, potem zapis każdej dawki po kolei (jak pojedyncze „Potwierdź”). */
+    /** „Potwierdź wszystkie”: od razu na ekranie, potem zapis każdej dawki po kolei (jak pojedyncze „Potwierdź”). */
     const confirmAllInGroup = async (group: OverdueDoseGroup) => {
         const result = confirmAllDoses(medicines, overdueGroups, group);
         if (!result.allConfirmed) return;
@@ -222,6 +222,9 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                     <h3><Spinner animation="border" variant="primary" /> Ładowanie...</h3>
                 </div>
             )}
+            {/* Nagłówek i treść w jednym elemencie ograniczonym do 960px (dolne menu jest przyklejone do okna
+                przez position: fixed, więc ma to samo ograniczenie osobno). */}
+            <div className="app-container">
             <AppHeader
                 syncTimestamp={syncTimestamp}
                 errorMessage={errorMessage}
@@ -231,7 +234,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                 onLogout={onLogout}
                 onUserChanged={onUserChanged}
             />
-            <Container className="position-relative pt-3">
+            <Container fluid className="position-relative pt-3">
                 {/* Do pierwszego wczytania danych; pusta lista leków (nowy użytkownik) to już wczytane dane. */}
                 <div>{!loaded && <span>Synchronizacja danych...</span>}</div>
                 <Tab.Container activeKey={activeTab} onSelect={key => setActiveTab(key ?? STATUS_TAB)}>
@@ -294,6 +297,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                     </BottomNav>
                 </Tab.Container>
             </Container>
+            </div>
         </UnitsProvider>
     );
 }

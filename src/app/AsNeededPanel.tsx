@@ -23,7 +23,7 @@ export function selectAsNeededMedicines(medicines: IMedicine[]): IMedicine[] {
 }
 
 /**
- * Przycisk „Weź lek doraźny” (mały, po prawej, nad dolnym menu) otwierający okienko z listą leków doraźnych.
+ * Przycisk „Potwierdź lek doraźny” (po prawej, nad dolnym menu, wielkości „Potwierdź” na karcie dawki) otwierający okienko z listą leków doraźnych.
  * „Potwierdź” przy leku zamyka listę i pyta o ilość. Przycisk jest tylko wtedy, gdy istnieje jakiś lek doraźny;
  * bez leków doraźnych z zapasem jest wyszarzony.
  */
@@ -53,8 +53,8 @@ export default function AsNeededPanel({ medicines, onTake }: AsNeededPanelProps)
         <div className="mb-2">
             {/* text-end tylko wokół przycisku - okienko ilości (dialog) nie może dziedziczyć wyrównania. */}
             <div className="text-end">
-                <Button variant="primary" size="sm" disabled={asNeeded.length === 0} onClick={() => setListOpen(true)}>
-                    Weź lek doraźny
+                <Button variant="primary" disabled={asNeeded.length === 0} onClick={() => setListOpen(true)}>
+                    Potwierdź lek doraźny
                 </Button>
             </div>
             <Modal show={listOpen} onHide={() => setListOpen(false)} scrollable>

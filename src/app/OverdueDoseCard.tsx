@@ -80,6 +80,8 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     ) : (
                         <strong>{label}</strong>
                     )}
+                    {/* Przyjmowanie z posiłkiem obok nazwy - od tabletu; na telefonie tylko w „info”. */}
+                    {dose.meal && <small className="text-secondary ms-3 d-none d-md-inline">{dose.meal}</small>}
                 </div>
                 {medicine && (medicine.meal || medicine.description) && (
                     <Button
@@ -105,7 +107,7 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                 </Button>
                 {/* Pola z ilością (w jednym bloku - od tabletu zajmuje 1/3 dolnego wiersza):
                     - profil bez opakowania: jedno pole „Masz 70 tab.” / „Brak tabletek”;
-                    - z opakowaniem: „W opak. 14 tab.” i „Masz 70 tab.”, na telefonie same liczby;
+                    - z opakowaniem: „W opak. 14 tab.” i „Wszystkich 70 tab.”, na telefonie same liczby;
                     - bez aktualnego opakowania: jedno połączone pole, na telefonie sama liczba;
                     - lek bez kontroli ilości: „-”.
                     Kolor wg tego, na ile dni starcza zapas: zielony / pomarańczowy / czerwony. */}
@@ -120,9 +122,10 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                                 <span className="d-md-none">{formatAmountForDisplay(inPackage)}</span>
                                 <span className="d-none d-md-inline">W opak. {amountWithUnit(inPackage, unit)}</span>
                             </div>
+                            {/* Obok opakowania całość to „Wszystkich 70 tab.” (pole z opakowaniem jest tylko przy zapasie > 0). */}
                             <div className={`overdue-dose-stock ${levelClass}`} title="Razem">
                                 <span className="d-md-none">{formatAmountForDisplay(stock)}</span>
-                                <span className="d-none d-md-inline">{totalText}</span>
+                                <span className="d-none d-md-inline">Wszystkich {amountWithUnit(stock, unit)}</span>
                             </div>
                         </>
                     ) : (

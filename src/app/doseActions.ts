@@ -69,7 +69,7 @@ export interface ConfirmAllResult {
 }
 
 /**
- * „Weź wszystkie”: potwierdza po kolei każdą pozostałą dawkę grupy w domyślnej ilości, jak kliknięcia „Potwierdź”.
+ * „Potwierdź wszystkie”: potwierdza po kolei każdą pozostałą dawkę grupy w domyślnej ilości, jak kliknięcia „Potwierdź”.
  * Każdy krok widzi stan po poprzednim, więc dwie dawki tego samego leku odejmują się od wspólnego zapasu.
  */
 export function confirmAllDoses(

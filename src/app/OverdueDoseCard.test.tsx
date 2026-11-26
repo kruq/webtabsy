@@ -19,7 +19,7 @@ function renderCard(medicine: IMedicine) {
 describe('OverdueDoseCard stock', () => {
     it('shows the current package and the total in separate fields', () => {
         // Na telefonie same liczby, od tabletu z opisem (widoczność przełącza CSS: d-md-none / d-md-inline).
-        expect(renderCard(med({ purchases: [newPurchase('p', new Date(), 3, 28, 10)] }))).toEqual(['14W opak. 14 tab.', '70Masz 70 tab.']);
+        expect(renderCard(med({ purchases: [newPurchase('p', new Date(), 3, 28, 10)] }))).toEqual(['14W opak. 14 tab.', '70Wszystkich 70 tab.']);
         expect(screen.getByText('W opak. 14 tab.')).toHaveClass('d-none', 'd-md-inline');
         expect(screen.getByText('14')).toHaveClass('d-md-none');
     });
@@ -90,5 +90,13 @@ describe('OverdueDoseCard colors', () => {
     it('colors both fields by how long the stock lasts', () => {
         renderCard(med({ count: 0, purchases: [newPurchase('p', new Date(), 1, 28, 10)] }));
         screen.queryAllByTitle(/^(W aktualnym opakowaniu|Razem)$/).forEach(field => expect(field).toHaveClass('text-danger'));
+    });
+});
+
+describe('OverdueDoseCard meal', () => {
+    it('shows the meal next to the name from tablets only', () => {
+        const withMeal = new OverdueDose({ id: 'd', amount: 1, numberOfDays: 1, nextDoseDate: new Date(), medicineName: 'Asentra', meal: 'po jedzeniu', time: '08:00', endDate: null });
+        render(<OverdueDoseCard dose={withMeal} medicines={[med({ meal: 'po jedzeniu' })]} onSkip={jest.fn()} onConfirm={jest.fn()} />);
+        expect(screen.getByText('po jedzeniu')).toHaveClass('d-none', 'd-md-inline');
     });
 });

@@ -37,17 +37,17 @@ function renderView(medicines: IMedicine[], doses: OverdueDose[], onConfirmAll =
     return { group, onConfirmAll };
 }
 
-describe('Weź wszystkie', () => {
+describe('Potwierdź wszystkie', () => {
     it('is hidden with a single dose at that time', () => {
         renderView([med('Apap', 5)], [dose('a', 'Apap')]);
 
-        expect(screen.queryByRole('button', { name: /Weź wszystkie/ })).toBeNull();
+        expect(screen.queryByRole('button', { name: /Potwierdź wszystkie/ })).toBeNull();
     });
 
     it('confirms the whole group', () => {
         const { group, onConfirmAll } = renderView([med('Apap', 5), med('Ibuprom', 5)], [dose('a', 'Apap'), dose('b', 'Ibuprom')]);
 
-        fireEvent.click(screen.getByRole('button', { name: 'Weź wszystkie' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Potwierdź wszystkie' }));
 
         expect(onConfirmAll).toHaveBeenCalledWith(group);
     });
@@ -55,7 +55,7 @@ describe('Weź wszystkie', () => {
     it('is greyed out with a warning when a dose lacks stock', () => {
         renderView([med('Apap', 5), med('Ibuprom', 0)], [dose('a', 'Apap'), dose('b', 'Ibuprom')]);
 
-        expect(screen.getByRole('button', { name: /Weź wszystkie - Za mało leku, żeby potwierdzić: Ibuprom/ })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /Potwierdź wszystkie - Za mało leku, żeby potwierdzić: Ibuprom/ })).toBeDisabled();
     });
 });
 

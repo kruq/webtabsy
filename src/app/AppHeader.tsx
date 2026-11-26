@@ -43,7 +43,7 @@ export default function AppHeader({
     }, [justUpdated]);
 
     return (
-        <Container className="sticky-top p-3" style={{ backgroundColor: '#fafafc' }}>
+        <Container fluid className="sticky-top p-3" style={{ backgroundColor: '#fafafc' }}>
             <Row>
                 <Col>
                     <Alert

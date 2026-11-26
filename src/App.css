@@ -99,6 +99,18 @@ button {
   border-top: 1px solid var(--bs-border-color);
 }
 
+/* Nagłówek grupy: godzina, pozioma linia (jak przy dniu) i „Potwierdź wszystkie”. */
+.overdue-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.overdue-group-line {
+  flex: 1;
+  border-top: 1px solid var(--bs-border-color);
+}
+
 /* Godzina nad grupą dawek. */
 .overdue-group-time {
   font-size: 16px;
@@ -205,7 +217,7 @@ button {
   border-bottom-right-radius: var(--bs-card-inner-border-radius);
 }
 
-/* „Weź wszystkie”, gdy którejś dawki nie da się potwierdzić: pomarańczowy (Bootstrap orange), wyszarzony przez disabled. */
+/* „Potwierdź wszystkie”, gdy którejś dawki nie da się potwierdzić: pomarańczowy (Bootstrap orange), wyszarzony przez disabled. */
 .btn.confirm-all-warning,
 .btn.confirm-all-warning:disabled {
   --bs-btn-disabled-bg: #fd7e14;
@@ -218,4 +230,37 @@ dialog.schedule-time-dialog {
   min-width: 0;
   width: 20rem;
   max-width: calc(100vw - 2rem);
+}
+
+/* Dolne menu: na telefonie same ikony; od tabletu (768px) do 991px we wszystkich zakładkach ikona nad napisem
+   (6 zakładek z napisami obok ikon nie mieści się w 768px); od 992px ikona i napis w jednej linii.
+   Selektor .nav-link.bottom-nav-link: App.css ładuje się przed Bootstrapem, więc samo .bottom-nav-link
+   przegrywało z jego .nav-link { display: block }. */
+.nav-link.bottom-nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nav-link.bottom-nav-link > span {
+  white-space: nowrap;
+}
+
+@media (min-width: 992px) {
+  .nav-link.bottom-nav-link {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+}
+
+/* Szerokość aplikacji płynnie dopasowana do okna (Container fluid zamiast skoków przy progach Bootstrapa),
+   na dużym ekranie najwyżej 960px, wyśrodkowana. Klasa jest na elemencie z nagłówkiem i treścią oraz na dolnym
+   menu (position: fixed ustawia się względem okna, nie elementu nadrzędnego). */
+.app-container {
+  /* Najwęższe telefony (np. iPhone SE 1. gen., 320px) przewiną stronę w poziomie zamiast rozjechanego układu. */
+  min-width: 340px;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
 }
