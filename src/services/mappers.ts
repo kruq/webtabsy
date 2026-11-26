@@ -7,10 +7,15 @@ import OverdueDoseGroup from '../models/OverdueDosesGroup';
 import IDoseLogEntryDTO from './IDoseLogEntryDTO';
 import IMedicineDTO from './IMedicineDTO';
 import IPurchaseDTO from './IPurchaseDTO';
+import { roundPrice } from '../utils/purchases';
 import IOverdueDoseGroup from './IOverdueDosesGroup';
 
-function purchaseFromDTO(p: IPurchaseDTO): IPurchase {
-    return { ...p, date: new Date(p.date) };
+/** Zakup z API; zapisy sprzed migracji to jedno opakowanie, a cena 0 oznacza brak ceny. */
+export function purchaseFromDTO(p: IPurchaseDTO): IPurchase {
+    const packages = p.packages ?? 1;
+    const price = p.price ? p.price : undefined;
+    const totalPrice = p.totalPrice ?? (price === undefined ? undefined : roundPrice(price * packages));
+    return { id: p.id, numberOfTablets: p.numberOfTablets, packages, price, totalPrice, date: new Date(p.date) };
 }
 
 export function medicineFromDTO(m: IMedicineDTO): IMedicine {

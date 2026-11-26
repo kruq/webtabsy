@@ -29,6 +29,7 @@ import TakeDoseDialog from './TakeDoseDialog';
 import { useUnits } from '../app/UnitsContext';
 import { amountLabel, amountWithUnit, capitalize } from '../utils/units';
 import UnitField from './UnitField';
+import { newPurchase as newPurchaseRecord } from '../utils/purchases';
 import MedicineNameHints from './MedicineNameHints';
 import { isMedicineNameTaken } from '../utils/medicineNames';
 
@@ -210,17 +211,14 @@ export default function MedicineCard(props: IMedicineProps) {
         if (!ignoreQuantity && (!count || count === 0) && window.confirm('Czy chcesz zresetować następny dzień dawkowania?')) {
             newDoses = props.doses.map(d => ({ ...d, nextDoseDate: new Date() }));
         }
-        const newPurchases: IPurchase[] = [...(props.purchases ?? [])];
-        let newCount = count ?? 0;
-        for (let i = 0; i < (purchase.numberOfPackages ?? 0); i++) {
-            newPurchases.push({
-                id: Uuid(),
-                date: new Date(),
-                numberOfTablets: purchase.numberOfTabletsInPackage as number,
-                price: purchase.pricePerPackage,
-            });
-            if (!ignoreQuantity) newCount += purchase.numberOfTabletsInPackage as number;
-        }
+        // Jeden wpis na zakup, z liczbą opakowań, ceną opakowania i ceną wszystkich.
+        const packages = purchase.numberOfPackages ?? 0;
+        const packageSize = purchase.numberOfTabletsInPackage as number;
+        const newPurchases: IPurchase[] = [
+            ...(props.purchases ?? []),
+            newPurchaseRecord(Uuid(), new Date(), packages, packageSize, purchase.pricePerPackage || undefined),
+        ];
+        const newCount = (count ?? 0) + (ignoreQuantity ? 0 : packages * packageSize);
         setCount(newCount);
         setCountText(formatAmount(newCount));
         await props.updateMedicine(props.id, { purchases: newPurchases, count: newCount, doses: newDoses });

@@ -40,8 +40,10 @@ describe('applyPrescriptionPurchase', () => {
         expect(result.prescription.items.map(i => i.purchasedPackages)).toEqual([2, 0]);
         expect(result.medicines).toHaveLength(1);
         expect(result.medicines[0].count).toBe(5 + 2 * 20);
-        expect(result.medicines[0].purchases).toHaveLength(2);
-        expect(result.medicines[0].purchases[0]).toMatchObject({ date: PURCHASE_DATE, numberOfTablets: 20, price: 12.5 });
+        // Jeden wpis na zakup: 2 opakowania, cena opakowania i cena wszystkich tak, jak ją wpisano.
+        expect(result.medicines[0].purchases).toEqual([
+            expect.objectContaining({ date: PURCHASE_DATE, numberOfTablets: 20, packages: 2, price: 12.5, totalPrice: 25 }),
+        ]);
     });
 
     it('leaves the price empty when it was not given and rounds it to grosze', () => {
