@@ -19,6 +19,7 @@ import {
     STATUS_VARIANTS,
     VALIDITY_LABELS,
 } from '../utils/prescriptionStatus';
+import DoctorsDialog from './DoctorsDialog';
 import EmptyState from './EmptyState';
 import PrescriptionDialog, { emptyPrescription, PrescriptionDraft } from './PrescriptionDialog';
 import { PrescriptionItemPurchase } from './prescriptionPurchase';
@@ -35,6 +36,7 @@ interface PrescriptionsViewProps {
     onDelete: (id: string) => Promise<void>;
     onAddSpecialization: (name: string) => Promise<Specialization>;
     onAddDoctor: (doctor: Omit<Doctor, 'id'>) => Promise<Doctor>;
+    onDeleteDoctor: (id: string) => Promise<void>;
     onPurchase: (prescription: Prescription, purchaseDate: Date, purchases: PrescriptionItemPurchase[]) => Promise<void>;
 }
 
@@ -73,20 +75,23 @@ function PrescriptionCard({ prescription, onClick, onPurchase }: PrescriptionCar
     return (
         <Card className="my-2" onClick={onClick} style={{ cursor: 'pointer' }}>
             <Card.Body>
-                <Row>
+                {/* Najważniejszy jest termin ważności - obok statusu (mniejszy odstęp gx-2, żeby zmieścić się na 340px);
+                    data wystawienia i rodzaj recepty w drugiej linii na całą szerokość. */}
+                <Row className="gx-2 align-items-center">
                     <Col>
-                        <strong>{formatYmdForDisplay(prescription.issueDate)}</strong>
-                        <small className="text-secondary">
-                            {' '}·{' '}
-                            {/* Na telefonie pełny opis się nie mieści - zostaje "do <data>". */}
-                            <span className="d-none d-md-inline">{VALIDITY_LABELS[prescription.validity]}, ważna </span>
-                            do {formatYmdForDisplay(expiryDate(prescription))}
-                        </small>
+                        <strong className="text-nowrap">Ważna do {formatYmdForDisplay(expiryDate(prescription))}</strong>
                     </Col>
                     <Col xs="auto">
-                        <Badge bg={STATUS_VARIANTS[status]}>{PRESCRIPTION_STATUS_LABELS[status]}</Badge>
+                        {/* Status recepty od tabletu większy (14px) niż statusy leków; na telefonie tej samej wielkości, żeby
+                            zmieścił się obok terminu ważności (App.css). Obie plakietki zaokrąglone (pill). */}
+                        <Badge bg={STATUS_VARIANTS[status]} pill className="prescription-status-badge">{PRESCRIPTION_STATUS_LABELS[status]}</Badge>
                     </Col>
                 </Row>
+                <div>
+                    <small className="text-secondary">
+                        wystawiona {formatYmdForDisplay(prescription.issueDate)} · {VALIDITY_LABELS[prescription.validity]}
+                    </small>
+                </div>
                 {(doctorLine || prescription.code) && (
                     <div>
                         <small>
@@ -104,12 +109,13 @@ function PrescriptionCard({ prescription, onClick, onPurchase }: PrescriptionCar
                         return (
                             <ListGroup.Item key={item.id} className="py-1 bg-light">
                                 <Row className="align-items-center">
+                                    {/* Nazwa leku obok statusu, opakowania pod nazwą - nic się nie zawija na telefonie. */}
                                     <Col>
                                         <small>
-                                            {item.medicineName}{' '}
-                                            <span className="text-secondary">
+                                            <div>{item.medicineName}</div>
+                                            <div className="text-secondary">
                                                 {remainingPackages(item)}/{item.packages} op.{packageSizeSuffix(item.packageSize, unitOfMedicine(item.medicineId))}
-                                            </span>
+                                            </div>
                                         </small>
                                     </Col>
                                     <Col xs="auto">
@@ -144,6 +150,7 @@ export default function PrescriptionsView(props: PrescriptionsViewProps) {
     // Obiekt (nie id), żeby dialog dostał stabilną wartość początkową także dla nowej recepty.
     const [editing, setEditing] = useState<Prescription | undefined>(undefined);
     const [purchasing, setPurchasing] = useState<Prescription | undefined>(undefined);
+    const [doctorsOpen, setDoctorsOpen] = useState(false);
     const [showExpired, setShowExpired] = useStoredFlag(SHOW_EXPIRED_STORAGE_KEY);
     const [showFulfilled, setShowFulfilled] = useStoredFlag(SHOW_FULFILLED_STORAGE_KEY);
 
@@ -164,13 +171,17 @@ export default function PrescriptionsView(props: PrescriptionsViewProps) {
 
     return (
         <>
+            {/* Na telefonie przyciski w pierwszej linii, przełączniki pod nimi; od tabletu wszystko w jednej linii. */}
             <Row className="mb-2">
-                <Col>
+                <Col xs={12} md className="text-nowrap">
                     <Button size="sm" onClick={() => setEditing(emptyPrescription())}>
                         Dodaj<span className="d-none d-md-inline"> receptę</span>
                     </Button>
+                    <Button size="sm" variant="outline-primary" className="ms-2" onClick={() => setDoctorsOpen(true)}>
+                        Lekarze
+                    </Button>
                 </Col>
-                <Col xs="auto" className="d-flex align-items-center">
+                <Col xs="auto" className="d-flex align-items-center mt-2 mt-md-0">
                     <Form.Switch
                         id="prescriptions-show-expired"
                         checked={showExpired}
@@ -178,7 +189,7 @@ export default function PrescriptionsView(props: PrescriptionsViewProps) {
                         onChange={e => setShowExpired(e.target.checked)}
                     />
                 </Col>
-                <Col xs="auto" className="d-flex align-items-center">
+                <Col xs="auto" className="d-flex align-items-center mt-2 mt-md-0">
                     <Form.Switch
                         id="prescriptions-show-fulfilled"
                         checked={showFulfilled}
@@ -203,6 +214,16 @@ export default function PrescriptionsView(props: PrescriptionsViewProps) {
                     setPurchasing(undefined);
                 }}
                 onClose={() => setPurchasing(undefined)}
+            />
+            <DoctorsDialog
+                show={doctorsOpen}
+                doctors={props.doctors}
+                specializations={props.specializations}
+                prescriptions={props.prescriptions}
+                onAdd={props.onAddDoctor}
+                onAddSpecialization={props.onAddSpecialization}
+                onDelete={props.onDeleteDoctor}
+                onClose={() => setDoctorsOpen(false)}
             />
             <PrescriptionDialog
                 initial={editing}

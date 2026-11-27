@@ -12,6 +12,8 @@ export default interface IMedicineDTO {
   unitId?: string | null;
   asNeeded?: boolean;
   ignoreQuantity?: boolean;
+  runningOut?: boolean;
+  noLowStockWarning?: boolean;
   doses: IDoseDTO[];
   purchases: IPurchaseDTO[];
 }

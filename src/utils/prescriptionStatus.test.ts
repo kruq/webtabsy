@@ -4,6 +4,10 @@ import {
     expiryDate,
     formatYmdForDisplay,
     itemStatus,
+    packagesOnPrescriptions,
+    prescriptionsOfDoctor,
+    prescriptionSummary,
+    PrescriptionEntry,
     prescriptionStatus,
     tabletsOnPrescriptions,
     upcomingPurchaseDeadlines,
@@ -125,6 +129,59 @@ describe('tabletsOnPrescriptions', () => {
     });
 });
 
+describe('packagesOnPrescriptions', () => {
+    it('sums remaining packages per medicine and package size, smallest size first', () => {
+        const prescriptions = [
+            prescription('annual', [item(1, 3, 'med-1', 60), item(0, 1, 'med-2', 20)]),
+            prescription('annual', [item(0, 2, 'med-1', 30), item(0, 1, 'med-1', 60)]),
+        ];
+
+        const result = packagesOnPrescriptions(prescriptions, '2026-01-15');
+
+        expect(result.get('med-1')).toEqual([{ packages: 2, packageSize: 30 }, { packages: 3, packageSize: 60 }]);
+        expect(result.get('med-2')).toEqual([{ packages: 1, packageSize: 20 }]);
+    });
+
+    it('skips expired and fully purchased items', () => {
+        const prescriptions = [prescription('annual', [item(0, 2, 'med-1'), item(2, 2, 'med-2')])];
+
+        const result = packagesOnPrescriptions(prescriptions, '2026-03-01');
+
+        expect(result.size).toBe(0);
+    });
+});
+
+describe('prescriptionsOfDoctor', () => {
+    it('counts prescriptions by doctor name, ignoring case and surrounding spaces', () => {
+        const prescriptions = [
+            { ...prescription('annual', []), doctor: 'Jan Kowalski' },
+            { ...prescription('30days', []), doctor: ' jan kowalski ' },
+            { ...prescription('30days', []), doctor: 'Anna Nowak' },
+        ];
+
+        expect(prescriptionsOfDoctor(prescriptions, 'Jan Kowalski')).toBe(2);
+        expect(prescriptionsOfDoctor(prescriptions, 'Ewa Zając')).toBe(0);
+    });
+});
+
+describe('prescriptionSummary', () => {
+    const entry = (prescriptionId: string, code: string, packages: number, packageSize = 30): PrescriptionEntry =>
+        ({ prescriptionId, issueDate: ISSUED, code, packages, packageSize, deadline: '2026-02-09' });
+
+    it('describes one prescription with its code', () => {
+        expect(prescriptionSummary([entry('p1', '1234', 3)], 'tab.')).toBe('Recepta: 3 op. × 30 tab., kod 1234');
+    });
+
+    it('groups several prescriptions of one medicine and lists every code, also a missing one', () => {
+        expect(prescriptionSummary([entry('p1', '1234', 1, 28), entry('p2', '', 1, 28)], 'tab.'))
+            .toBe('Recepty: 2 op. × 28 tab., kody 1234, bez kodu');
+    });
+
+    it('shows packages only for a medicine without quantity control', () => {
+        expect(prescriptionSummary([entry('p1', '', 2, 0)], 'tab.')).toBe('Recepta: 2 op., bez kodu');
+    });
+});
+
 describe('formatYmdForDisplay', () => {
     it('formats a stored date in Polish order', () => {
         expect(formatYmdForDisplay('2026-02-09')).toBe('09.02.26');
@@ -132,11 +189,12 @@ describe('formatYmdForDisplay', () => {
 });
 
 describe('upcomingPurchaseDeadlines', () => {
-    it('warns about an unstarted item on an annual prescription with a deadline 30 days after issue', () => {
-        const result = upcomingPurchaseDeadlines([prescription('annual', [item(0)])], '2026-01-15');
+    it('warns about an unstarted item on an annual prescription 14 days before its deadline (30 days after issue)', () => {
+        expect(upcomingPurchaseDeadlines([prescription('annual', [item(0)])], '2026-01-25')).toHaveLength(0);
+        const result = upcomingPurchaseDeadlines([prescription('annual', [item(0)])], '2026-01-26');
 
         expect(result).toHaveLength(1);
-        expect(result[0]).toMatchObject({ deadline: '2026-02-09', daysLeft: 25, started: false, remainingPackages: 2 });
+        expect(result[0]).toMatchObject({ deadline: '2026-02-09', daysLeft: 14, started: false, remainingPackages: 2 });
     });
 
     it('warns about a 30-day prescription until its expiry, also once started', () => {
@@ -145,11 +203,11 @@ describe('upcomingPurchaseDeadlines', () => {
         expect(result[0]).toMatchObject({ deadline: '2026-02-09', daysLeft: 0, started: true });
     });
 
-    it('warns about a started annual item only in the last 30 days of validity', () => {
+    it('warns about a started annual item only in the last 14 days of validity', () => {
         const p = prescription('annual', [item(1)]);
 
-        expect(upcomingPurchaseDeadlines([p], '2026-12-10')).toHaveLength(0);
-        expect(upcomingPurchaseDeadlines([p], '2026-12-11')[0]).toMatchObject({ deadline: '2027-01-10', daysLeft: 30 });
+        expect(upcomingPurchaseDeadlines([p], '2026-12-26')).toHaveLength(0);
+        expect(upcomingPurchaseDeadlines([p], '2026-12-27')[0]).toMatchObject({ deadline: '2027-01-10', daysLeft: 14 });
     });
 
     it('skips expired and fully purchased items', () => {
@@ -162,7 +220,7 @@ describe('upcomingPurchaseDeadlines', () => {
         const older = { ...prescription('30days', [item(0, 1, 'B')]), issueDate: '2026-01-01' };
         const newer = prescription('30days', [item(0, 1, 'A')]);
 
-        const result = upcomingPurchaseDeadlines([newer, older], '2026-01-15');
+        const result = upcomingPurchaseDeadlines([newer, older], '2026-01-28');
 
         expect(result.map(r => r.medicineName)).toEqual(['B', 'A']);
     });

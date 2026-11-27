@@ -15,6 +15,10 @@ export default interface IMedicine {
   asNeeded?: boolean;
   /** Tylko przypomnienie: dawki bez ilości, zapas (count) nie jest sprawdzany ani zmieniany. */
   ignoreQuantity?: boolean;
+  /** „Kończy się” zaznaczone ręcznie - tylko dla leku bez kontroli ilości; zakup leku je zdejmuje. */
+  runningOut?: boolean;
+  /** Lek doraźny bez ostrzeżenia o kończącym się zapasie. */
+  noLowStockWarning?: boolean;
   doses: Dose[];
   purchases: IPurchase[];
 }

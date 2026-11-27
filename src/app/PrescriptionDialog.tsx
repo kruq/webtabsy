@@ -3,7 +3,6 @@ import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
-import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 import { v4 as Uuid } from 'uuid';
@@ -14,12 +13,14 @@ import {
     formatYmdForDisplay,
     ITEM_STATUS_LABELS,
     itemStatus,
+    prescriptionStatus,
     remainingPackages,
     STATUS_VARIANTS,
     todayYmd,
     VALIDITY_LABELS,
 } from '../utils/prescriptionStatus';
 import { DraftPrescriptionItem } from './prescriptionDraft';
+import SpecializationSelect from './SpecializationSelect';
 import { useUnits } from './UnitsContext';
 import { capitalize, packageSizeSuffix } from '../utils/units';
 import MedicineNameHints from '../medicine/MedicineNameHints';
@@ -43,7 +44,6 @@ interface PrescriptionDialogProps {
 }
 
 const NEW_MEDICINE = '__new__';
-const NEW_SPECIALIZATION = '__new__';
 const NEW_DOCTOR = '__new__';
 
 const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, 'pl', { sensitivity: 'base' });
@@ -51,6 +51,11 @@ const CODE_PATTERN = /^\d{4}$/;
 
 export function emptyPrescription(): Prescription {
     return { id: '', issueDate: todayYmd(), validity: '30days', code: '', doctor: '', specialization: '', note: '', items: [] };
+}
+
+/** Liczba całkowita ≥ 0 (pole „Wykupione wcześniej”). */
+function parseNonNegativeInt(text: string): number | undefined {
+    return /^\d+$/.test(text.trim()) ? parseInt(text, 10) : undefined;
 }
 
 function parsePositiveInt(text: string): number | undefined {
@@ -62,10 +67,12 @@ interface NewItemForm {
     newMedicineName: string;
     packages: string;
     packageSize: string;
+    /** Opakowania wykupione, zanim receptę dodano do aplikacji. */
+    purchasedPackages: string;
     newMedicineIgnoreQuantity: boolean;
 }
 
-const EMPTY_ITEM_FORM: NewItemForm = { medicineChoice: '', newMedicineName: '', packages: '1', packageSize: '', newMedicineIgnoreQuantity: false };
+const EMPTY_ITEM_FORM: NewItemForm = { medicineChoice: '', newMedicineName: '', packages: '1', packageSize: '', purchasedPackages: '0', newMedicineIgnoreQuantity: false };
 
 export default function PrescriptionDialog({
     initial,
@@ -81,8 +88,6 @@ export default function PrescriptionDialog({
     const { unitOfMedicine } = useUnits();
     const [draft, setDraft] = useState<PrescriptionDraft>(emptyPrescription());
     const [itemForm, setItemForm] = useState<NewItemForm>(EMPTY_ITEM_FORM);
-    const [addingSpecialization, setAddingSpecialization] = useState(false);
-    const [newSpecialization, setNewSpecialization] = useState('');
     const [addingDoctor, setAddingDoctor] = useState(false);
     const [newDoctorName, setNewDoctorName] = useState('');
     const [newDoctorSpecialization, setNewDoctorSpecialization] = useState('');
@@ -92,8 +97,6 @@ export default function PrescriptionDialog({
         if (!initial) return;
         setDraft({ ...initial, items: initial.items.map(i => ({ ...i })) });
         setItemForm(EMPTY_ITEM_FORM);
-        setAddingSpecialization(false);
-        setNewSpecialization('');
         setAddingDoctor(false);
         setNewDoctorName('');
         setNewDoctorSpecialization('');
@@ -102,7 +105,6 @@ export default function PrescriptionDialog({
     const update = (params: Partial<PrescriptionDraft>) => setDraft(prev => ({ ...prev, ...params }));
 
     const sortedMedicines = [...medicines].sort((a, b) => a.name.localeCompare(b.name, 'pl', { sensitivity: 'base' }));
-    const sortedSpecializations = [...specializations].sort(byName);
     const sortedDoctors = [...doctors].sort(byName);
 
     // Walidacja nowej pozycji.
@@ -118,7 +120,13 @@ export default function PrescriptionDialog({
     const medicineChosen = isNewMedicine
         ? itemForm.newMedicineName.trim().length > 0 && !newNameTaken
         : itemForm.medicineChoice !== '';
-    const itemValid = medicineChosen && packages !== undefined && packageSize !== undefined;
+    // Wcześniej wykupione opakowania nie zmieniają ilości leku ani historii zakupów - są już w zapasie.
+    const purchasedBefore = parseNonNegativeInt(itemForm.purchasedPackages);
+    const purchasedBeforeValid = purchasedBefore !== undefined && (packages === undefined || purchasedBefore <= packages);
+    const itemValid = medicineChosen && packages !== undefined && packageSize !== undefined && purchasedBeforeValid;
+    // Status, jaki pozycja dostanie po dodaniu - ostrzeżenie, gdy od razu byłaby przeterminowana.
+    const newItemExpired = packages !== undefined && purchasedBeforeValid && draft.issueDate !== ''
+        && itemStatus(draft, { id: '', medicineId: '', medicineName: '', packages, packageSize: 0, purchasedPackages: purchasedBefore as number }) === 'expired';
 
     const addItem = () => {
         if (!itemValid) return;
@@ -129,7 +137,7 @@ export default function PrescriptionDialog({
             medicineName: isNewMedicine ? itemForm.newMedicineName.trim() : existing?.name ?? '',
             packages: packages as number,
             packageSize: packageSize as number,
-            purchasedPackages: 0,
+            purchasedPackages: purchasedBefore as number,
             newMedicineName: isNewMedicine ? itemForm.newMedicineName.trim() : undefined,
             newMedicineIgnoreQuantity: isNewMedicine ? itemForm.newMedicineIgnoreQuantity : undefined,
         };
@@ -169,30 +177,10 @@ export default function PrescriptionDialog({
         }
     };
 
-    const handleSpecializationChoice = (value: string) => {
-        if (value === NEW_SPECIALIZATION) {
-            setAddingSpecialization(true);
-            return;
-        }
-        update({ specialization: value });
-    };
-
-    const saveNewSpecialization = async () => {
-        const name = newSpecialization.trim();
-        if (!name) return;
-        try {
-            const created = await onAddSpecialization(name);
-            update({ specialization: created.name });
-            setAddingSpecialization(false);
-            setNewSpecialization('');
-        } catch (e) {
-            console.error(e);
-            alert('Nie udało się dodać specjalizacji');
-        }
-    };
-
     const codeValid = draft.code === '' || CODE_PATTERN.test(draft.code);
-    const formValid = codeValid && draft.issueDate !== '';
+    // Nowej recepty, która już w chwili dodawania jest cała przeterminowana, nie da się zapisać.
+    const newPrescriptionExpired = !draft.id && draft.issueDate !== '' && prescriptionStatus(draft) === 'expired';
+    const formValid = codeValid && draft.issueDate !== '' && !newPrescriptionExpired;
 
     const handleSave = async () => {
         if (!formValid) return;
@@ -278,14 +266,14 @@ export default function PrescriptionDialog({
                                     autoFocus
                                     onChange={e => setNewDoctorName(e.target.value)}
                                 />
-                                <Form.Select
+                                <SpecializationSelect
                                     className="mb-2"
                                     value={newDoctorSpecialization}
-                                    onChange={e => setNewDoctorSpecialization(e.target.value)}
-                                >
-                                    <option value="">— specjalizacja: brak —</option>
-                                    {sortedSpecializations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                                </Form.Select>
+                                    onChange={setNewDoctorSpecialization}
+                                    specializations={specializations}
+                                    onAdd={onAddSpecialization}
+                                    emptyLabel="— specjalizacja: brak —"
+                                />
                                 <div className="text-end">
                                     <Button size="sm" onClick={saveNewDoctor} disabled={!newDoctorName.trim()}>Dodaj</Button>
                                     <Button size="sm" variant="outline-secondary" className="ms-2" onClick={() => setAddingDoctor(false)}>
@@ -310,29 +298,13 @@ export default function PrescriptionDialog({
                     </Form.Group>
                     <Form.Group className="mb-2">
                         <Form.Label>Specjalizacja lekarza</Form.Label>
-                        {addingSpecialization ? (
-                            <InputGroup>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Nazwa specjalizacji"
-                                    value={newSpecialization}
-                                    autoFocus
-                                    onChange={e => setNewSpecialization(e.target.value)}
-                                />
-                                <Button onClick={saveNewSpecialization} disabled={!newSpecialization.trim()}>Dodaj</Button>
-                                <Button variant="outline-secondary" onClick={() => setAddingSpecialization(false)}>Anuluj</Button>
-                            </InputGroup>
-                        ) : (
-                            <Form.Select value={draft.specialization} onChange={e => handleSpecializationChoice(e.target.value)}>
-                                <option value="">— brak —</option>
-                                {sortedSpecializations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                                {/* Specjalizacja zapisana na recepcie, a potem usunięta ze słownika, nadal ma się wyświetlić. */}
-                                {draft.specialization && !specializations.some(s => s.name === draft.specialization) && (
-                                    <option value={draft.specialization}>{draft.specialization}</option>
-                                )}
-                                <option value={NEW_SPECIALIZATION}>+ Dodaj nową…</option>
-                            </Form.Select>
-                        )}
+                        <SpecializationSelect
+                            value={draft.specialization}
+                            onChange={specialization => update({ specialization })}
+                            specializations={specializations}
+                            onAdd={onAddSpecialization}
+                            emptyLabel="— brak —"
+                        />
                     </Form.Group>
                     <Form.Group className="mb-3">
                         <Form.Label>Notatka</Form.Label>
@@ -348,8 +320,8 @@ export default function PrescriptionDialog({
                                 <Col>
                                     <div>
                                         <strong>{item.medicineName}</strong>
-                                        {item.newMedicineName && <Badge bg="info" className="ms-1">nowy lek</Badge>}
-                                        <Badge bg={STATUS_VARIANTS[status]} className="ms-1">{ITEM_STATUS_LABELS[status]}</Badge>
+                                        {item.newMedicineName && <Badge bg="info" pill className="ms-1">nowy lek</Badge>}
+                                        <Badge bg={STATUS_VARIANTS[status]} pill className="ms-1">{ITEM_STATUS_LABELS[status]}</Badge>
                                     </div>
                                     <small className="text-secondary">
                                         {remainingPackages(item)}/{item.packages} op.{packageSizeSuffix(item.packageSize, unitOfMedicine(item.medicineId))}
@@ -418,6 +390,28 @@ export default function PrescriptionDialog({
                                 />
                             </Form.Group>}
                         </Row>
+                        <Row className="mb-2">
+                            <Form.Group as={Col} xs={6}>
+                                <Form.Label><small>Wykupione wcześniej</small></Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={itemForm.purchasedPackages}
+                                    isInvalid={itemForm.purchasedPackages !== '' && !purchasedBeforeValid}
+                                    onChange={e => setItemForm(prev => ({ ...prev, purchasedPackages: e.target.value }))}
+                                />
+                                <Form.Control.Feedback type="invalid">Od 0 do liczby opakowań</Form.Control.Feedback>
+                            </Form.Group>
+                        </Row>
+                        {newItemExpired && (
+                            <div className="mb-2 text-orange">
+                                <small>
+                                    {purchasedBefore === 0
+                                        ? 'Pozycja będzie przeterminowana: minęło 30 dni od wystawienia bez wykupu. Jeśli część opakowań była już wykupiona, wpisz ich liczbę w „Wykupione wcześniej”.'
+                                        : 'Pozycja będzie przeterminowana: recepta jest już po terminie ważności.'}
+                                </small>
+                            </div>
+                        )}
                         <div className="text-end">
                             <Button size="sm" onClick={addItem} disabled={!itemValid}>Dodaj do recepty</Button>
                         </div>
@@ -425,11 +419,14 @@ export default function PrescriptionDialog({
                 </Form>
             </Modal.Body>
             <Modal.Footer>
+                {newPrescriptionExpired && (
+                    <small className="text-danger me-auto">Recepta jest przeterminowana - nie można jej dodać</small>
+                )}
                 {draft.id && (
                     <Button variant="outline-danger" className="me-auto" onClick={handleDelete}>Usuń receptę</Button>
                 )}
-                <Button variant="secondary" onClick={onClose}>Anuluj</Button>
                 <Button onClick={handleSave} disabled={!formValid || saving}>Zapisz</Button>
+                <Button variant="secondary" onClick={onClose}>Anuluj</Button>
             </Modal.Footer>
         </Modal>
     );

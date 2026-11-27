@@ -39,12 +39,13 @@ import { ApiError } from './services/http';
 import { recordDose } from './services/overdueDoses.service';
 import { createMedicine, updateMedicine as persistMedicine } from './services/medicine.service';
 import { subtractAmount } from './utils/fraction';
-import { tabletsOnPrescriptions, upcomingPurchaseDeadlines } from './utils/prescriptionStatus';
+import { prescriptionEntries, tabletsOnPrescriptions, upcomingPurchaseDeadlines } from './utils/prescriptionStatus';
 import { scrollToMedicineCard } from './utils/scrollToMedicine';
 import { UnitsProvider } from './app/UnitsContext';
 
 const STATUS_TAB = 'missingDoses';
 const MEDICINES_TAB = 'medicines';
+const PRESCRIPTIONS_TAB = 'prescriptions';
 // Minimalny odstęp treści od dołu ekranu, zanim zmierzymy faktyczną wysokość dolnego paska.
 const MIN_BOTTOM_PADDING_PX = 60;
 
@@ -72,9 +73,10 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
         reportError,
     } = useMedicines();
 
-    const { prescriptions, specializations, doctors, savePrescription, removePrescription, addSpecialization, addDoctor } =
+    const { prescriptions, specializations, doctors, savePrescription, removePrescription, addSpecialization, addDoctor, removeDoctor } =
         usePrescriptions();
     const prescriptionTablets = useMemo(() => tabletsOnPrescriptions(prescriptions), [prescriptions]);
+    const prescriptionsByMedicine = useMemo(() => prescriptionEntries(prescriptions), [prescriptions]);
 
     const [selectedMedicineId, setSelectedMedicineId] = useState('');
     const [showPermissionAlert, setShowPermissionAlert] = useState(false);
@@ -253,6 +255,9 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                     onConfirmAll={confirmAllInGroup}
                                     onOpenMedicine={openMedicine}
                                     showCurrentPackage={showsCurrentPackage(user)}
+                                    prescriptionEntries={prescriptionsByMedicine}
+                                    onSetRunningOut={(id, runningOut) => saveMedicine(id, { runningOut })}
+                                    onOpenPrescriptions={() => setActiveTab(PRESCRIPTIONS_TAB)}
                                 />
                                 <MedicineListView
                                     key={medicineListKey}
@@ -277,6 +282,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                         onDelete={removePrescription}
                                         onAddSpecialization={addSpecialization}
                                         onAddDoctor={addDoctor}
+                                        onDeleteDoctor={removeDoctor}
                                         onPurchase={handlePrescriptionPurchase}
                                     />
                                 </Tab.Pane>

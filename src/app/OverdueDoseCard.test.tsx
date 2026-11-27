@@ -4,6 +4,7 @@ import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import { newPurchase } from '../utils/purchases';
 import OverdueDoseCard from './OverdueDoseCard';
+import { PrescriptionEntry } from '../utils/prescriptionStatus';
 
 function med(extra: Partial<IMedicine>): IMedicine {
     return { id: 'm', name: 'Asentra', meal: '', description: '', count: 70, isVisible: true, hideWhenEmpty: false, doses: [], purchases: [], ...extra };
@@ -11,9 +12,27 @@ function med(extra: Partial<IMedicine>): IMedicine {
 
 const dose = new OverdueDose({ id: 'd', amount: 1, numberOfDays: 1, nextDoseDate: new Date(), medicineName: 'Asentra', meal: '', time: '08:00', endDate: null });
 
-function renderCard(medicine: IMedicine) {
-    render(<OverdueDoseCard dose={dose} medicines={[medicine]} onSkip={jest.fn()} onConfirm={jest.fn()} onOpenMedicine={jest.fn()} />);
-    return screen.queryAllByTitle(/^(W aktualnym opakowaniu|Razem)$/).map(e => e.textContent);
+/** Pozycje recept na lek 'm' z podanych par [opakowania, wielkość opakowania]. */
+function entries(...packages: [number, number][]): Map<string, PrescriptionEntry[]> {
+    return new Map([['m', packages.map(([p, size], i) => ({
+        prescriptionId: `p${i}`, issueDate: '2026-11-01', code: i === 0 ? '1234' : '', packages: p, packageSize: size, deadline: '2026-12-01',
+    }))]]);
+}
+
+function renderCard(medicine: IMedicine, prescriptionEntries?: Map<string, PrescriptionEntry[]>, showCurrentPackage = true, onSetRunningOut = jest.fn()) {
+    render(
+        <OverdueDoseCard
+            dose={dose}
+            medicines={[medicine]}
+            onSkip={jest.fn()}
+            onConfirm={jest.fn()}
+            onOpenMedicine={jest.fn()}
+            prescriptionEntries={prescriptionEntries}
+            onSetRunningOut={onSetRunningOut}
+            showCurrentPackage={showCurrentPackage}
+        />,
+    );
+    return screen.queryAllByTitle(/^(W aktualnym opakowaniu|Razem|Do wykupienia z recepty)$/).map(e => e.textContent);
 }
 
 describe('OverdueDoseCard stock', () => {
@@ -31,8 +50,52 @@ describe('OverdueDoseCard stock', () => {
         expect(renderCard(med({}))).toEqual(['70Masz: 70 tab.70 tabletek']);
     });
 
-    it('shows a dash without quantity control', () => {
-        expect(renderCard(med({ ignoreQuantity: true }))).toEqual(['-']);
+    it('shows packages on a valid prescription in orange instead of "Brak" when the medicine has run out', () => {
+        const packages = entries([2, 30], [1, 60]);
+        // Telefon: suma opakowań; tablet: skrót jednostki; od 992px pełna nazwa.
+        expect(renderCard(med({ count: 0 }), packages))
+            .toEqual(['3 op.Na recepcie: 2 op. × 30 tab.30 tabletek + 1 op. × 60 tab.60 tabletek']);
+        expect(screen.getByTitle('Do wykupienia z recepty')).toHaveClass('text-orange');
+    });
+
+    it('shows the prescription also with the single-field profile setting', () => {
+        const packages = entries([2, 30]);
+        expect(renderCard(med({ count: 0 }), packages, false)).toEqual(['2 op.Na recepcie: 2 op. × 30 tab.30 tabletek']);
+    });
+
+    it('keeps the red "Brak" without a prescription', () => {
+        expect(renderCard(med({ count: 0 }), new Map(), false)).toEqual(['Brak tabletek']);
+        expect(screen.getByTitle('Razem')).toHaveClass('text-danger');
+    });
+
+    it('ignores prescriptions while the medicine is in stock', () => {
+        const packages = entries([2, 30]);
+        expect(renderCard(med({}), packages)).toEqual(['70Masz: 70 tab.70 tabletek']);
+    });
+
+    it('shows a "Kończy się" switch instead of the stock without quantity control', () => {
+        const onSetRunningOut = jest.fn();
+        expect(renderCard(med({ ignoreQuantity: true }), undefined, true, onSetRunningOut)).toEqual([]);
+        fireEvent.click(screen.getByLabelText('Kończy się'));
+        expect(onSetRunningOut).toHaveBeenCalledWith('m', true);
+    });
+});
+
+describe('OverdueDoseCard prescription label', () => {
+    it('is hidden without a valid prescription', () => {
+        renderCard(med({}), new Map());
+        expect(screen.queryByRole('button', { name: 'Recepta na lek' })).toBeNull();
+    });
+
+    it('shows all prescriptions of the medicine together in a dialog', async () => {
+        renderCard(med({}), entries([2, 30], [1, 30]));
+
+        fireEvent.click(screen.getByRole('button', { name: 'Recepta na lek' }));
+
+        expect(await screen.findByText('Do wykupienia z recept')).toBeInTheDocument();
+        expect(screen.getByText('3 op. × 30 tab.')).toBeInTheDocument();
+        expect(screen.getByText('· kod 1234')).toBeInTheDocument();
+        expect(screen.getByText('· bez kodu')).toBeInTheDocument();
     });
 });
 

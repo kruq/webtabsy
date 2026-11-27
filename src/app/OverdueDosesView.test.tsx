@@ -30,6 +30,9 @@ function renderView(medicines: IMedicine[], doses: OverdueDose[], onConfirmAll =
                     onOpenMedicine={jest.fn()}
                     onConfirmAll={onConfirmAll}
                     showCurrentPackage
+                    prescriptionEntries={new Map()}
+                    onSetRunningOut={jest.fn()}
+                    onOpenPrescriptions={jest.fn()}
                 />
             </Tab.Content>
         </Tab.Container>,
@@ -68,7 +71,7 @@ describe('Status day separators', () => {
             <Tab.Container activeKey="missingDoses">
                 <Tab.Content>
                     <OverdueDosesView medicines={[med('Apap', 5)]} groups={[group]} purchaseDeadlines={[]} onSkipDose={jest.fn()}
-                        onConfirmDose={jest.fn()} onOpenMedicine={jest.fn()} onConfirmAll={jest.fn()} showCurrentPackage />
+                        onConfirmDose={jest.fn()} onOpenMedicine={jest.fn()} onConfirmAll={jest.fn()} showCurrentPackage prescriptionEntries={new Map()} onSetRunningOut={jest.fn()} onOpenPrescriptions={jest.fn()} />
                 </Tab.Content>
             </Tab.Container>,
         );
@@ -86,7 +89,7 @@ describe('Status day separators', () => {
                     <OverdueDosesView
                         medicines={[med('Apap', 5)]}
                         groups={[new OverdueDoseGroup({ time: yesterday, doses: [dose('a', 'Apap')] }), new OverdueDoseGroup({ time: today, doses: [dose('b', 'Apap')] })]}
-                        purchaseDeadlines={[]} onSkipDose={jest.fn()} onConfirmDose={jest.fn()} onOpenMedicine={jest.fn()} onConfirmAll={jest.fn()} showCurrentPackage
+                        purchaseDeadlines={[]} onSkipDose={jest.fn()} onConfirmDose={jest.fn()} onOpenMedicine={jest.fn()} onConfirmAll={jest.fn()} showCurrentPackage prescriptionEntries={new Map()} onSetRunningOut={jest.fn()} onOpenPrescriptions={jest.fn()}
                     />
                 </Tab.Content>
             </Tab.Container>,

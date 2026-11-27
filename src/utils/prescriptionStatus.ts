@@ -102,7 +102,7 @@ export function tabletsOnPrescriptions(prescriptions: Prescription[], today: str
 }
 
 /** Ostrzeżenie pojawia się, gdy do terminu wykupu zostało tyle dni lub mniej. */
-export const DEADLINE_WARNING_DAYS = 30;
+export const DEADLINE_WARNING_DAYS = 14;
 
 export interface PurchaseDeadline {
     prescriptionId: string;
@@ -157,4 +157,100 @@ export function upcomingPurchaseDeadlines(prescriptions: Prescription[], today: 
         }
     }
     return result.sort((a, b) => a.deadline.localeCompare(b.deadline) || a.medicineName.localeCompare(b.medicineName, 'pl'));
+}
+
+/**
+ * Liczba recept (wszystkich, także przeterminowanych i zrealizowanych) wystawionych przez lekarza. Recepta zapisuje
+ * nazwę lekarza, nie jego id - porównujemy nazwy bez wielkości liter i spacji na końcach, tak jak API.
+ */
+export function prescriptionsOfDoctor(prescriptions: Prescription[], doctorName: string): number {
+    const name = doctorName.trim().toLocaleLowerCase('pl');
+    return prescriptions.filter(p => (p.doctor ?? '').trim().toLocaleLowerCase('pl') === name).length;
+}
+
+/** Opakowania jednej wielkości do wykupienia z ważnych recept. */
+export interface PrescriptionPackages {
+    packages: number;
+    packageSize: number;
+}
+
+/** Pozycja ważnej recepty, z której można jeszcze coś wykupić - do informacji o recepcie przy leku. */
+export interface PrescriptionEntry {
+    prescriptionId: string;
+    issueDate: string;
+    /** Pusty, gdy kodu nie podano. */
+    code: string;
+    /** Opakowania jeszcze do wykupienia. */
+    packages: number;
+    packageSize: number;
+    /** Ostatni dzień wykupu, "yyyy-MM-dd". */
+    deadline: string;
+}
+
+/** Pozycje ważnych recept, z których można jeszcze coś wykupić, per id leku; kilka recept na ten sam lek - kilka wpisów. */
+export function prescriptionEntries(prescriptions: Prescription[], today: string = todayYmd()): Map<string, PrescriptionEntry[]> {
+    const result = new Map<string, PrescriptionEntry[]>();
+    for (const prescription of prescriptions) {
+        for (const item of prescription.items) {
+            const status = itemStatus(prescription, item, today);
+            if (status !== 'new' && status !== 'partiallyPurchased') continue;
+            const list = result.get(item.medicineId) ?? [];
+            list.push({
+                prescriptionId: prescription.id,
+                issueDate: prescription.issueDate,
+                code: prescription.code ?? '',
+                packages: remainingPackages(item),
+                packageSize: item.packageSize,
+                deadline: purchaseDeadline(prescription, item),
+            });
+            result.set(item.medicineId, list);
+        }
+    }
+    result.forEach(list => list.sort((a, b) => a.deadline.localeCompare(b.deadline)));
+    return result;
+}
+
+/** Opakowania z kilku pozycji zsumowane według wielkości opakowania (od najmniejszego), np. [{ packages: 2, packageSize: 30 }]. */
+export function groupPackages(entries: Pick<PrescriptionEntry, 'packages' | 'packageSize'>[]): PrescriptionPackages[] {
+    const result: PrescriptionPackages[] = [];
+    for (const entry of entries) {
+        const sameSize = result.find(p => p.packageSize === entry.packageSize);
+        if (sameSize) sameSize.packages += entry.packages;
+        else result.push({ packages: entry.packages, packageSize: entry.packageSize });
+    }
+    return result.filter(p => p.packages > 0).sort((a, b) => a.packageSize - b.packageSize);
+}
+
+/** Kody recept (bez powtórzeń, jeden na receptę); recepta bez kodu daje pusty tekst. */
+export function prescriptionCodes(entries: PrescriptionEntry[]): string[] {
+    const byPrescription = new Map<string, string>();
+    entries.forEach(e => byPrescription.set(e.prescriptionId, e.code));
+    return Array.from(byPrescription.values());
+}
+
+/** Opakowania do wykupienia z ważnych recept, per id leku, zsumowane według wielkości opakowania. */
+export function packagesOnPrescriptions(prescriptions: Prescription[], today: string = todayYmd()): Map<string, PrescriptionPackages[]> {
+    const result = new Map<string, PrescriptionPackages[]>();
+    prescriptionEntries(prescriptions, today).forEach((entries, medicineId) => result.set(medicineId, groupPackages(entries)));
+    return result;
+}
+
+/** „2 op. × 30 tab. + 1 op. × 60 tab.”; lek bez kontroli ilości (wielkość opakowania 0) - samo „3 op.”. */
+export function formatPrescriptionPackages(packages: PrescriptionPackages[], unitAbbreviation: string): string {
+    return packages
+        .map(p => (p.packageSize > 0 ? `${p.packages} op. × ${p.packageSize} ${unitAbbreviation}` : `${p.packages} op.`))
+        .join(' + ');
+}
+
+/**
+ * Informacja o receptach na lek do panelu kończących się leków:
+ * „Recepta: 3 op. × 30 tab., kod 1234”, „Recepty: 2 op. × 28 tab., kody 1234, bez kodu”.
+ */
+export function prescriptionSummary(entries: PrescriptionEntry[], unitAbbreviation: string): string {
+    const codes = prescriptionCodes(entries);
+    const many = codes.length > 1;
+    const codeText = many
+        ? `kody ${codes.map(c => c || 'bez kodu').join(', ')}`
+        : codes[0] ? `kod ${codes[0]}` : 'bez kodu';
+    return `${many ? 'Recepty' : 'Recepta'}: ${formatPrescriptionPackages(groupPackages(entries), unitAbbreviation)}, ${codeText}`;
 }

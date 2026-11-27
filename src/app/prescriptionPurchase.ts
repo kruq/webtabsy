@@ -66,6 +66,8 @@ export function applyPrescriptionPurchase(
         touched.set(medicine.id, {
             ...medicine,
             count: medicine.count + purchase.packages * packageSize,
+            // Zakup zdejmuje ręczne „Kończy się”.
+            runningOut: false,
             purchases: [...(medicine.purchases ?? []), ...newPurchases],
         });
 

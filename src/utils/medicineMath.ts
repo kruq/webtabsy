@@ -108,6 +108,12 @@ export function forecastStock(medicine: IMedicine): StockForecast | undefined {
     return { days, lastDay, coversWholePlan: !ranOut };
 }
 
+/** Czy lek ma jeszcze dawki do przyjęcia (od dziś, z ilością większą od 0). */
+export function hasActiveDoses(medicine: IMedicine): boolean {
+    const today = startOfDay(new Date());
+    return (medicine.doses ?? []).some(dose => toSchedule(dose, today) !== undefined);
+}
+
 /** Na jak długo starcza zapas: brak, do 3 dni, do 7 dni, więcej (albo zapas nie zmaleje / pokrywa cały plan). */
 export type StockLevel = 'empty' | 'critical' | 'low' | 'ok';
 

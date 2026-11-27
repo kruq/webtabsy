@@ -51,3 +51,8 @@ export async function fetchDoctors(): Promise<Doctor[]> {
 export async function createDoctor(doctor: Omit<Doctor, 'id'>): Promise<Doctor> {
     return postJsonForResult<Omit<Doctor, 'id'>, Doctor>(DOCTOR_URL, doctor);
 }
+
+/** API odrzuca usunięcie lekarza, który ma recepty (409). */
+export async function deleteDoctor(id: string): Promise<void> {
+    await deleteResource(`${DOCTOR_URL}/${encodeURIComponent(id)}`);
+}

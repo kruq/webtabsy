@@ -4,13 +4,16 @@ import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Card from 'react-bootstrap/Card';
 import Dropdown from 'react-bootstrap/Dropdown';
-import { BsQuestionCircle } from 'react-icons/bs';
+import Form from 'react-bootstrap/Form';
+import { BsFileEarmarkMedical, BsQuestionCircle } from 'react-icons/bs';
 import TakeDoseDialog from '../medicine/TakeDoseDialog';
 import IMedicine from '../models/IMedicine';
 import OverdueDose from '../models/OverdueDoses';
 import { formatAmountForDisplay } from '../utils/fraction';
 import { countAmountInCurrentPackage, stockLevel, StockLevel } from '../utils/medicineMath';
+import { groupPackages, PrescriptionEntry, PrescriptionPackages } from '../utils/prescriptionStatus';
 import MedicineInfoDialog from './MedicineInfoDialog';
+import PrescriptionInfoDialog from './PrescriptionInfoDialog';
 import { useUnits } from './UnitsContext';
 import Unit from '../models/Unit';
 import { amountWithUnit, amountWithUnitName } from '../utils/units';
@@ -25,6 +28,10 @@ interface OverdueDoseCardProps {
     onOpenMedicine?: (medicineId: string) => void;
     /** Ustawienie profilu: pole z ilością w aktualnym opakowaniu; bez niego - tylko cały zapas. Domyślnie tak. */
     showCurrentPackage?: boolean;
+    /** Pozycje ważnych recept per id leku: etykieta „recepta” i informacja o recepcie, gdy leku nie ma. */
+    prescriptionEntries?: Map<string, PrescriptionEntry[]>;
+    /** „Kończy się” dla leku bez kontroli ilości (przełącznik w miejscu ilości). */
+    onSetRunningOut?: (medicineId: string, runningOut: boolean) => void;
 }
 
 /** Ilość z jednostką: poniżej 992px skrót („3½ tab.”), od 992px pełna odmieniona nazwa („3½ tabletki”). */
@@ -37,6 +44,28 @@ function UnitAmount({ amount, unit }: { amount: number; unit: Unit }) {
     );
 }
 
+/**
+ * Leku nie ma, ale da się go wykupić z recepty: „Na recepcie: 2 op. × 30 tab.” (kilka wielkości opakowań
+ * łączy „+”); na telefonie sama liczba opakowań („2 op.”).
+ */
+function PrescriptionStock({ packages, unit }: { packages: PrescriptionPackages[]; unit: Unit }) {
+    const total = packages.reduce((sum, p) => sum + p.packages, 0);
+    return (
+        <>
+            <span className="d-md-none">{total} op.</span>
+            <span className="d-none d-md-inline">
+                Na recepcie:{' '}
+                {packages.map((p, i) => (
+                    <React.Fragment key={p.packageSize}>
+                        {i > 0 && ' + '}
+                        {p.packages} op. × <UnitAmount amount={p.packageSize} unit={unit} />
+                    </React.Fragment>
+                ))}
+            </span>
+        </>
+    );
+}
+
 /** Kolor „Masz: …”: ponad 7 dni zielony, ponad 3 dni pomarańczowy, mniej i brak - czerwony. */
 const STOCK_LEVEL_CLASS: Record<StockLevel, string> = {
     ok: 'text-success',
@@ -45,9 +74,10 @@ const STOCK_LEVEL_CLASS: Record<StockLevel, string> = {
     empty: 'text-danger',
 };
 
-export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, onOpenMedicine, showCurrentPackage = true }: OverdueDoseCardProps) {
+export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, onOpenMedicine, showCurrentPackage = true, prescriptionEntries, onSetRunningOut }: OverdueDoseCardProps) {
     const [customAmountDialogOpen, setCustomAmountDialogOpen] = useState(false);
     const [infoOpen, setInfoOpen] = useState(false);
+    const [prescriptionOpen, setPrescriptionOpen] = useState(false);
 
     const medicine = medicines.find(m => m.name === dose.medicineName);
     const unit = useUnits().unitById(medicine?.unitId);
@@ -61,6 +91,9 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
         : <><UnitAmount amount={dose.amount} unit={unit} /> {dose.medicineName}</>;
     const inPackage = showCurrentPackage ? countAmountInCurrentPackage(medicine) : undefined;
     const levelClass = medicine ? STOCK_LEVEL_CLASS[stockLevel(medicine)] : '';
+    // Brak leku, ale jest ważna recepta - zamiast czerwonego „Brak …” pomarańczowa informacja o recepcie.
+    const entries = (medicine && prescriptionEntries?.get(medicine.id)) || [];
+    const onPrescription = stock <= 0 ? groupPackages(entries) : [];
     const totalText = stock > 0 ? <>Masz: <UnitAmount amount={stock} unit={unit} /></> : `Brak ${unit.genitivePlural}`;
 
     const confirmButton = (
@@ -97,6 +130,17 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     {/* Przyjmowanie z posiłkiem obok nazwy - od tabletu; na telefonie tylko w „info”. */}
                     {dose.meal && <small className="text-secondary ms-3 d-none d-md-inline">{dose.meal}</small>}
                 </div>
+                {/* Ważna recepta na lek: pomarańczowa etykieta po lewej od „info”, otwiera szczegóły. */}
+                {entries.length > 0 && (
+                    <Button
+                        variant="link"
+                        className="p-0 ms-2 d-inline-flex align-items-center gap-1 text-nowrap text-orange"
+                        aria-label="Recepta na lek"
+                        onClick={() => setPrescriptionOpen(true)}
+                    >
+                        <BsFileEarmarkMedical /> <span>recepta</span>
+                    </Button>
+                )}
                 {medicine && (medicine.meal || medicine.description) && (
                     <Button
                         variant="link"
@@ -123,13 +167,31 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     - profil bez opakowania: jedno pole „Masz: 70 tab.” / „Brak tabletek”;
                     - z opakowaniem: „W opakowaniu: 14 tab.” i „Wszystkich: 70 tab.”, na telefonie same liczby;
                     - bez aktualnego opakowania: jedno połączone pole, na telefonie sama liczba;
-                    - lek bez kontroli ilości: „-”.
+                    - brak leku, ale jest ważna recepta: „Na recepcie: 2 op. × 30 tab.” na pomarańczowo;
+                    - lek bez kontroli ilości: przełącznik „Kończy się”.
                     Kolor wg tego, na ile dni starcza zapas: zielony / pomarańczowy / czerwony. */}
                 <div className={`overdue-dose-stock-area${!showCurrentPackage ? ' overdue-dose-stock-area-summary' : ''}`}>
-                    {ignoreQuantity || !medicine ? (
+                    {ignoreQuantity && medicine && onSetRunningOut ? (
+                        // Bez kontroli ilości: zamiast ilości ręczne „Kończy się” (zakup leku je zdejmuje).
+                        <div className={`overdue-dose-stock${medicine.runningOut ? ' text-orange' : ''}`}>
+                            <Form.Check
+                                type="switch"
+                                className="mb-0"
+                                id={`overdue-running-out-${dose.id}`}
+                                label="Kończy się"
+                                checked={Boolean(medicine.runningOut)}
+                                onChange={e => onSetRunningOut(medicine.id, e.target.checked)}
+                            />
+                        </div>
+                    ) : ignoreQuantity || !medicine ? (
                         <div className="overdue-dose-stock" title="Razem">-</div>
+                    ) : onPrescription.length > 0 ? (
+                        <div className="overdue-dose-stock text-orange" title="Do wykupienia z recepty">
+                            <PrescriptionStock packages={onPrescription} unit={unit} />
+                        </div>
                     ) : !showCurrentPackage ? (
-                        <div className={`overdue-dose-stock ${levelClass}`} title="Razem">{totalText}</div>
+                        // Napis w spanie: w polu typu flex spacja po „Masz:” na końcu samego tekstu by znikała.
+                        <div className={`overdue-dose-stock ${levelClass}`} title="Razem"><span>{totalText}</span></div>
                     ) : inPackage !== undefined ? (
                         <>
                             <div className={`overdue-dose-stock ${levelClass}`} title="W aktualnym opakowaniu">
@@ -178,6 +240,15 @@ export default function OverdueDoseCard({ dose, medicines, onSkip, onConfirm, on
                     onCancel={() => setCustomAmountDialogOpen(false)}
                 />,
                 document.body,
+            )}
+            {entries.length > 0 && (
+                <PrescriptionInfoDialog
+                    medicineName={dose.medicineName}
+                    entries={entries}
+                    unit={unit}
+                    show={prescriptionOpen}
+                    onClose={() => setPrescriptionOpen(false)}
+                />
             )}
             {medicine && <MedicineInfoDialog medicine={medicine} show={infoOpen} onClose={() => setInfoOpen(false)} />}
         </>

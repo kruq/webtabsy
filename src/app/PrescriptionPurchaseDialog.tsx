@@ -157,8 +157,8 @@ export default function PrescriptionPurchaseDialog({ prescription, onSubmit, onC
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={onClose}>Anuluj</Button>
                 <Button onClick={handleSubmit} disabled={!formValid || saving}>Wykup</Button>
+                <Button variant="secondary" onClick={onClose}>Anuluj</Button>
             </Modal.Footer>
         </Modal>
     );

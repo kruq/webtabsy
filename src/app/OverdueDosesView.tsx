@@ -9,9 +9,10 @@ import OverdueDose from '../models/OverdueDoses';
 import OverdueDoseGroup from '../models/OverdueDosesGroup';
 import moment from 'moment';
 import { formatDayLabel, sameDay } from '../utils/dateFormat';
-import { PurchaseDeadline } from '../utils/prescriptionStatus';
+import { PrescriptionEntry, PurchaseDeadline } from '../utils/prescriptionStatus';
 import { confirmAllDoses } from './doseActions';
 import EmptyState from './EmptyState';
+import LowStockPanel from './LowStockPanel';
 import OverdueDoseCard from './OverdueDoseCard';
 import PurchaseDeadlinesPanel from './PurchaseDeadlinesPanel';
 
@@ -30,6 +31,10 @@ interface OverdueDosesViewProps {
     onConfirmAll: (group: OverdueDoseGroup) => void;
     /** Ustawienie profilu: ilość w aktualnym opakowaniu na kartach. */
     showCurrentPackage: boolean;
+    /** Pozycje ważnych recept per id leku - etykieta „recepta” na kartach i panel kończących się leków. */
+    prescriptionEntries: Map<string, PrescriptionEntry[]>;
+    onSetRunningOut: (medicineId: string, runningOut: boolean) => void;
+    onOpenPrescriptions: () => void;
 }
 
 /**
@@ -67,6 +72,7 @@ function ConfirmAllButton({ group, medicines, onConfirmAll }: {
 
 export default function OverdueDosesView({
     medicines, groups, purchaseDeadlines, onSkipDose, onConfirmDose, onOpenMedicine, onConfirmAll, showCurrentPackage,
+    prescriptionEntries, onSetRunningOut, onOpenPrescriptions,
 }: OverdueDosesViewProps) {
     const hasMedicines = medicines.length > 0;
     // Kreski z dniem tylko wtedy, gdy są dawki z więcej niż jednego dnia albo nie z dzisiaj.
@@ -76,6 +82,7 @@ export default function OverdueDosesView({
     return (
         <Tab.Pane eventKey="missingDoses" className="justify-content-center">
             <PurchaseDeadlinesPanel deadlines={purchaseDeadlines} />
+            <LowStockPanel medicines={medicines} prescriptionEntries={prescriptionEntries} onOpenPrescriptions={onOpenPrescriptions} />
             {!hasMedicines && <EmptyState title="Brak leków" hint="Dodaj lek w zakładce „Lista leków”" />}
             <Row hidden={!hasMedicines || groups.length !== 0} className="mt-5 text-center">
                 <Col>
@@ -119,6 +126,8 @@ export default function OverdueDosesView({
                                                 onConfirm={amount => onConfirmDose(group, dose, amount)}
                                                 onOpenMedicine={onOpenMedicine}
                                                 showCurrentPackage={showCurrentPackage}
+                                                prescriptionEntries={prescriptionEntries}
+                                                onSetRunningOut={onSetRunningOut}
                                             />
                                         ))}
                                     </Col>

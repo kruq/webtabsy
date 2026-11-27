@@ -4,6 +4,7 @@ import {
     createDoctor,
     createPrescription,
     createSpecialization,
+    deleteDoctor,
     deletePrescription,
     fetchDoctors,
     fetchPrescriptions,
@@ -20,6 +21,7 @@ export interface UsePrescriptionsResult {
     removePrescription: (id: string) => Promise<void>;
     addSpecialization: (name: string) => Promise<Specialization>;
     addDoctor: (doctor: Omit<Doctor, 'id'>) => Promise<Doctor>;
+    removeDoctor: (id: string) => Promise<void>;
 }
 
 export function usePrescriptions(): UsePrescriptionsResult {
@@ -64,5 +66,10 @@ export function usePrescriptions(): UsePrescriptionsResult {
         return created;
     }, []);
 
-    return { prescriptions, specializations, doctors, savePrescription, removePrescription, addSpecialization, addDoctor };
+    const removeDoctor = useCallback(async (id: string) => {
+        await deleteDoctor(id);
+        setDoctors(prev => prev.filter(d => d.id !== id));
+    }, []);
+
+    return { prescriptions, specializations, doctors, savePrescription, removePrescription, addSpecialization, addDoctor, removeDoctor };
 }

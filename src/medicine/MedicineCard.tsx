@@ -171,6 +171,14 @@ export default function MedicineCard(props: IMedicineProps) {
         props.updateMedicine(props.id, { ignoreQuantity: e.target.checked });
     };
 
+    const handleRunningOutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        props.updateMedicine(props.id, { runningOut: e.target.checked });
+    };
+
+    const handleLowStockWarningChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        props.updateMedicine(props.id, { noLowStockWarning: !e.target.checked });
+    };
+
     const handleHideWhenEmptyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         props.updateMedicine(props.id, { hideWhenEmpty: e.target.checked });
     };
@@ -221,7 +229,8 @@ export default function MedicineCard(props: IMedicineProps) {
         const newCount = (count ?? 0) + (ignoreQuantity ? 0 : packages * packageSize);
         setCount(newCount);
         setCountText(formatAmount(newCount));
-        await props.updateMedicine(props.id, { purchases: newPurchases, count: newCount, doses: newDoses });
+        // Zakup zdejmuje ręczne „Kończy się”.
+        await props.updateMedicine(props.id, { purchases: newPurchases, count: newCount, doses: newDoses, runningOut: false });
         setPurchaseDialogOpen(false);
     };
 
@@ -409,6 +418,34 @@ export default function MedicineCard(props: IMedicineProps) {
                                     />
                                 </Col>
                             </Row>
+                            {/* Lek doraźny trafia do „Kończących się leków”, gdy zostanie mniej niż 7 sztuk - chyba że to wyłączono. */}
+                            {props.asNeeded && (
+                                <Row>
+                                    <Col>
+                                        <FormCheck
+                                            type="switch"
+                                            id={`medicine-low-stock-warning-${props.id}`}
+                                            label="Ostrzegaj o kończącym się leku"
+                                            checked={!props.noLowStockWarning}
+                                            onChange={handleLowStockWarningChange}
+                                        />
+                                    </Col>
+                                </Row>
+                            )}
+                            {/* Bez kontroli ilości aplikacja nie wie, kiedy lek się kończy - oznacza się to ręcznie; zakup zdejmuje. */}
+                            {ignoreQuantity && (
+                                <Row>
+                                    <Col>
+                                        <FormCheck
+                                            type="switch"
+                                            id={`medicine-running-out-${props.id}`}
+                                            label="Kończy się"
+                                            checked={Boolean(props.runningOut)}
+                                            onChange={handleRunningOutChange}
+                                        />
+                                    </Col>
+                                </Row>
+                            )}
                         </Form.Group>
 
                         <Row className="mt-4">

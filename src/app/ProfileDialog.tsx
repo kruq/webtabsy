@@ -65,8 +65,8 @@ export default function ProfileDialog({ visible, user, onSaved, onClose }: Profi
                     {error && <div className="text-danger mt-2">{error}</div>}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={onClose}>Anuluj</Button>
                     <Button type="submit" disabled={!valid || saving}>Zapisz</Button>
+                    <Button variant="secondary" onClick={onClose}>Anuluj</Button>
                 </Modal.Footer>
             </Form>
         </Modal>
