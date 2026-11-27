@@ -1,6 +1,6 @@
 {
   "name": "webtabsy",
-  "version": "1.43.0",
+  "version": "1.44.0",
   "private": true,
   "dependencies": {
     "bootstrap": "^5.1.3",
