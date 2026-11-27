@@ -2,28 +2,36 @@ import React, { FormEvent, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
-import { AuthUser, showsCurrentPackage, updateProfile } from '../services/auth.service';
+import { AuthUser, ManagedUser, showsCurrentPackage, updateProfile, updateSettings } from '../services/auth.service';
 
 interface ProfileDialogProps {
     visible: boolean;
     user: AuthUser;
+    /** Użytkownik, którego dane są wyświetlane - do niego należy ustawienie ilości w opakowaniu. */
+    viewed: ManagedUser;
     onSaved: (user: AuthUser) => void;
     onClose: () => void;
 }
 
-/** Profil zalogowanego: nazwa i ustawienia. „Zapisz” zapisuje wszystko naraz, „Anuluj” porzuca zmiany. */
-export default function ProfileDialog({ visible, user, onSaved, onClose }: ProfileDialogProps) {
+/**
+ * Profil: nazwa zalogowanego i ustawienia użytkownika, którego dane są wyświetlane (przy danych połączonego
+ * użytkownika - jego ustawienia). „Zapisz” zapisuje wszystko naraz, „Anuluj” porzuca zmiany.
+ */
+export default function ProfileDialog({ visible, user, viewed, onSaved, onClose }: ProfileDialogProps) {
+    const viewingOther = viewed.id !== user.id;
     const [name, setName] = useState(user.name);
-    const [showCurrentPackage, setShowCurrentPackage] = useState(showsCurrentPackage(user));
+    const viewedShows = showsCurrentPackage(viewed);
+    const [showCurrentPackage, setShowCurrentPackage] = useState(viewedShows);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (!visible) return;
         setName(user.name);
-        setShowCurrentPackage(showsCurrentPackage(user));
+        setShowCurrentPackage(viewedShows);
         setError('');
-    }, [visible, user]);
+        // viewed powstaje przy każdym renderze - zależność od wartości, nie od obiektu (inaczej wpisywanie by się resetowało).
+    }, [visible, user, viewedShows]);
 
     const valid = name.trim().length > 0;
 
@@ -33,7 +41,14 @@ export default function ProfileDialog({ visible, user, onSaved, onClose }: Profi
         setSaving(true);
         setError('');
         try {
-            onSaved(await updateProfile(name.trim(), showCurrentPackage));
+            let saved: AuthUser;
+            if (viewingOther) {
+                await updateProfile(name.trim());
+                saved = await updateSettings(showCurrentPackage);
+            } else {
+                saved = await updateProfile(name.trim(), showCurrentPackage);
+            }
+            onSaved(saved);
             onClose();
         } catch (err) {
             console.error(err);
@@ -62,6 +77,7 @@ export default function ProfileDialog({ visible, user, onSaved, onClose }: Profi
                         checked={showCurrentPackage}
                         onChange={e => setShowCurrentPackage(e.target.checked)}
                     />
+                    {viewingOther && <Form.Text className="text-secondary">Ustawienie użytkownika {viewed.name}</Form.Text>}
                     {error && <div className="text-danger mt-2">{error}</div>}
                 </Modal.Body>
                 <Modal.Footer>

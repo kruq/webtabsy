@@ -1,4 +1,4 @@
-import { clearToken, getToken, onUnauthorized, setToken } from './authToken';
+import { clearToken, getActingUserId, getToken, onUnauthorized, setActingUserId, setToken } from './authToken';
 import { ApiError, getJson } from './http';
 
 function mockFetch(status: number, body: unknown = []) {
@@ -21,6 +21,30 @@ describe('http with session token', () => {
 
         const init = (fetchMock.mock.calls[0] as unknown[])[1] as RequestInit;
         expect((init.headers as Record<string, string>).Authorization).toBe('Bearer abc');
+    });
+
+    it('sends the connected user being viewed in the act-as header', async () => {
+        setToken('abc');
+        setActingUserId('anna');
+        const fetchMock = mockFetch(200);
+
+        await getJson('https://api/medicine');
+
+        const init = (fetchMock.mock.calls[0] as unknown[])[1] as RequestInit;
+        expect((init.headers as Record<string, string>)['X-Webtabsy-User']).toBe('anna');
+    });
+
+    it('sends no act-as header for own data, and forgets the choice with the token', async () => {
+        setToken('abc');
+        const fetchMock = mockFetch(200);
+
+        await getJson('https://api/medicine');
+
+        const init = (fetchMock.mock.calls[0] as unknown[])[1] as RequestInit;
+        expect((init.headers as Record<string, string>)['X-Webtabsy-User']).toBeUndefined();
+        setActingUserId('anna');
+        clearToken();
+        expect(getActingUserId()).toBeNull();
     });
 
     it('sends no Authorization header without a token', async () => {

@@ -1,4 +1,8 @@
 const TOKEN_KEY = 'webtabsyToken';
+/** Konto, którego dane ogląda administrator (połączony użytkownik); brak = własne dane. */
+const ACTING_USER_KEY = 'webtabsyActingUser';
+/** Nagłówek, którym API rozpoznaje, czyje dane czyta i zmienia żądanie. */
+export const ACT_AS_HEADER = 'X-Webtabsy-User';
 
 type Listener = () => void;
 const unauthorizedListeners = new Set<Listener>();
@@ -14,11 +18,27 @@ export function setToken(token: string): void {
 
 export function clearToken(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ACTING_USER_KEY);
+}
+
+export function getActingUserId(): string | null {
+    return localStorage.getItem(ACTING_USER_KEY);
+}
+
+/** null = powrót do własnych danych. */
+export function setActingUserId(id: string | null): void {
+    if (id) localStorage.setItem(ACTING_USER_KEY, id);
+    else localStorage.removeItem(ACTING_USER_KEY);
 }
 
 export function authHeaders(): Record<string, string> {
     const token = getToken();
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    if (!token) return {};
+    const actingUserId = getActingUserId();
+    return {
+        Authorization: `Bearer ${token}`,
+        ...(actingUserId ? { [ACT_AS_HEADER]: actingUserId } : {}),
+    };
 }
 
 /** API odrzuciło token (401) - sesja jest nieważna, aplikacja ma wrócić do ekranu logowania. */

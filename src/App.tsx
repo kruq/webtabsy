@@ -29,7 +29,7 @@ import { useSyncTimer } from './app/useSyncTimer';
 import { useElementHeight } from './hooks/useElementHeight';
 import Dose from './models/Dose';
 import IMedicine from './models/IMedicine';
-import { AuthUser, showsCurrentPackage } from './services/auth.service';
+import { AuthUser, showsCurrentPackage, viewedUser } from './services/auth.service';
 import Prescription from './models/Prescription';
 import OverdueDose from './models/OverdueDoses';
 import OverdueDoseGroup from './models/OverdueDosesGroup';
@@ -51,12 +51,20 @@ const MIN_BOTTOM_PADDING_PX = 60;
 
 interface MainAppProps {
     user: AuthUser;
+    /** Czyje dane są wyświetlane: zalogowanego albo połączonego z nim użytkownika. */
+    viewedUserId: string;
     onLogout: () => void;
     onUserChanged: (user: AuthUser) => void;
+    onSwitchUser: (userId: string) => void;
+    onConnectionsChanged: () => Promise<void>;
 }
 
-/** Aplikacja zalogowanego użytkownika; montowana od nowa (key) przy zmianie użytkownika, więc dane się nie mieszają. */
-function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
+/**
+ * Aplikacja zalogowanego użytkownika; montowana od nowa (key) przy zmianie zalogowanego i przy przełączeniu
+ * na dane innego użytkownika, więc dane różnych kont nigdy się nie mieszają.
+ */
+function MainApp({ user, viewedUserId, onLogout, onUserChanged, onSwitchUser, onConnectionsChanged }: MainAppProps) {
+    const viewed = viewedUser(user, viewedUserId);
     const {
         medicines,
         overdueGroups,
@@ -233,8 +241,10 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                 showPermissionAlert={showPermissionAlert}
                 onDismissPermissionAlert={() => setShowPermissionAlert(false)}
                 user={user}
+                viewed={viewed}
                 onLogout={onLogout}
                 onUserChanged={onUserChanged}
+                onSwitchUser={onSwitchUser}
             />
             <Container fluid className="position-relative pt-3">
                 {/* Do pierwszego wczytania danych; pusta lista leków (nowy użytkownik) to już wczytane dane. */}
@@ -254,7 +264,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                     onConfirmDose={(g, d, amount) => runDoseAction(g, d, 'confirm', amount)}
                                     onConfirmAll={confirmAllInGroup}
                                     onOpenMedicine={openMedicine}
-                                    showCurrentPackage={showsCurrentPackage(user)}
+                                    showCurrentPackage={showsCurrentPackage(viewed)}
                                     prescriptionEntries={prescriptionsByMedicine}
                                     onSetRunningOut={(id, runningOut) => saveMedicine(id, { runningOut })}
                                     onOpenPrescriptions={() => setActiveTab(PRESCRIPTIONS_TAB)}
@@ -292,7 +302,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
                                 </Tab.Pane>
                                 {user.isAdmin && (
                                     <Tab.Pane eventKey="users" mountOnEnter unmountOnExit>
-                                        <UsersView />
+                                        <UsersView currentUserId={user.id} onConnectionsChanged={onConnectionsChanged} />
                                     </Tab.Pane>
                                 )}
                             </Tab.Content>
@@ -309,7 +319,7 @@ function MainApp({ user, onLogout, onUserChanged }: MainAppProps) {
 }
 
 function App() {
-    const { state, login, logout, setUser, retry } = useAuth();
+    const { state, login, logout, setUser, retry, switchUser, reloadUser } = useAuth();
 
     switch (state.status) {
         case 'loading':
@@ -330,7 +340,17 @@ function App() {
         case 'mustChangePassword':
             return <ChangePasswordView user={state.user} onChanged={setUser} onLogout={logout} />;
         case 'ready':
-            return <MainApp key={state.user.id} user={state.user} onLogout={logout} onUserChanged={setUser} />;
+            return (
+                <MainApp
+                    key={`${state.user.id}/${state.viewedUserId}`}
+                    user={state.user}
+                    viewedUserId={state.viewedUserId}
+                    onLogout={logout}
+                    onUserChanged={setUser}
+                    onSwitchUser={switchUser}
+                    onConnectionsChanged={reloadUser}
+                />
+            );
     }
 }
 

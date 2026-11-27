@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AuthUser, fetchCurrentUser, login as apiLogin, logout as apiLogout } from '../services/auth.service';
-import { onUnauthorized } from '../services/authToken';
+import { getActingUserId, onUnauthorized, setActingUserId } from '../services/authToken';
 import { ApiError } from '../services/http';
 
 export type AuthState =
@@ -8,11 +8,25 @@ export type AuthState =
     | { status: 'offline' }
     | { status: 'loggedOut' }
     | { status: 'mustChangePassword'; user: AuthUser }
-    | { status: 'ready'; user: AuthUser };
+    /** viewedUserId: czyje dane są wyświetlane - zalogowanego albo połączonego z nim użytkownika. */
+    | { status: 'ready'; user: AuthUser; viewedUserId: string };
+
+/**
+ * Zapamiętany na urządzeniu wybór konta obowiązuje tylko, gdy to konto nadal jest połączone
+ * (mogło zostać rozłączone na innym urządzeniu) - inaczej powrót do własnych danych.
+ */
+function resolveViewedUserId(user: AuthUser): string {
+    const acting = getActingUserId();
+    if (acting && user.managedUsers?.some(m => m.id === acting)) return acting;
+    setActingUserId(null);
+    return user.id;
+}
 
 function stateFor(user: AuthUser | undefined): AuthState {
     if (!user) return { status: 'loggedOut' };
-    return user.mustChangePassword ? { status: 'mustChangePassword', user } : { status: 'ready', user };
+    return user.mustChangePassword
+        ? { status: 'mustChangePassword', user }
+        : { status: 'ready', user, viewedUserId: resolveViewedUserId(user) };
 }
 
 export interface UseAuthResult {
@@ -22,6 +36,10 @@ export interface UseAuthResult {
     /** Po wymuszonej zmianie hasła API zwraca zaktualizowanego użytkownika. */
     setUser: (user: AuthUser) => void;
     retry: () => void;
+    /** Przełączenie wyświetlanych danych na własne albo połączonego użytkownika. */
+    switchUser: (userId: string) => void;
+    /** Ponowne pobranie zalogowanego (np. po połączeniu lub rozłączeniu konta). */
+    reloadUser: () => Promise<void>;
 }
 
 export function useAuth(): UseAuthResult {
@@ -65,5 +83,20 @@ export function useAuth(): UseAuthResult {
 
     const setUser = useCallback((user: AuthUser) => setState(stateFor(user)), []);
 
-    return { state, login, logout, setUser, retry };
+    const switchUser = useCallback((userId: string) => {
+        setState(prev => {
+            if (prev.status !== 'ready') return prev;
+            const allowed = userId === prev.user.id || prev.user.managedUsers?.some(m => m.id === userId);
+            if (!allowed) return prev;
+            setActingUserId(userId === prev.user.id ? null : userId);
+            return { ...prev, viewedUserId: userId };
+        });
+    }, []);
+
+    const reloadUser = useCallback(async () => {
+        const user = await fetchCurrentUser();
+        if (user) setState(stateFor(user));
+    }, []);
+
+    return { state, login, logout, setUser, retry, switchUser, reloadUser };
 }
