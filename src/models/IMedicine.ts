@@ -19,6 +19,8 @@ export default interface IMedicine {
   runningOut?: boolean;
   /** Lek doraźny bez ostrzeżenia o kończącym się zapasie. */
   noLowStockWarning?: boolean;
+  /** Lek bez recepty - w panelu kończących się leków bez informacji „brak recepty”. Brak pola = wymaga recepty. */
+  noPrescriptionNeeded?: boolean;
   doses: Dose[];
   purchases: IPurchase[];
 }

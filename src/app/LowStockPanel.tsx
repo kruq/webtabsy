@@ -24,7 +24,8 @@ function daysText(days: number): string {
 /**
  * Kończące się leki (całość zapasu, nie opakowanie), wg tych samych progów co kolory pól z ilością na karcie dawki,
  * plus leki doraźne (mniej niż 7 sztuk) i leki bez kontroli ilości oznaczone „Kończy się”. Pod lekiem - recepty na
- * niego zebrane w jedną informację (link do listy recept) albo „Brak recepty”.
+ * niego zebrane w jedną informację (link do listy recept). Lek wymagający recepty, na który nie ma ważnej recepty,
+ * ma „brak recepty” w tym samym wierszu co nazwa; lek bez recepty nie ma tej informacji.
  */
 export default function LowStockPanel({ medicines, prescriptionEntries, onOpenPrescriptions }: LowStockPanelProps) {
     const { unitById } = useUnits();
@@ -47,20 +48,20 @@ export default function LowStockPanel({ medicines, prescriptionEntries, onOpenPr
             </div>
             {items.map(item => {
                 const entries = prescriptionEntries.get(item.medicine.id) ?? [];
+                const missingPrescription = entries.length === 0 && !item.medicine.noPrescriptionNeeded;
                 return (
                     <div key={item.medicine.id} className="mb-1">
                         <small>
                             <strong>{item.medicine.name}</strong> — {stockText(item)}
-                            <div className="ms-3">
-                                {entries.length > 0 ? (
-                                    // Przycisk-link do lewej; przycisk Bootstrapa ma własny rozmiar (1rem) - <small> wyrównuje go do wiersza.
+                            {missingPrescription && ' · brak recepty'}
+                            {entries.length > 0 && (
+                                <div className="ms-3">
+                                    {/* Przycisk-link do lewej; przycisk Bootstrapa ma własny rozmiar (1rem) - <small> wyrównuje go do wiersza. */}
                                     <Button variant="link" className="alert-link p-0 border-0 align-baseline text-start" onClick={onOpenPrescriptions}>
                                         <small>{prescriptionSummary(entries, unitById(item.medicine.unitId).abbreviation)}</small>
                                     </Button>
-                                ) : (
-                                    'Brak recepty'
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </small>
                     </div>
                 );

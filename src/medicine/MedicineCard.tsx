@@ -179,6 +179,10 @@ export default function MedicineCard(props: IMedicineProps) {
         props.updateMedicine(props.id, { noLowStockWarning: !e.target.checked });
     };
 
+    const handlePrescriptionNeededChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        props.updateMedicine(props.id, { noPrescriptionNeeded: !e.target.checked });
+    };
+
     const handleHideWhenEmptyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         props.updateMedicine(props.id, { hideWhenEmpty: e.target.checked });
     };
@@ -446,6 +450,18 @@ export default function MedicineCard(props: IMedicineProps) {
                                     </Col>
                                 </Row>
                             )}
+                            {/* Lek bez recepty nie dostaje „brak recepty” w panelu kończących się leków. */}
+                            <Row>
+                                <Col>
+                                    <FormCheck
+                                        type="switch"
+                                        id={`medicine-prescription-needed-${props.id}`}
+                                        label="Wymaga recepty"
+                                        checked={!props.noPrescriptionNeeded}
+                                        onChange={handlePrescriptionNeededChange}
+                                    />
+                                </Col>
+                            </Row>
                         </Form.Group>
 
                         <Row className="mt-4">
